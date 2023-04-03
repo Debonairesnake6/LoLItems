@@ -24,7 +24,7 @@ namespace LoLItems
         public static RoR2.DotController.DotIndex myDotDefIndex;
 
         // Set value amount in one location
-        public static float burnDamagePercent = 50f;
+        public static float burnDamagePercent = 5f;
         public static float burnDamageDuration = 5f;
 
         // This runs when loading the file

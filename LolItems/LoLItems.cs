@@ -41,12 +41,12 @@ namespace LoLItems
         public void Awake()
         {
             //Init our logging class so that we can properly log for debugging
-            // Log.Init(Logger);
+            Log = Logger;
 
             PInfo = Info;
             Assets.Init();
 
-            // WhiteClover.Init();
+            WhiteClover.Init();
 
             Heartsteel.Init();
             Bork.Init();
@@ -72,10 +72,10 @@ namespace LoLItems
                 // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(WhiteClover.myItemDef.itemIndex), transform.position, transform.forward * 20f);
                 PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(Heartsteel.myItemDef.itemIndex), transform.position, transform.forward * 20f);
                 PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(Bork.myItemDef.itemIndex), transform.position, transform.forward * 20f);
-                // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(Rabadons.myItemDef.itemIndex), transform.position, transform.forward * 20f);
+                PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(Rabadons.myItemDef.itemIndex), transform.position, transform.forward * 20f);
                 PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(Liandrys.myItemDef.itemIndex), transform.position, transform.forward * 20f);
                 // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.DLC1Content.Items.ChainLightningVoid.itemIndex), transform.position, transform.forward * 20f);
-                PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.DLC1Content.Items.MissileVoid.itemIndex), transform.position, transform.forward * 20f);
+                // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.DLC1Content.Items.MissileVoid.itemIndex), transform.position, transform.forward * 20f);
                 // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.RoR2Content.Items.BleedOnHitAndExplode.itemIndex), transform.position, transform.forward * 20f);
                 // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.RoR2Content.Items.LunarBadLuck.itemIndex), transform.position, transform.forward * 20f);
                 // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.RoR2Content.Items.LunarBadLuck.itemIndex), transform.position, transform.forward * 20f);
