@@ -1,5 +1,4 @@
-# My first mod
-
+# LoLItems
 Adding items from League of Legends to Risk of Rain 2.
 
 ## Changelog
