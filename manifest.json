@@ -1,0 +1,10 @@
+﻿{
+	"name": "LoLItems",
+	"version_number": "0.1.0",
+	"website_url": "",
+	"description": "Adding items from League of Legends to Risk of Rain 2",
+	"dependencies": [
+		"bbepis-BepInExPack-5.4.9",
+		"RiskofThunder-HookGenPatcher-1.2.1"
+	]
+}
