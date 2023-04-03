@@ -1,10 +1,10 @@
 # My first mod
 
-Description.
+Adding items from League of Legends to Risk of Rain 2.
 
 ## Changelog
 
-**1.0.0**
+**0.1.0**
 
 * Release of my first mod.
 
