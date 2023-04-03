@@ -18,7 +18,7 @@ public static class Assets
     {
         get
         {
-            return System.IO.Path.Combine(System.IO.Path.GetDirectoryName(ExamplePlugin.ExamplePlugin.PInfo.Location), iconsName);
+            return System.IO.Path.Combine(System.IO.Path.GetDirectoryName(LoLItems.LoLItems.PInfo.Location), iconsName);
         }
     }
 
@@ -26,7 +26,7 @@ public static class Assets
     {
         get
         {
-            return System.IO.Path.Combine(System.IO.Path.GetDirectoryName(ExamplePlugin.ExamplePlugin.PInfo.Location), prefabsName);
+            return System.IO.Path.Combine(System.IO.Path.GetDirectoryName(LoLItems.LoLItems.PInfo.Location), prefabsName);
         }
     }
 

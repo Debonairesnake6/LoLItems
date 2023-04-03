@@ -32,8 +32,7 @@ namespace LoLItems
         public const string PluginName = "LolItems";
         public const string PluginVersion = "0.1.0";
 
-
-
+        public static BepInEx.Logging.ManualLogSource Log;
         public GameObject multiShopPrefab;
         public ItemTier[] itemTiers;
         public static PluginInfo PInfo {get; private set;}
@@ -42,13 +41,12 @@ namespace LoLItems
         public void Awake()
         {
             //Init our logging class so that we can properly log for debugging
-            Log.Init(Logger);
+            // Log.Init(Logger);
 
             PInfo = Info;
             Assets.Init();
 
             // WhiteClover.Init();
-            // RoR2.ItemCatalog.CallWhenAvailable(ItemStatsModCompatibility.)
 
             Heartsteel.Init();
             Bork.Init();

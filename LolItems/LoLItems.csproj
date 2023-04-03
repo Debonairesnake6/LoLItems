@@ -73,11 +73,15 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Copy SourceFiles="$(ProjectDir)bin\Debug\netstandard2.0\LoLItemsPlugin.dll" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItems" />
+    <Copy SourceFiles="$(ProjectDir)bin\Debug\netstandard2.0\LoLItems.dll" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItems" />
     <Copy SourceFiles="$(ProjectDir)bin\Debug\netstandard2.0\LoLItems.pdb" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItems" />
     <Copy SourceFiles="$(ProjectDir)Assets\icons" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItems" />
     <Copy SourceFiles="$(ProjectDir)Assets\prefabs" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItems" />
     <Copy SourceFiles="$(ProjectDir)../manifest.json" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItems" />
+    <Copy SourceFiles="$(ProjectDir)bin\Debug\netstandard2.0\LoLItems.dll" DestinationFolder="$(ProjectDir)\Thunderstore" />
+    <Copy SourceFiles="$(ProjectDir)bin\Debug\netstandard2.0\LoLItems.pdb" DestinationFolder="$(ProjectDir)\Thunderstore" />
+    <Copy SourceFiles="$(ProjectDir)../manifest.json" DestinationFolder="$(ProjectDir)\Thunderstore" />
+    <Copy SourceFiles="$(ProjectDir)../README.md" DestinationFolder="$(ProjectDir)\Thunderstore" />
   </Target>
 
 </Project>
