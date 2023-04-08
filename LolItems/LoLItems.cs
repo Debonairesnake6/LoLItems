@@ -29,7 +29,7 @@ namespace LoLItems
         //If we see this PluginGUID as it is on thunderstore, we will deprecate this mod. Change the PluginAuthor and the PluginName !
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Debo";
-        public const string PluginName = "LolItems";
+        public const string PluginName = "LoLItems";
         public const string PluginVersion = "0.1.1";
 
         public static BepInEx.Logging.ManualLogSource Log;
