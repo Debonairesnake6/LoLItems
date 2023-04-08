@@ -8,7 +8,6 @@ using RoR2.Orbs;
 using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using ItemStats;
 using System;
 using System.Collections;
 
