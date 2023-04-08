@@ -72,7 +72,7 @@
     </Reference> -->
   </ItemGroup>
 
-  <Target Name="Build">
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Copy SourceFiles="$(ProjectDir)bin\Debug\netstandard2.0\LoLItems.dll" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItemsLocal" />
     <Copy SourceFiles="$(ProjectDir)bin\Debug\netstandard2.0\LoLItems.pdb" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItemsLocal" />
     <Copy SourceFiles="$(ProjectDir)Assets\icons" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItemsLocal" />
@@ -81,10 +81,12 @@
     <Copy SourceFiles="$(ProjectDir)../README.md" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItemsLocal" />
   </Target>
 
-  <Target Name="BuildZip" AfterTargets="Build">
+  <Target Name="BuildZip" AfterTargets="PostBuild">
     <ItemGroup>
       <BuiltMod Include="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItemsLocal\*.*"/>
     </ItemGroup>
+    <Delete
+      Files="$(ProjectDir)Thunderstore\*.*"/>
     <Copy
       SourceFiles="@(BuiltMod)"
       DestinationFolder="$(ProjectDir)Thunderstore"/>
