@@ -4,6 +4,10 @@ Adding items from League of Legends to Risk of Rain 2.
 
 ## Changelog
 
+**0.1.1**
+
+* Fixed an issue loading assets
+
 **0.1.0**
 
 * Release of my first mod.
