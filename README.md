@@ -13,6 +13,10 @@ Icon | Name | Tier | Description
 
 ## Changelog
 
+**0.1.2**
+
+* Added items table in readme
+
 **0.1.1**
 
 * Fixed an issue loading assets
