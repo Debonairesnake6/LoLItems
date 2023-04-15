@@ -7,11 +7,18 @@ These are just the items implemented so far. I am planning to continue to add mo
 Icon | Name | Tier | Description
 --- | --- | --- | ---
 ![Liandrys](https://static.wikia.nocookie.net/leagueoflegends/images/3/30/Liandry%27s_Anguish_item.png/revision/latest?cb=20201118211533) | Liandrys | Green | Burn enemies for % max health damage on hit.
-![Bork](https://static.wikia.nocookie.net/leagueoflegends/images/2/2f/Blade_of_the_Ruined_King_item.png/revision/latest?cb=20221210230042) | Bork | Green | % max health damage on hit. Every 10 do bonus damage and heal for a portion of it.
+![Bork](https://static.wikia.nocookie.net/leagueoflegends/images/2/2f/Blade_of_the_Ruined_King_item.png/revision/latest?cb=20221210230042) | Bork | Green | % current health damage on hit. Every 10 hits do bonus damage and heal for a portion of it on a cooldown.
 ![Rabadons](https://static.wikia.nocookie.net/leagueoflegends/images/c/c5/Rabadon%27s_Deathcap_item.png/revision/latest?cb=20201118205704) | Rabadons | Red | Do more damage.
 ![Heartsteel](https://static.wikia.nocookie.net/leagueoflegends/images/8/87/Heartsteel_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221115195510) | Heartsteel | Red | Gain permanent health on kill. No cap.
 
 ## Changelog
+
+**0.1.3**
+
+* General code clean up and implemented some best practices (should work better in multiplayer)
+* Nerfed Bork big hit damage
+* Nerfed Bork on hit damage
+* Buffed Heartsteel health gain
 
 **0.1.2**
 

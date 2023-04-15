@@ -25,6 +25,7 @@ namespace LoLItems
         // Set value amount in one location
         public static float burnDamagePercent = 5f;
         public static float burnDamageDuration = 5f;
+        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> liandrysDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
 
         // This runs when loading the file
         internal static void Init()
@@ -141,9 +142,9 @@ namespace LoLItems
                     self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
                     {
                         // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex){
+                        if (item.itemIndex == myItemDef.itemIndex && liandrysDamageDealt.TryGetValue(self.targetMaster.netId, out float damageDealt)){
                             item.tooltipProvider.overrideBodyText =
-                                Language.GetString(myItemDef.descriptionToken) + "<br><br>Damage dealt: " + String.Format("{0:#}", self.targetMaster.GetBody().GetLiandrysDamageDealt());
+                                Language.GetString(myItemDef.descriptionToken) + "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
                         }
                     });
 #pragma warning restore Publicizer001
@@ -176,7 +177,6 @@ namespace LoLItems
                                 dotIndex = myDotDefIndex,
                                 duration = burnDamageDuration,
                                 maxStacksFromAttacker = 1,
-                                // damageMultiplier = inventoryCount
                             };
                             DotController.InflictDot(ref inflictDotInfo);
                         }
@@ -194,9 +194,9 @@ namespace LoLItems
                     if (attackerCharacterBody?.inventory)
                     {
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
-                        if (inventoryCount > 0 && damageInfo.dotIndex == myDotDefIndex)
+                        if (inventoryCount > 0 && damageInfo.dotIndex == myDotDefIndex) 
                         {
-                            attackerCharacterBody.AddLiandrysDamageDealt(damageInfo.damage);
+                            Utilities.AddValueToDictionary(ref liandrysDamageDealt, attackerCharacterBody.master.netId, damageInfo.damage);
                         }
                     }
                 }
@@ -239,25 +239,6 @@ namespace LoLItems
 
             // ENABLE for buff
             LanguageAPI.Add("LiandrysBuff", "Liandrys is burning this unit");
-        }
-    }
-}
-
-namespace RoR2
-{
-    // ENABLE for customer character stats
-    public static class CharacterBodyExtensionLiandrys
-    {
-        public static float LiandrysDamageDealt = 0f;
-        public static void AddLiandrysDamageDealt(this CharacterBody characterBody, float damage)
-        {
-
-            LiandrysDamageDealt += damage;
-        }
-
-        public static float GetLiandrysDamageDealt(this CharacterBody characterBody)
-        {
-            return LiandrysDamageDealt;
         }
     }
 }

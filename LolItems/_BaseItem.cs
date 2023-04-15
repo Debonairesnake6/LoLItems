@@ -23,6 +23,7 @@ namespace LoLItems
 
         // Set value amount in one location
         public static float exampleValue = 1f;
+        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> exampleStoredValue = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
 
         // This runs when loading the file
         internal static void Init()
@@ -128,7 +129,7 @@ namespace LoLItems
                         // MyExampleItemOrb.target = Util.FindBodyMainHurtBox(damageReport.attackerBody);
                         // MyExampleItemOrb.maxHpValue = 0;
                         // OrbManager.instance.AddOrb(MyExampleItemOrb);
-                        // damageReport.attackerBody.AddMyExampleItemHealth(inventoryCount);
+                        // Utilities.AddValueToDictionary(ref exampleStoredValue, damageReport.attackerBody.master.netId, exampleValue);
 					}
                 }
             };
@@ -143,10 +144,10 @@ namespace LoLItems
                     self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
                     {
                         // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex){
+                        if (item.itemIndex == myItemDef.itemIndex && exampleStoredValue.TryGetValue(self.targetMaster.netId, out float value)){
                             // ENABLE for description update
                             // item.tooltipProvider.overrideBodyText =
-                            //     Language.GetString(myItemDef.descriptionToken) + "<br><br>Health gained: " + String.Format("{0:#}", self.targetMaster.GetBody().GetValueFromItem());
+                            //     Language.GetString(myItemDef.descriptionToken) + "<br><br>Value gained: " + String.Format("{0:#}", value);
                         }
                     });
 #pragma warning restore Publicizer001
@@ -163,9 +164,9 @@ namespace LoLItems
                     self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
                     {
                         // NOT WORKING
-                        // if (item.itemIndex == myItemDef.itemIndex){
+                        // if (item.itemIndex == myItemDef.itemIndex && exampleStoredValue.TryGetValue(characterMaster.netId, out float value)){
                         //     item.tooltipProvider.overrideBodyText =
-                        //         Language.GetString(myItemDef.descriptionToken) + "<br><br>Health gained: " + characterMaster.GetBody().GetValueFromItem();
+                        //         Language.GetString(myItemDef.descriptionToken) + "<br><br>Health gained: " + value;
                         // }
                     });
 #pragma warning restore Publicizer001
@@ -188,16 +189,17 @@ namespace LoLItems
                         if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
                         {
                             // ENABLE for damage
+                            // float damage = inventoryCount * exampleValue;
                             // DamageInfo onHitProc = damageInfo;
-                            // onHitProc.damage = inventoryCount * exampleValue;
+                            // onHitProc.damage = damage;
                             // onHitProc.crit = false;
                             // onHitProc.procCoefficient = 0f;
                             // onHitProc.damageType = DamageType.Generic;
                             // onHitProc.damageColorIndex = DamageColorIndex.SuperBleed;
-                            // onHitProc.attacker = damageInfo.attacker;
                             // onHitProc.inflictor = damageInfo.attacker;
 
-                            // victimCharacterBody.healthComponent.TakeDamage(onHitProc);            
+                            // victimCharacterBody.healthComponent.TakeDamage(onHitProc);  
+                            // Utilities.AddValueToDictionary(ref exampleStoredValue, attackerCharacterBody.master.netId, damage);
                         }
                     }
                 }
@@ -258,27 +260,6 @@ namespace LoLItems
 
             // ENABLE for buff
             // LanguageAPI.Add("MyExampleItemBuff", "MyExampleItem buff description");
-        }
-    }
-}
-
-namespace RoR2
-{
-    // ENABLE for customer character stats
-    public static class CharacterBodyExtensionMyExampleBaseItem
-    {
-        private static float valueFromItem = LoLItems.MyExampleBaseItem.exampleValue;
-        public static float myItemValue = 0f;
-        public static void AddToValue(this CharacterBody characterBody, int itemStacks)
-        {
-            // ENABLE to modify the character
-            // characterBody.baseMaxHealth += valueFromItem * itemStacks;
-            myItemValue += valueFromItem * itemStacks;
-        }
-
-        public static float GetValueFromItem(this CharacterBody characterBody)
-        {
-            return valueFromItem;
         }
     }
 }
