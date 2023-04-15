@@ -1,3 +1,4 @@
+using System.Data;
 using System.Threading;
 using System.Globalization;
 using System.Collections.Generic;
@@ -22,7 +23,9 @@ namespace LoLItems
         // public static BuffDef myBuffDef;
 
         // Set luck amount in one location
-        public static float bonusHealthAmount = 0.75f;
+        public static float bonusHealthAmount = 2f;
+        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> heartsteelHealth = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> originalBaseMaxHealth = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
 
         internal static void Init()
         {
@@ -92,9 +95,28 @@ namespace LoLItems
                         HeartsteelOrb.target = Util.FindBodyMainHurtBox(damageReport.attackerBody);
                         HeartsteelOrb.maxHpValue = 0;
                         OrbManager.instance.AddOrb(HeartsteelOrb);
-                        damageReport.attackerBody.AddHeartsteelHealth(inventoryCount);
+
+                        Utilities.AddValueToDictionary(ref heartsteelHealth, damageReport.attackerMaster.netId, bonusHealthAmount * inventoryCount);
 					}
                 }
+            };
+
+            On.RoR2.CharacterBody.Start += (orig, self) =>
+            {
+                orig(self);
+                if (!originalBaseMaxHealth.ContainsKey(self.master.netId))
+                {
+                    originalBaseMaxHealth.Add(self.master.netId, self.baseMaxHealth);
+                }
+            };
+            
+            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
+            {
+                if (self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && originalBaseMaxHealth.TryGetValue(self.master.netId, out float baseHealth) && heartsteelHealth.TryGetValue(self.master.netId, out float extraHealth))
+                {
+                    self.baseMaxHealth = baseHealth + extraHealth;
+                }
+                orig(self);
             };
 
             // Called basically every frame            
@@ -107,9 +129,10 @@ namespace LoLItems
 #pragma warning disable Publicizer001
                     self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
                     {
-                        if (item.itemIndex == myItemDef.itemIndex){
+                        if (item.itemIndex == myItemDef.itemIndex && heartsteelHealth.TryGetValue(self.targetMaster.netId, out float health))
+                        {
                             item.tooltipProvider.overrideBodyText =
-                                Language.GetString(myItemDef.descriptionToken) + "<br><br>Health gained: " + self.targetMaster.GetBody().GetHeartsteelHealth();
+                                Language.GetString(myItemDef.descriptionToken) + "<br><br>Health gained: " + health;
                         }
                     });
 #pragma warning restore Publicizer001
@@ -126,9 +149,10 @@ namespace LoLItems
 #pragma warning disable Publicizer001
                     self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
                     {
-                        if (item.itemIndex == myItemDef.itemIndex){
+                        if (item.itemIndex == myItemDef.itemIndex && heartsteelHealth.TryGetValue(characterMaster.netId, out float health))
+                        {
                             item.tooltipProvider.overrideBodyText =
-                                Language.GetString(myItemDef.descriptionToken) + "<br><br>Health gained: " + characterMaster.GetBody().GetHeartsteelHealth();
+                                Language.GetString(myItemDef.descriptionToken) + "<br><br>Health gained: " + health;
                         }
                     });
 #pragma warning restore Publicizer001
@@ -152,24 +176,6 @@ namespace LoLItems
             LanguageAPI.Add("HeartsteelLore", "Lore was meant to go here, but Sion trampled it.");
 
             LanguageAPI.Add("HeartsteelBuff", "Health gained = <style=cIsHealth>" + bonusHealthAmount + "</style><style=cStack> x </style>stacks");
-        }
-    }
-}
-
-namespace RoR2
-{
-    public static class CharacterBodyExtension
-    {
-        private static float HeartsteelAmount = LoLItems.Heartsteel.bonusHealthAmount;
-        public static float HeartsteelHealth = 0f;
-        public static void AddHeartsteelHealth(this CharacterBody characterBody, int itemStacks)
-        {
-            characterBody.baseMaxHealth += HeartsteelAmount * itemStacks;
-            HeartsteelHealth += HeartsteelAmount * itemStacks;
-        }
-        public static float GetHeartsteelHealth(this CharacterBody characterBody)
-        {
-            return HeartsteelHealth;
         }
     }
 }

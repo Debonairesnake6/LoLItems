@@ -22,9 +22,11 @@ namespace LoLItems
         // Set luck amount in one location
         public static float onHitDamageAmount = 0.5f;
         public static float procForBigHit = 5f;
-        public static float bigOnHitMultiplier = 20f;
+        public static float bigOnHitMultiplier = 10f;
         public static float bigOnHitHealPercent = 20f;
         public static float bigOnHitTimer = 10f;
+        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> borkBonusDamage = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> borkBonusHeal = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
 
         internal static void Init()
         {
@@ -112,18 +114,17 @@ namespace LoLItems
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
                         {
-                            float damagePercentage = (1f - 100f / (100f + (inventoryCount * onHitDamageAmount / 100))) * 100;
+                            float damage = victimCharacterBody.healthComponent.health * inventoryCount * onHitDamageAmount / 100;
                             DamageInfo onHitProc = damageInfo;
-                            onHitProc.damage =  victimCharacterBody.maxHealth * damagePercentage;
+                            onHitProc.damage = damage;
                             onHitProc.crit = false;
                             onHitProc.procCoefficient = 0f;
                             onHitProc.damageType = DamageType.Generic;
                             onHitProc.damageColorIndex = DamageColorIndex.SuperBleed;
-                            onHitProc.attacker = damageInfo.attacker;
                             onHitProc.inflictor = damageInfo.attacker;
 
                             victimCharacterBody.healthComponent.TakeDamage(onHitProc);
-                            attackerCharacterBody.AddBorkDamage(onHitProc.damage);
+                            Utilities.AddValueToDictionary(ref borkBonusDamage, attackerCharacterBody.master.netId, damage);
 
                             if (!victimCharacterBody.HasBuff(myTimerBuffDef))
                             {
@@ -142,15 +143,15 @@ namespace LoLItems
                                         myTimer++;
                                     }
 
-                                    float bigOnHitDamage = onHitProc.damage * bigOnHitMultiplier;
+                                    float bigOnHitDamage = damage * bigOnHitMultiplier;
                                     onHitProc.damage = bigOnHitDamage;
                                     onHitProc.damageColorIndex = DamageColorIndex.Nearby;
                                     victimCharacterBody.healthComponent.TakeDamage(onHitProc);
-                                    attackerCharacterBody.AddBorkDamage(onHitProc.damage);
+                                    Utilities.AddValueToDictionary(ref borkBonusDamage, attackerCharacterBody.master.netId, bigOnHitDamage);
 
                                     float healAmount = bigOnHitDamage * (bigOnHitHealPercent / 100);
                                     attackerCharacterBody.healthComponent.Heal(healAmount, onHitProc.procChainMask);
-                                    attackerCharacterBody.AddBorkHeal(healAmount);
+                                    Utilities.AddValueToDictionary(ref borkBonusHeal, attackerCharacterBody.master.netId, healAmount);
                                 }
                             }                            
                         }
@@ -168,12 +169,12 @@ namespace LoLItems
                     self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
                     {
                         // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex){
+                        if (item.itemIndex == myItemDef.itemIndex && borkBonusDamage.TryGetValue(self.targetMaster.netId, out float damageDealt) && borkBonusHeal.TryGetValue(self.targetMaster.netId, out float healingDone)){
                             // ENABLE for description update
                             item.tooltipProvider.overrideBodyText =
                                 Language.GetString(myItemDef.descriptionToken) + 
-                                "<br><br>Bonus damage dealt: " + String.Format("{0:#}", self.targetMaster.GetBody().GetBorkDamage()) + 
-                                "<br>Bonus healing: " + String.Format("{0:#}", self.targetMaster.GetBody().GetBorkHeal());
+                                "<br><br>Bonus damage dealt: " + String.Format("{0:#}", damageDealt) + 
+                                "<br>Bonus healing: " + String.Format("{0:#}", healingDone);
                         }
                     });
 #pragma warning restore Publicizer001
@@ -188,42 +189,13 @@ namespace LoLItems
             LanguageAPI.Add("Bork", "Bork");
 
             //The Pickup is the short text that appears when you first pick this up. This text should be short and to the point, numbers are generally ommited.
-            LanguageAPI.Add("BorkItem", "% max hp damage on hit. 3rd hit is bigger, heals, and has a cooldown.");
+            LanguageAPI.Add("BorkItem", "% current hp damage on hit. " + procForBigHit + "th hit is bigger, heals, and has a cooldown.");
 
             //The Description is where you put the actual numbers and give an advanced description.
             LanguageAPI.Add("BorkDesc", "Adds <style=cIsDamage>" + onHitDamageAmount + "%</style> max enemy hp on hit. Every " + procForBigHit + " hits deals <style=cIsUtility>" + bigOnHitMultiplier + "x</style> damage, and heals the attacker for <style=cIsHealing>" + bigOnHitHealPercent + "%</style> of that damage on a " + bigOnHitTimer + " second cooldown.");
 
             //The Lore is, well, flavor. You can write pretty much whatever you want here.
             LanguageAPI.Add("BorkLore", "Viego is a plague to everything he touches.");
-        }
-    }
-}
-
-namespace RoR2
-{
-    // ENABLE for customer character stats
-    public static class CharacterBodyExtensionBork
-    {
-        public static float borkBonusDamage = 0f;
-        public static float borkBonusHeal = 0f;
-        public static void AddBorkDamage(this CharacterBody characterBody, float damage)
-        {
-            borkBonusDamage += damage;
-        }
-
-        public static float GetBorkDamage(this CharacterBody characterBody)
-        {
-            return borkBonusDamage;
-        }
-
-        public static void AddBorkHeal(this CharacterBody characterBody, float heal)
-        {
-            borkBonusHeal += heal;
-        }
-
-        public static float GetBorkHeal(this CharacterBody characterBody)
-        {
-            return borkBonusHeal;
         }
     }
 }

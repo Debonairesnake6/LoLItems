@@ -20,6 +20,7 @@ namespace LoLItems
 
         // Set value amount in one location
         public static float damageAmp = 0.30f;
+        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> rabadonsBonusDamage = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
 
         // This runs when loading the file
         internal static void Init()
@@ -75,10 +76,10 @@ namespace LoLItems
                     self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
                     {
                         // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex){
+                        if (item.itemIndex == myItemDef.itemIndex && rabadonsBonusDamage.TryGetValue(self.targetMaster.netId, out float damageDealt)){
                             // ENABLE for description update
                             item.tooltipProvider.overrideBodyText =
-                                Language.GetString(myItemDef.descriptionToken) + "<br><br>Bonus damage dealt: " + String.Format("{0:#}", self.targetMaster.GetBody().GetRabadonsDamage());
+                                Language.GetString(myItemDef.descriptionToken) + "<br><br>Bonus damage dealt: " + String.Format("{0:#}", damageDealt);
                         }
                     });
 #pragma warning restore Publicizer001
@@ -97,7 +98,7 @@ namespace LoLItems
                         if (inventoryCount > 0)
                         {
                             float damageMultiplier = 1 + inventoryCount * damageAmp;
-                            attackerCharacterBody.AddRabadonsDamage(damageInfo.damage * (damageMultiplier - 1));
+                            Utilities.AddValueToDictionary(ref rabadonsBonusDamage, attackerCharacterBody.master.netId, damageInfo.damage * (damageMultiplier - 1));
                             damageInfo.damage = damageMultiplier * damageInfo.damage;
                             
                         }
@@ -139,24 +140,6 @@ namespace LoLItems
 
             //The Lore is, well, flavor. You can write pretty much whatever you want here.
             LanguageAPI.Add("RabadonsItemLore", "RabadonsItem Lore");
-        }
-    }
-}
-
-namespace RoR2
-{
-    // ENABLE for customer character stats
-    public static class CharacterBodyExtensionRabadons
-    {
-        public static float rabadonsBonusDamage = 0f;
-        public static void AddRabadonsDamage(this CharacterBody characterBody, float damage)
-        {
-            rabadonsBonusDamage += damage;
-        }
-
-        public static float GetRabadonsDamage(this CharacterBody characterBody)
-        {
-            return rabadonsBonusDamage;
         }
     }
 }
