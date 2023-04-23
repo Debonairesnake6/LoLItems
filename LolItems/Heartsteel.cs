@@ -104,15 +104,15 @@ namespace LoLItems
             On.RoR2.CharacterBody.Start += (orig, self) =>
             {
                 orig(self);
-                if (!originalBaseMaxHealth.ContainsKey(self.master.netId))
+                if (self.master != null && !originalBaseMaxHealth.ContainsKey(self.master.netId))
                 {
-                    originalBaseMaxHealth.Add(self.master.netId, self.baseMaxHealth);
+                    Utilities.AddValueToDictionary(ref originalBaseMaxHealth, self.master.netId, self.baseMaxHealth);
                 }
             };
             
             On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
             {
-                if (self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && originalBaseMaxHealth.TryGetValue(self.master.netId, out float baseHealth) && heartsteelHealth.TryGetValue(self.master.netId, out float extraHealth))
+                if (self.inventory != null && self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && originalBaseMaxHealth.TryGetValue(self.master.netId, out float baseHealth) && heartsteelHealth.TryGetValue(self.master.netId, out float extraHealth))
                 {
                     self.baseMaxHealth = baseHealth + extraHealth;
                 }

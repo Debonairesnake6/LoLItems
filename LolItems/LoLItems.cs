@@ -52,6 +52,7 @@ namespace LoLItems
             Bork.Init();
             Rabadons.Init();
             Liandrys.Init();
+            GuinsoosRageblade.Init();
 
             // This line of log will appear in the bepinex console when the Awake method is done.
             Log.LogInfo(nameof(Awake) + " done.");

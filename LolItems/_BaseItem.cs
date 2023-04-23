@@ -246,16 +246,16 @@ namespace LoLItems
             // <style=cShrine>" + exampleValue + "</style>
             // <style=cEvent>" + exampleValue + "</style>
 
-            //The Name should be self explanatory
+            // Name of the item
             LanguageAPI.Add("MyExampleItem", "MyExampleItem");
 
-            //The Pickup is the short text that appears when you first pick this up. This text should be short and to the point, numbers are generally ommited.
+            // Short description
             LanguageAPI.Add("MyExampleItemItem", "MyExampleItem pickup text");
 
-            //The Description is where you put the actual numbers and give an advanced description.
+            // Long description
             LanguageAPI.Add("MyExampleItemDesc", "MyExampleItem Description");
 
-            //The Lore is, well, flavor. You can write pretty much whatever you want here.
+            // Lore
             LanguageAPI.Add("MyExampleItemLore", "MyExampleItem Lore");
 
             // ENABLE for buff
