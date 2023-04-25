@@ -84,9 +84,10 @@
   <Target Name="BuildZip" AfterTargets="PostBuild">
     <ItemGroup>
       <BuiltMod Include="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItemsLocal\*.*"/>
+      <OldFiles Include="$(ProjectDir)Thunderstore\*"/>
     </ItemGroup>
     <Delete
-      Files="$(ProjectDir)Thunderstore\*.*"/>
+      Files="@(OldFiles)"/>
     <Copy
       SourceFiles="@(BuiltMod)"
       DestinationFolder="$(ProjectDir)Thunderstore"/>
