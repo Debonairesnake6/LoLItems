@@ -16,20 +16,16 @@ namespace LoLItems
     {
         public static ItemDef myItemDef;
 
-        public static float damagePercentAmp = 15f;
+        public static float damagePercentAmp = 20f;
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> bonusDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
 
         // This runs when loading the file
         internal static void Init()
         {
             CreateItem();
-            // ENABLE for buff
-            // CreateBuff();
             AddTokens();
             var displayRules = new ItemDisplayRuleDict(null);
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
-            // ENABLE for buff
-            // ContentAddition.AddBuffDef(myBuffDef);
             hooks();
         }
 
@@ -44,12 +40,8 @@ namespace LoLItems
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
             myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/Base/Common/Tier1Def.asset").WaitForCompletion();
 #pragma warning restore Publicizer001
-            // DEFAULT icons
-            myItemDef.pickupIconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
-            myItemDef.pickupModelPrefab = Resources.Load<GameObject>("Prefabs/PickupModels/PickupMystery");
-            // ENABLE for custom assets
-            // myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("BannerOfCommandIcon");
-            // myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("BannerOfCommandPrefab");
+            myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("BannerOfCommandIcon");
+            myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("BannerOfCommandPrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
         }
@@ -78,8 +70,8 @@ namespace LoLItems
                 }
             };
 
-            // When you hit an enemy
-            On.RoR2.GlobalEventManager.OnHitEnemy += (orig, self, damageInfo, victim) =>
+            // When something takes damage
+            On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
             {
                 if (damageInfo.attacker)
                 {
@@ -93,11 +85,11 @@ namespace LoLItems
                         {
                             float extraDamage = 1 + (inventoryCount * damagePercentAmp / 100);
                             Utilities.AddValueToDictionary(ref bonusDamageDealt, owner.netId, extraDamage * damageInfo.damage);
-                            damageInfo.damage *= extraDamage;                            
+                            damageInfo.damage *= extraDamage;
                         }
                     }
                 }
-                orig(self, damageInfo, victim);
+                orig(self, damageInfo);
             };
         }
 
@@ -133,9 +125,6 @@ namespace LoLItems
 
             // Lore
             LanguageAPI.Add("BannerOfCommandLore", "Split pushing is boring");
-
-            // ENABLE for buff
-            // LanguageAPI.Add("BannerOfCommandBuff", "BannerOfCommand buff description");
         }
     }
 }
