@@ -14,73 +14,45 @@ namespace LoLItems
 {
     internal class MyExampleBaseItem
     {
-
-        //We need our item definition to persist through our functions, and therefore make it a class field.
         public static ItemDef myItemDef;
-
         // ENABLE for buff
         // public static BuffDef myBuffDef;
 
-        // Set value amount in one location
         public static float exampleValue = 1f;
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> exampleStoredValue = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
 
         // This runs when loading the file
         internal static void Init()
         {
-            //Generate the basic information for the item
             CreateItem();
-
             // ENABLE for buff
             // CreateBuff();
-
-            //Now let's turn the tokens we made into actual strings for the game:
             AddTokens();
-
-            // Don't worry about displaying the item on the character
             var displayRules = new ItemDisplayRuleDict(null);
-
-            // Then finally add it to R2API
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
-
             // ENABLE for buff
             // ContentAddition.AddBuffDef(myBuffDef);
-
-            // Initialize the hooks
             hooks();
         }
 
         private static void CreateItem()
         {
-            //First let's define our item
             myItemDef = ScriptableObject.CreateInstance<ItemDef>();
-
-            // Language Tokens, check AddTokens() below.
             myItemDef.name = "MyExampleItem";
             myItemDef.nameToken = "MyExampleItem";
             myItemDef.pickupToken = "MyExampleItemItem";
             myItemDef.descriptionToken = "MyExampleItemDesc";
             myItemDef.loreToken = "MyExampleItemLore";
-
-            //The tier determines what rarity the item is:
-            //Tier1=white, Tier2=green, Tier3=red, Lunar=Lunar, Boss=yellow,
-            //and finally NoTier is generally used for helper items, like the tonic affliction
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
             myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/Base/Common/Tier1Def.asset").WaitForCompletion();
 #pragma warning restore Publicizer001
-
-            //You can create your own icons and prefabs through assetbundles, but to keep this boilerplate brief, we'll be using question marks.
-            myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("MyExampleItemIcon");
-            // myItemDef.pickupIconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
-            myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("MyExampleItemPrefab");
-            // myItemDef.pickupModelPrefab = Resources.Load<GameObject>("Prefabs/PickupModels/PickupMystery");
-
-            //Can remove determines if a shrine of order, or a printer can take this item, generally true, except for NoTier items.
+            // DEFAULT icons
+            myItemDef.pickupIconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
+            myItemDef.pickupModelPrefab = Resources.Load<GameObject>("Prefabs/PickupModels/PickupMystery");
+            // ENABLE for custom assets
+            // myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("MyExampleItemIcon");
+            // myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("MyExampleItemPrefab");
             myItemDef.canRemove = true;
-
-            //Hidden means that there will be no pickup notification,
-            //and it won't appear in the inventory at the top of the screen.
-            //This is useful for certain noTier helper items, such as the DrizzlePlayerHelper.
             myItemDef.hidden = false;
         }
 

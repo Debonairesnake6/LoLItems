@@ -6,7 +6,7 @@ Adding items from League of Legends to Risk of Rain 2.
 These are just the items implemented so far. I am planning to continue to add more items as I develop this mod.
 Icon | Name | Tier | Description
 --- | --- | --- | ---
-![GuinsoosRageblade](https://static.wikia.nocookie.net/leagueoflegends/images/6/64/Guinsoo's_Rageblade_item_HD.png) | GuinsoosRageblade | <span style="color:white">White</span> | Gain extra proc coefficient on everything
+![GuinsoosRageblade](https://static.wikia.nocookie.net/leagueoflegends/images/6/64/Guinsoo%27s_Rageblade_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201110230134) | GuinsoosRageblade | <span style="color:white">White</span> | Gain extra proc coefficient on everything
 ![Liandrys](https://static.wikia.nocookie.net/leagueoflegends/images/3/30/Liandry%27s_Anguish_item.png/revision/latest?cb=20201118211533) | Liandrys | <span style="color:green">Green</span> | Burn enemies for % max health damage on hit.
 ![Bork](https://static.wikia.nocookie.net/leagueoflegends/images/2/2f/Blade_of_the_Ruined_King_item.png/revision/latest?cb=20221210230042) | Bork | <span style="color:green">Green</span> | % current health damage on hit. Every 10 hits do bonus damage and heal for a portion of it on a cooldown.
 ![Rabadons](https://static.wikia.nocookie.net/leagueoflegends/images/c/c5/Rabadon%27s_Deathcap_item.png/revision/latest?cb=20201118205704) | Rabadons | <span style="color:red">Red</span> | Do more damage.
