@@ -27,5 +27,17 @@ namespace LoLItems
                 myDictionary.Add(id, value);
             }
         }
+
+        public static void SetValueToDictionary(ref Dictionary<UnityEngine.Networking.NetworkInstanceId, float> myDictionary, UnityEngine.Networking.NetworkInstanceId id, float value)
+        {
+            if (myDictionary.ContainsKey(id))
+            {
+                myDictionary[id] = value;
+            }
+            else
+            {
+                myDictionary.Add(id, value);
+            }
+        }
     }
 }
