@@ -76,15 +76,15 @@ namespace LoLItems
                 if (damageInfo.attacker)
                 {
                     CharacterBody attackerCharacterBody = damageInfo.attacker.GetComponent<CharacterBody>();
-                    CharacterMaster owner = attackerCharacterBody.master?.minionOwnership?.ownerMaster;
+                    CharacterMaster ownerMaster = attackerCharacterBody?.master?.minionOwnership?.ownerMaster;
                     
-                    if (owner?.inventory)
+                    if (ownerMaster?.inventory)
                     {
-                        int inventoryCount = owner.inventory.GetItemCount(myItemDef.itemIndex);
+                        int inventoryCount = ownerMaster.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0)
                         {
                             float extraDamage = 1 + (inventoryCount * damagePercentAmp / 100);
-                            Utilities.AddValueToDictionary(ref bonusDamageDealt, owner.netId, extraDamage * damageInfo.damage);
+                            Utilities.AddValueToDictionary(ref bonusDamageDealt, ownerMaster, extraDamage * damageInfo.damage);
                             damageInfo.damage *= extraDamage;
                         }
                     }
@@ -121,10 +121,10 @@ namespace LoLItems
             LanguageAPI.Add("BannerOfCommandItem", "Increase allied minion damage");
 
             // Long description
-            LanguageAPI.Add("BannerOfCommandDesc", "Increase the damage of allied minions by <style=cIsUtility>" + damagePercentAmp + "</style>%");
+            LanguageAPI.Add("BannerOfCommandDesc", "Increase the damage of allied minions by <style=cIsUtility>" + damagePercentAmp + "%</style> <style=cStack>(+" + damagePercentAmp + "%)</style>");
 
             // Lore
-            LanguageAPI.Add("BannerOfCommandLore", "Split pushing is boring");
+            LanguageAPI.Add("BannerOfCommandLore", "Split pushing is boring.");
         }
     }
 }

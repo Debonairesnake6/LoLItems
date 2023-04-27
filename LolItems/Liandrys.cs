@@ -23,7 +23,7 @@ namespace LoLItems
         public static RoR2.DotController.DotIndex myDotDefIndex;
 
         // Set value amount in one location
-        public static float burnDamagePercent = 5f;
+        public static float burnDamagePercent = 2.5f;
         public static float burnDamageDuration = 5f;
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> liandrysDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
 
@@ -196,7 +196,7 @@ namespace LoLItems
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0 && damageInfo.dotIndex == myDotDefIndex) 
                         {
-                            Utilities.AddValueToDictionary(ref liandrysDamageDealt, attackerCharacterBody.master.netId, damageInfo.damage);
+                            Utilities.AddValueToDictionary(ref liandrysDamageDealt, attackerCharacterBody.master, damageInfo.damage);
                         }
                     }
                 }
@@ -232,10 +232,10 @@ namespace LoLItems
             LanguageAPI.Add("LiandrysItem", "Burn enemies on hit for a % of their max health");
 
             //The Description is where you put the actual numbers and give an advanced description.
-            LanguageAPI.Add("LiandrysDesc", "On hit burn enemies for <style=cIsDamage>" + burnDamagePercent + "%</style> max health over " + burnDamageDuration + " seconds");
+            LanguageAPI.Add("LiandrysDesc", "On hit burn enemies for <style=cIsDamage>" + burnDamagePercent + "%</style> <style=cStack>(+" + burnDamagePercent + "%)</style> max health over " + burnDamageDuration + " seconds");
 
             //The Lore is, well, flavor. You can write pretty much whatever you want here.
-            LanguageAPI.Add("LiandrysLore", "Liandrys Lore");
+            LanguageAPI.Add("LiandrysLore", "A crying mask is a great halloween costume.");
 
             // ENABLE for buff
             LanguageAPI.Add("LiandrysBuff", "Liandrys is burning this unit");

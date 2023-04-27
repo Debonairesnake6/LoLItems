@@ -63,7 +63,6 @@ namespace LoLItems
         private void Update()
         {
             // ONLY FOR TESTING
-            // //This if statement checks if the player has currently pressed F2.
             // if (Input.GetKeyDown(KeyCode.F2))
             // {
             //     //Get the player body to use a position:
@@ -77,17 +76,8 @@ namespace LoLItems
             //     PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(Bork.myItemDef.itemIndex), transform.position, transform.forward * 20f);
             //     PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(Rabadons.myItemDef.itemIndex), transform.position, transform.forward * 20f);
             //     PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(Liandrys.myItemDef.itemIndex), transform.position, transform.forward * 20f);
-            //     // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.DLC1Content.Items.ChainLightningVoid.itemIndex), transform.position, transform.forward * 20f);
-            //     // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.DLC1Content.Items.MissileVoid.itemIndex), transform.position, transform.forward * 20f);
-            //     // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.RoR2Content.Items.BleedOnHitAndExplode.itemIndex), transform.position, transform.forward * 20f);
-            //     // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.RoR2Content.Items.LunarBadLuck.itemIndex), transform.position, transform.forward * 20f);
-            //     // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.RoR2Content.Items.LunarBadLuck.itemIndex), transform.position, transform.forward * 20f);
-            //     // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.RoR2Content.Items.LunarBadLuck.itemIndex), transform.position, transform.forward * 20f);
-            //     // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.RoR2Content.Items.LunarBadLuck.itemIndex), transform.position, transform.forward * 20f);
-            //     // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.RoR2Content.Items.LunarBadLuck.itemIndex), transform.position, transform.forward * 20f);
-            //     // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.DLC1Content.Items.MoreMissile.itemIndex), transform.position, transform.forward * 20f);
-            //     // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.RoR2Content.Items.CritGlasses.itemIndex), transform.position, transform.forward * 20f);
-            //     // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(RoR2.RoR2Content.Items.FallBoots.itemIndex), transform.position, transform.forward * 20f);
+            //     PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(GuinsoosRageblade.myItemDef.itemIndex), transform.position, transform.forward * 20f);
+            //     PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(BannerOfCommand.myItemDef.itemIndex), transform.position, transform.forward * 20f);
             // }
         }
     }

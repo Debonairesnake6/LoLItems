@@ -124,7 +124,7 @@ namespace LoLItems
                             onHitProc.inflictor = damageInfo.attacker;
 
                             victimCharacterBody.healthComponent.TakeDamage(onHitProc);
-                            Utilities.AddValueToDictionary(ref borkBonusDamage, attackerCharacterBody.master.netId, damage);
+                            Utilities.AddValueToDictionary(ref borkBonusDamage, attackerCharacterBody.master, damage);
 
                             if (!victimCharacterBody.HasBuff(myTimerBuffDef))
                             {
@@ -147,11 +147,11 @@ namespace LoLItems
                                     onHitProc.damage = bigOnHitDamage;
                                     onHitProc.damageColorIndex = DamageColorIndex.Nearby;
                                     victimCharacterBody.healthComponent.TakeDamage(onHitProc);
-                                    Utilities.AddValueToDictionary(ref borkBonusDamage, attackerCharacterBody.master.netId, bigOnHitDamage);
+                                    Utilities.AddValueToDictionary(ref borkBonusDamage, attackerCharacterBody.master, bigOnHitDamage);
 
                                     float healAmount = bigOnHitDamage * (bigOnHitHealPercent / 100);
                                     attackerCharacterBody.healthComponent.Heal(healAmount, onHitProc.procChainMask);
-                                    Utilities.AddValueToDictionary(ref borkBonusHeal, attackerCharacterBody.master.netId, healAmount);
+                                    Utilities.AddValueToDictionary(ref borkBonusHeal, attackerCharacterBody.master, healAmount);
                                 }
                             }                            
                         }
@@ -192,7 +192,7 @@ namespace LoLItems
             LanguageAPI.Add("BorkItem", "% current hp damage on hit. " + procForBigHit + "th hit is bigger, heals, and has a cooldown.");
 
             //The Description is where you put the actual numbers and give an advanced description.
-            LanguageAPI.Add("BorkDesc", "Deals <style=cIsDamage>" + onHitDamageAmount + "%</style> current enemy hp on hit. Every " + procForBigHit + " hits deals <style=cIsUtility>" + bigOnHitMultiplier + "x</style> damage, and heals the attacker for <style=cIsHealing>" + bigOnHitHealPercent + "%</style> of that damage on a " + bigOnHitTimer + " second cooldown.");
+            LanguageAPI.Add("BorkDesc", "Deals <style=cIsDamage>" + onHitDamageAmount + "%</style> <style=cStack>(+" + onHitDamageAmount + "%)</style> current enemy hp on hit. Every " + procForBigHit + " hits deals <style=cIsUtility>" + bigOnHitMultiplier + "x</style> damage, and heals the attacker for <style=cIsHealing>" + bigOnHitHealPercent + "%</style> of that damage on a " + bigOnHitTimer + " second cooldown.");
 
             //The Lore is, well, flavor. You can write pretty much whatever you want here.
             LanguageAPI.Add("BorkLore", "Viego is a plague to everything he touches.");

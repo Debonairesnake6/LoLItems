@@ -61,7 +61,7 @@ namespace LoLItems
                         if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
                         {
                             float extraTotal = procCoef * inventoryCount;
-                            Utilities.SetValueToDictionary(ref totalProcCoef, attackerCharacterBody.master.netId, extraTotal);
+                            Utilities.SetValueToDictionary(ref totalProcCoef, attackerCharacterBody.master, extraTotal);
                             damageInfo.procCoefficient += extraTotal;
                         }
                     }
@@ -96,10 +96,10 @@ namespace LoLItems
             LanguageAPI.Add("GuinsoosRagebladeItem", "Increase proc coefficient of everything");
 
             // Long description
-            LanguageAPI.Add("GuinsoosRagebladeDesc", "Gives <style=cIsUtility>" + procCoef + "</style> proc coefficient to everything");
+            LanguageAPI.Add("GuinsoosRagebladeDesc", "Gives <style=cIsUtility>" + procCoef + "</style> <style=cStack>(+" + procCoef + ")</style> proc coefficient to everything");
 
             // Lore
-            LanguageAPI.Add("GuinsoosRagebladeLore", "GuinsoosRageblade Lore");
+            LanguageAPI.Add("GuinsoosRagebladeLore", "Procs go brrrrrrr.");
         }
     }
 }
