@@ -96,7 +96,7 @@ namespace LoLItems
                         HeartsteelOrb.maxHpValue = 0;
                         OrbManager.instance.AddOrb(HeartsteelOrb);
 
-                        Utilities.AddValueToDictionary(ref heartsteelHealth, damageReport.attackerMaster.netId, bonusHealthAmount * inventoryCount);
+                        Utilities.AddValueToDictionary(ref heartsteelHealth, damageReport.attackerMaster, bonusHealthAmount * inventoryCount);
 					}
                 }
             };
@@ -106,7 +106,7 @@ namespace LoLItems
                 orig(self);
                 if (self.master != null && !originalBaseMaxHealth.ContainsKey(self.master.netId))
                 {
-                    Utilities.AddValueToDictionary(ref originalBaseMaxHealth, self.master.netId, self.baseMaxHealth);
+                    Utilities.AddValueToDictionary(ref originalBaseMaxHealth, self.master, self.baseMaxHealth);
                 }
             };
             
@@ -170,7 +170,7 @@ namespace LoLItems
             LanguageAPI.Add("HeartsteelItem", "Gain permanent health on kill. No Cap.");
 
             //The Description is where you put the actual numbers and give an advanced description.
-            LanguageAPI.Add("HeartsteelDesc", "Adds <style=cIsHealth>" + bonusHealthAmount + "</style><style=cStack>(+" + bonusHealthAmount + ")</style> base health per kill. No Cap.");
+            LanguageAPI.Add("HeartsteelDesc", "Adds <style=cIsHealth>" + bonusHealthAmount + "</style> <style=cStack>(+" + bonusHealthAmount + ")</style> base health per kill. No Cap.");
 
             //The Lore is, well, flavor. You can write pretty much whatever you want here.
             LanguageAPI.Add("HeartsteelLore", "Lore was meant to go here, but Sion trampled it.");

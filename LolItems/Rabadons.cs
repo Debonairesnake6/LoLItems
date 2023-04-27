@@ -98,7 +98,7 @@ namespace LoLItems
                         if (inventoryCount > 0)
                         {
                             float damageMultiplier = 1 + inventoryCount * damageAmp;
-                            Utilities.AddValueToDictionary(ref rabadonsBonusDamage, attackerCharacterBody.master.netId, damageInfo.damage * (damageMultiplier - 1));
+                            Utilities.AddValueToDictionary(ref rabadonsBonusDamage, attackerCharacterBody.master, damageInfo.damage * (damageMultiplier - 1));
                             damageInfo.damage = damageMultiplier * damageInfo.damage;
                             
                         }
@@ -133,13 +133,13 @@ namespace LoLItems
             LanguageAPI.Add("RabadonsItem", "RabadonsItem");
 
             //The Pickup is the short text that appears when you first pick this up. This text should be short and to the point, numbers are generally ommited.
-            LanguageAPI.Add("RabadonsItemItem", "Hat make them go splat");
+            LanguageAPI.Add("RabadonsItemItem", "Hat makes them go splat");
 
             //The Description is where you put the actual numbers and give an advanced description.
-            LanguageAPI.Add("RabadonsItemDesc", "Do <style=cIsUtility>(+" + damageAmp * 100 + "%)</style> more damage");
+            LanguageAPI.Add("RabadonsItemDesc", "Do <style=cIsUtility>" + damageAmp * 100 + "%</style> <style=cStack>(+" + damageAmp * 100 + "%)</style> more damage");
 
             //The Lore is, well, flavor. You can write pretty much whatever you want here.
-            LanguageAPI.Add("RabadonsItemLore", "RabadonsItem Lore");
+            LanguageAPI.Add("RabadonsItemLore", "Makes you feel like a wizard.");
         }
     }
 }
