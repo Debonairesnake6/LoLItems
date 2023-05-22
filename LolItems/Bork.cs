@@ -114,7 +114,7 @@ namespace LoLItems
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
                         {
-                            float damage = victimCharacterBody.healthComponent.health * inventoryCount * onHitDamageAmount / 100;
+                            float damage = victimCharacterBody.healthComponent.health * inventoryCount * onHitDamageAmount / 100 * damageInfo.procCoefficient;
                             DamageInfo onHitProc = damageInfo;
                             onHitProc.damage = damage;
                             onHitProc.crit = false;
@@ -124,7 +124,7 @@ namespace LoLItems
                             onHitProc.inflictor = damageInfo.attacker;
 
                             victimCharacterBody.healthComponent.TakeDamage(onHitProc);
-                            Utilities.AddValueToDictionary(ref borkBonusDamage, attackerCharacterBody.master, damage);
+                            Utilities.AddValueInDictionary(ref borkBonusDamage, attackerCharacterBody.master, damage);
 
                             if (!victimCharacterBody.HasBuff(myTimerBuffDef))
                             {
@@ -147,11 +147,11 @@ namespace LoLItems
                                     onHitProc.damage = bigOnHitDamage;
                                     onHitProc.damageColorIndex = DamageColorIndex.Nearby;
                                     victimCharacterBody.healthComponent.TakeDamage(onHitProc);
-                                    Utilities.AddValueToDictionary(ref borkBonusDamage, attackerCharacterBody.master, bigOnHitDamage);
+                                    Utilities.AddValueInDictionary(ref borkBonusDamage, attackerCharacterBody.master, bigOnHitDamage);
 
                                     float healAmount = bigOnHitDamage * (bigOnHitHealPercent / 100);
                                     attackerCharacterBody.healthComponent.Heal(healAmount, onHitProc.procChainMask);
-                                    Utilities.AddValueToDictionary(ref borkBonusHeal, attackerCharacterBody.master, healAmount);
+                                    Utilities.AddValueInDictionary(ref borkBonusHeal, attackerCharacterBody.master, healAmount);
                                 }
                             }                            
                         }

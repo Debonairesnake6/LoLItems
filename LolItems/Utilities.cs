@@ -16,7 +16,7 @@ namespace LoLItems
 {
     public class Utilities
     {
-        public static void AddValueToDictionary(ref Dictionary<UnityEngine.Networking.NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value)
+        public static void AddValueInDictionary(ref Dictionary<UnityEngine.Networking.NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value)
         {
             UnityEngine.Networking.NetworkInstanceId id = CheckForMinionOwner(characterMaster);
             if (myDictionary.ContainsKey(id))
@@ -29,7 +29,7 @@ namespace LoLItems
             }
         }
 
-        public static void SetValueToDictionary(ref Dictionary<UnityEngine.Networking.NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value)
+        public static void SetValueInDictionary(ref Dictionary<UnityEngine.Networking.NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value)
         {
             UnityEngine.Networking.NetworkInstanceId id = CheckForMinionOwner(characterMaster);
             if (myDictionary.ContainsKey(id))

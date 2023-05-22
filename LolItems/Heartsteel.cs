@@ -96,7 +96,7 @@ namespace LoLItems
                         HeartsteelOrb.maxHpValue = 0;
                         OrbManager.instance.AddOrb(HeartsteelOrb);
 
-                        Utilities.AddValueToDictionary(ref heartsteelHealth, damageReport.attackerMaster, bonusHealthAmount * inventoryCount);
+                        Utilities.AddValueInDictionary(ref heartsteelHealth, damageReport.attackerMaster, bonusHealthAmount * inventoryCount);
 					}
                 }
             };
@@ -106,7 +106,7 @@ namespace LoLItems
                 orig(self);
                 if (self.master != null && !originalBaseMaxHealth.ContainsKey(self.master.netId))
                 {
-                    Utilities.AddValueToDictionary(ref originalBaseMaxHealth, self.master, self.baseMaxHealth);
+                    Utilities.AddValueInDictionary(ref originalBaseMaxHealth, self.master, self.baseMaxHealth);
                 }
             };
             

@@ -61,7 +61,7 @@ namespace LoLItems
                         if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
                         {
                             float extraTotal = procCoef * inventoryCount;
-                            Utilities.SetValueToDictionary(ref totalProcCoef, attackerCharacterBody.master, extraTotal);
+                            Utilities.SetValueInDictionary(ref totalProcCoef, attackerCharacterBody.master, extraTotal);
                             damageInfo.procCoefficient += extraTotal;
                         }
                     }
