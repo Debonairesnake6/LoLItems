@@ -196,7 +196,7 @@ namespace LoLItems
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0 && damageInfo.dotIndex == myDotDefIndex) 
                         {
-                            Utilities.AddValueToDictionary(ref liandrysDamageDealt, attackerCharacterBody.master, damageInfo.damage);
+                            Utilities.AddValueInDictionary(ref liandrysDamageDealt, attackerCharacterBody.master, damageInfo.damage);
                         }
                     }
                 }

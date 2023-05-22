@@ -62,6 +62,8 @@ namespace LoLItems
         //     myBuffDef = ScriptableObject.CreateInstance<BuffDef>();
 
         //     myBuffDef.iconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
+        //     //  ENABLE for custom assets
+        //     // myItemDef.iconSprite = Assets.icons.LoadAsset<Sprite>("MyExampleItemIcon");
         //     myBuffDef.name = "MyExampleItemBuff";
         //     myBuffDef.buffColor = Color.red;
         //     myBuffDef.canStack = true;
@@ -78,16 +80,17 @@ namespace LoLItems
             {
                 orig(globalEventManager, damageReport);
 
-                GameObject gameObject = null;
-                Transform transform = null;
-                Vector3 vector = Vector3.zero;
+                // ENABLE for infusion orb
+                // GameObject gameObject = null;
+                // Transform transform = null;
+                // Vector3 vector = Vector3.zero;
 
-                if (damageReport.victim)
-                {
-                    gameObject = damageReport.victim.gameObject;
-                    transform = gameObject.transform;
-                    vector = transform.position;
-                }
+                // if (damageReport.victim)
+                // {
+                //     gameObject = damageReport.victim.gameObject;
+                //     transform = gameObject.transform;
+                //     vector = transform.position;
+                // }
 
                 if (damageReport.attackerMaster?.inventory != null)
                 {
@@ -194,6 +197,28 @@ namespace LoLItems
                     }
                 }
                 orig(self, damageInfo);
+            };
+
+            // Save base character value
+            On.RoR2.CharacterBody.Start += (orig, self) =>
+            {
+                orig(self);
+                if (self?.master && !exampleStoredValue.ContainsKey(self.master.netId))
+                {
+                    // Save value
+                    // Utilities.AddValueToDictionary(ref exampleStoredValue, self.master, self.baseMaxHealth);
+                }
+            };
+            
+            // Modify character values
+            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
+            {
+                if (self?.inventory && self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && exampleStoredValue.TryGetValue(self.master.netId, out float exampleValue))
+                {
+                    // Set stats
+                    // self.baseMaxHealth = exampleValue;
+                }
+                orig(self);
             };
         }
 

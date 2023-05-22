@@ -84,7 +84,7 @@ namespace LoLItems
                         if (inventoryCount > 0)
                         {
                             float extraDamage = 1 + (inventoryCount * damagePercentAmp / 100);
-                            Utilities.AddValueToDictionary(ref bonusDamageDealt, ownerMaster, extraDamage * damageInfo.damage);
+                            Utilities.AddValueInDictionary(ref bonusDamageDealt, ownerMaster, extraDamage * damageInfo.damage);
                             damageInfo.damage *= extraDamage;
                         }
                     }
