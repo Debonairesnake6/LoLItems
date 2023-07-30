@@ -7,6 +7,7 @@ using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System;
+using System.Linq;
 
 namespace LoLItems
 {
@@ -20,13 +21,19 @@ namespace LoLItems
         public static BuffDef myTimerBuffDef;
 
         // Set luck amount in one location
-        public static float onHitDamageAmount = 0.5f;
+        public static float onHitDamageAmount = 5f;
         public static float procForBigHit = 5f;
-        public static float bigOnHitMultiplier = 10f;
-        public static float bigOnHitHealPercent = 20f;
+        public static float onHitHealPercent = 20f;
         public static float bigOnHitTimer = 10f;
+        public static float procDamageMin = 2f;
+        public static int procDamageMax = 25;
+        public static float attackSpeed = 5f;
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> borkBonusDamage = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> borkBonusHeal = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> borkAtkSpd = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> originalAtkSpd = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
+        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
         internal static void Init()
         {
@@ -61,14 +68,12 @@ namespace LoLItems
             myItemDef.pickupToken = "BorkItem";
             myItemDef.descriptionToken = "BorkDesc";
             myItemDef.loreToken = "BorkLore";
-
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/Base/Common/Tier2Def.asset").WaitForCompletion();
-#pragma warning restore Publicizer001
+            myItemDef.deprecatedTier = ItemTier.VoidTier2;
             myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("BorkIcon");
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("BorkPrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
+            myItemDef.tags = new ItemTag[2] { ItemTag.Damage, ItemTag.Healing };
         }
 
         private static void CreateBuff()
@@ -99,6 +104,24 @@ namespace LoLItems
 
         private static void hooks()
         {
+            // Create void item
+            On.RoR2.Items.ContagiousItemManager.Init += (orig) => 
+            {
+                List<ItemDef.Pair> newVoidPairs = new List<ItemDef.Pair>();
+                foreach(string itemName in new List<string> { "Syringe", "Seed" })
+                {
+                    ItemDef.Pair newVoidPair = new ItemDef.Pair()
+                {
+                    itemDef1 = ItemCatalog.GetItemDef(ItemCatalog.FindItemIndex(itemName)),
+                    itemDef2 = myItemDef
+                };
+                newVoidPairs.Add(newVoidPair);
+                }
+                ItemDef.Pair[] voidPairs = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem];
+                ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = voidPairs.Union(newVoidPairs).ToArray();
+                orig();
+            };
+
             On.RoR2.GlobalEventManager.OnHitEnemy += (orig, self, damageInfo, victim) =>
             {
                 orig(self, damageInfo, victim);
@@ -114,17 +137,6 @@ namespace LoLItems
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
                         {
-                            float damage = victimCharacterBody.healthComponent.health * inventoryCount * onHitDamageAmount / 100 * damageInfo.procCoefficient;
-                            DamageInfo onHitProc = damageInfo;
-                            onHitProc.damage = damage;
-                            onHitProc.crit = false;
-                            onHitProc.procCoefficient = 0f;
-                            onHitProc.damageType = DamageType.Generic;
-                            onHitProc.damageColorIndex = DamageColorIndex.SuperBleed;
-                            onHitProc.inflictor = damageInfo.attacker;
-
-                            victimCharacterBody.healthComponent.TakeDamage(onHitProc);
-                            Utilities.AddValueInDictionary(ref borkBonusDamage, attackerCharacterBody.master, damage);
 
                             if (!victimCharacterBody.HasBuff(myTimerBuffDef))
                             {
@@ -143,13 +155,19 @@ namespace LoLItems
                                         myTimer++;
                                     }
 
-                                    float bigOnHitDamage = damage * bigOnHitMultiplier;
-                                    onHitProc.damage = bigOnHitDamage;
+                                    float damage = victimCharacterBody.healthComponent.health * inventoryCount * onHitDamageAmount / 100 * damageInfo.procCoefficient;
+                                    damage = Math.Max(procDamageMin * attackerCharacterBody.damage, Math.Min(procDamageMax * attackerCharacterBody.damage, damage));
+                                    DamageInfo onHitProc = damageInfo;
+                                    onHitProc.crit = false;
+                                    onHitProc.procCoefficient = 0f;
+                                    onHitProc.damageType = DamageType.Generic;
+                                    onHitProc.inflictor = damageInfo.attacker;
+                                    onHitProc.damage = damage;
                                     onHitProc.damageColorIndex = DamageColorIndex.Nearby;
                                     victimCharacterBody.healthComponent.TakeDamage(onHitProc);
-                                    Utilities.AddValueInDictionary(ref borkBonusDamage, attackerCharacterBody.master, bigOnHitDamage);
+                                    Utilities.AddValueInDictionary(ref borkBonusDamage, attackerCharacterBody.master, damage);
 
-                                    float healAmount = bigOnHitDamage * (bigOnHitHealPercent / 100);
+                                    float healAmount = damage * (onHitHealPercent / 100);
                                     attackerCharacterBody.healthComponent.Heal(healAmount, onHitProc.procChainMask);
                                     Utilities.AddValueInDictionary(ref borkBonusHeal, attackerCharacterBody.master, healAmount);
                                 }
@@ -159,27 +177,95 @@ namespace LoLItems
                 }
             };
 
+            On.RoR2.CharacterBody.Start += (orig, self) =>
+            {
+                orig(self);
+                if (self.master != null && !originalAtkSpd.ContainsKey(self.master.netId))
+                {
+                    Utilities.SetValueInDictionary(ref originalAtkSpd, self.master, self.baseAttackSpeed, false);
+                }
+            };
+
+            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
+            {
+                if (self.inventory != null && self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && originalAtkSpd.TryGetValue(self.master.netId, out float baseAtkSpd))
+                {
+                    self.baseAttackSpeed = baseAtkSpd + self.inventory.GetItemCount(myItemDef) / 100f  * attackSpeed;
+                }
+                orig(self);
+            };
+
             // Called basically every frame to update your HUD info
             On.RoR2.UI.HUD.Update += (orig, self) => 
             {
                 orig(self);
                 if (self.itemInventoryDisplay && self.targetMaster)
                 {
+                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
 #pragma warning disable Publicizer001
                     self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
                     {
                         // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex && borkBonusDamage.TryGetValue(self.targetMaster.netId, out float damageDealt) && borkBonusHeal.TryGetValue(self.targetMaster.netId, out float healingDone)){
-                            // ENABLE for description update
-                            item.tooltipProvider.overrideBodyText =
-                                Language.GetString(myItemDef.descriptionToken) + 
-                                "<br><br>Bonus damage dealt: " + String.Format("{0:#}", damageDealt) + 
-                                "<br>Bonus healing: " + String.Format("{0:#}", healingDone);
+                        if (item.itemIndex == myItemDef.itemIndex){
+                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
                         }
                     });
 #pragma warning restore Publicizer001
                 }
             };
+
+            // Open Scoreboard
+            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
+            {
+                orig(self, characterMaster);
+                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
+            };
+
+
+            // Open Scoreboard
+            On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
+            {
+                orig(self, newIndex, newCount);
+                if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
+                {
+                    IconToMasterRef.TryGetValue(self, out CharacterMaster master);
+                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
+                }
+            };
+
+            // Open Scoreboard
+            On.RoR2.UI.ItemInventoryDisplay.AllocateIcons += (orig, self, count) =>
+            {
+                orig(self, count);
+                List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
+                DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
+                icons.ForEach(i => IconToMasterRef[i] = masterRef);
+            };
+
+            // Add to stat dict for end of game screen
+            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
+            {
+                orig(self, playerInfo);
+                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
+                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
+                {
+                    if (entry.Value == playerInfo.master)
+                    {
+                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
+                    }
+                }
+            };
+        }
+
+        private static string GetDisplayInformation(CharacterMaster masterRef)
+        {
+            // Update the description for an item in the HUD
+            if (masterRef != null && borkBonusDamage.TryGetValue(masterRef.netId, out float damageDealt) && borkBonusHeal.TryGetValue(masterRef.netId, out float healingDone)){
+                return Language.GetString(myItemDef.descriptionToken) + 
+                "<br><br>Bonus damage dealt: " + String.Format("{0:#}", damageDealt) + 
+                "<br>Bonus healing: " + String.Format("{0:#}", healingDone);
+            }
+            return Language.GetString(myItemDef.descriptionToken);
         }
 
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
@@ -189,10 +275,12 @@ namespace LoLItems
             LanguageAPI.Add("Bork", "Bork");
 
             //The Pickup is the short text that appears when you first pick this up. This text should be short and to the point, numbers are generally ommited.
-            LanguageAPI.Add("BorkItem", "% current hp damage on hit. " + procForBigHit + "th hit is bigger, heals, and has a cooldown.");
+            LanguageAPI.Add("BorkItem", "Attack speed. Every " + procForBigHit + " hits do damage and heal, and has a cooldown. Corrupts <style=cIsVoid>Syringes</style> and <style=cIsVoid>Leaching Seeds</style>.");
 
             //The Description is where you put the actual numbers and give an advanced description.
-            LanguageAPI.Add("BorkDesc", "Deals <style=cIsDamage>" + onHitDamageAmount + "%</style> <style=cStack>(+" + onHitDamageAmount + "%)</style> current enemy hp on hit. Every " + procForBigHit + " hits deals <style=cIsUtility>" + bigOnHitMultiplier + "x</style> damage, and heals the attacker for <style=cIsHealing>" + bigOnHitHealPercent + "%</style> of that damage on a " + bigOnHitTimer + " second cooldown.");
+            LanguageAPI.Add("BorkDesc", "Deals <style=cIsDamage>" + onHitDamageAmount + "%</style> <style=cStack>(+" + onHitDamageAmount + 
+            "%)</style> current enemy hp every third hit, and heal for <style=cIsHealing>" + onHitHealPercent + "%</style> of that damage on a " + bigOnHitTimer + 
+            " second cooldown. Corrupts <style=cIsVoid>Syringes</style> and <style=cIsVoid>Leaching Seeds</style>.");
 
             //The Lore is, well, flavor. You can write pretty much whatever you want here.
             LanguageAPI.Add("BorkLore", "Viego is a plague to everything he touches.");

@@ -16,8 +16,10 @@ namespace LoLItems
     {
         public static ItemDef myItemDef;
 
-        public static float damagePercentAmp = 20f;
+        public static float damagePercentAmp = 15f;
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> bonusDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
+        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
         // This runs when loading the file
         internal static void Init()
@@ -44,6 +46,7 @@ namespace LoLItems
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("BannerOfCommandPrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
+            myItemDef.tags = new ItemTag[1] { ItemTag.Damage };
         }
 
 
@@ -56,17 +59,58 @@ namespace LoLItems
                 orig(self);
                 if (self.itemInventoryDisplay && self.targetMaster)
                 {
+                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
 #pragma warning disable Publicizer001
                     self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
                     {
                         // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex && bonusDamageDealt.TryGetValue(self.targetMaster.netId, out float value)){
-                            // ENABLE for description update
-                            item.tooltipProvider.overrideBodyText =
-                                Language.GetString(myItemDef.descriptionToken) + "<br><br>Bonus damage: " + String.Format("{0:#}", value);
+                        if (item.itemIndex == myItemDef.itemIndex){
+                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
                         }
                     });
 #pragma warning restore Publicizer001
+                }
+            };
+
+            // Open Scoreboard
+            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
+            {
+                orig(self, characterMaster);
+                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
+            };
+
+
+            // Open Scoreboard
+            On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
+            {
+                orig(self, newIndex, newCount);
+                if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
+                {
+                    IconToMasterRef.TryGetValue(self, out CharacterMaster master);
+                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
+                }
+            };
+
+            // Open Scoreboard
+            On.RoR2.UI.ItemInventoryDisplay.AllocateIcons += (orig, self, count) =>
+            {
+                orig(self, count);
+                List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
+                DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
+                icons.ForEach(i => IconToMasterRef[i] = masterRef);
+            };
+
+            // Add to stat dict for end of game screen
+            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
+            {
+                orig(self, playerInfo);
+                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
+                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
+                {
+                    if (entry.Value == playerInfo.master)
+                    {
+                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
+                    }
                 }
             };
 
@@ -91,6 +135,15 @@ namespace LoLItems
                 }
                 orig(self, damageInfo);
             };
+        }
+
+        private static string GetDisplayInformation(CharacterMaster masterRef)
+        {
+            // Update the description for an item in the HUD
+            if (masterRef != null && bonusDamageDealt.TryGetValue(masterRef.netId, out float damageDealt)){
+                return Language.GetString(myItemDef.descriptionToken) + "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+            }
+            return Language.GetString(myItemDef.descriptionToken);
         }
 
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!

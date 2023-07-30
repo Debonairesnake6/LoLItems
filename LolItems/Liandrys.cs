@@ -17,15 +17,19 @@ namespace LoLItems
 
         //We need our item definition to persist through our functions, and therefore make it a class field.
         public static ItemDef myItemDef;
-
         public static BuffDef myBuffDef;
         public static DotController.DotDef myDotDef;
         public static RoR2.DotController.DotIndex myDotDefIndex;
 
         // Set value amount in one location
         public static float burnDamagePercent = 2.5f;
-        public static float burnDamageDuration = 5f;
+        public static int burnDamageDuration = 5;
+        public static float burnDamageMin = 0.5f * burnDamageDuration;
+        public static int burnDamageMax = 25 * burnDamageDuration;
+        public static int damageColourIndex = 0;
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> liandrysDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
+        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
         // This runs when loading the file
         internal static void Init()
@@ -91,7 +95,6 @@ namespace LoLItems
 
             myBuffDef.iconSprite = Assets.icons.LoadAsset<Sprite>("LiandrysIcon");
             myBuffDef.name = "LiandrysBuff";
-            myBuffDef.buffColor = Color.blue;
             myBuffDef.canStack = false;
             myBuffDef.isDebuff = true;
             myBuffDef.isCooldown = true;
@@ -101,15 +104,16 @@ namespace LoLItems
         
         private static void CreateDot()
         {
+            damageColourIndex = (int)RoR2.DamageColorIndex.Count + 1;
             myDotDef = new DotController.DotDef
             {
-                damageColorIndex = DamageColorIndex.Bleed,
+                damageColorIndex = (RoR2.DamageColorIndex)damageColourIndex,
                 associatedBuff = myBuffDef,
                 terminalTimedBuff = myBuffDef,
                 terminalTimedBuffDuration = burnDamageDuration,
                 resetTimerOnAdd = true,
                 interval = 1f,
-                damageCoefficient = 1f / burnDamageDuration
+                damageCoefficient = 1f / burnDamageDuration,
             };
         }
 
@@ -124,8 +128,10 @@ namespace LoLItems
                     inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                 }
 #pragma warning disable Publicizer001
-                dotStack.damage = self.victimBody.maxHealth * burnDamagePercent / 100f / burnDamageDuration * myDotDef.interval * inventoryCount;
+                float baseDotDamage = self.victimBody.maxHealth * burnDamagePercent / 100f / burnDamageDuration * myDotDef.interval * inventoryCount;
 #pragma warning restore Publicizer001
+                float dotDamage = Math.Max(burnDamageMin * attackerCharacterBody.damage, Math.Min(burnDamageMax * attackerCharacterBody.damage, baseDotDamage)) / burnDamageDuration;
+                dotStack.damage = dotDamage;
             }
         }
 
@@ -138,16 +144,58 @@ namespace LoLItems
                 orig(self);
                 if (self.itemInventoryDisplay && self.targetMaster)
                 {
+                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
 #pragma warning disable Publicizer001
                     self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
                     {
                         // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex && liandrysDamageDealt.TryGetValue(self.targetMaster.netId, out float damageDealt)){
-                            item.tooltipProvider.overrideBodyText =
-                                Language.GetString(myItemDef.descriptionToken) + "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+                        if (item.itemIndex == myItemDef.itemIndex){
+                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
                         }
                     });
 #pragma warning restore Publicizer001
+                }
+            };
+
+            // Open Scoreboard
+            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
+            {
+                orig(self, characterMaster);
+                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
+            };
+
+
+            // Open Scoreboard
+            On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
+            {
+                orig(self, newIndex, newCount);
+                if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
+                {
+                    IconToMasterRef.TryGetValue(self, out CharacterMaster master);
+                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
+                }
+            };
+
+            // Open Scoreboard
+            On.RoR2.UI.ItemInventoryDisplay.AllocateIcons += (orig, self, count) =>
+            {
+                orig(self, count);
+                List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
+                DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
+                icons.ForEach(i => IconToMasterRef[i] = masterRef);
+            };
+
+            // Add to stat dict for end of game screen
+            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
+            {
+                orig(self, playerInfo);
+                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
+                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
+                {
+                    if (entry.Value == playerInfo.master)
+                    {
+                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
+                    }
                 }
             };
 
@@ -168,7 +216,8 @@ namespace LoLItems
                         {
                             victimCharacterBody.AddTimedBuff(myBuffDef, burnDamageDuration);
 
-                            float dotDamage = victimCharacterBody.maxHealth * burnDamagePercent / 100f * inventoryCount;
+                            float baseDotDamage = victimCharacterBody.maxHealth * burnDamagePercent / 100f * inventoryCount;
+                            float dotDamage = Math.Max(burnDamageMin * attackerCharacterBody.damage, Math.Min(burnDamageMax * attackerCharacterBody.damage, baseDotDamage));
                             InflictDotInfo inflictDotInfo = new InflictDotInfo
                             {
                                 victimObject = victimCharacterBody.healthComponent.gameObject,
@@ -202,6 +251,22 @@ namespace LoLItems
                 }
                 orig(self, damageInfo);
             };
+
+            // Used for custom colours
+            On.RoR2.DamageColor.FindColor += (orig, colorIndex) =>
+            {
+                if (damageColourIndex == (int)colorIndex) return Color.blue;
+                return orig(colorIndex);
+            };
+        }
+
+        private static string GetDisplayInformation(CharacterMaster masterRef)
+        {
+            // Update the description for an item in the HUD
+            if (masterRef != null && liandrysDamageDealt.TryGetValue(masterRef.netId, out float damageDealt)){
+                return Language.GetString(myItemDef.descriptionToken) + "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+            }
+            return Language.GetString(myItemDef.descriptionToken);
         }
 
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
