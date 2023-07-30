@@ -26,6 +26,8 @@ namespace LoLItems
         public static float bonusHealthAmount = 2f;
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> heartsteelHealth = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> originalBaseMaxHealth = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
+        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
         internal static void Init()
         {
@@ -65,6 +67,7 @@ namespace LoLItems
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("HeartsteelPrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
+            myItemDef.tags = new ItemTag[2] { ItemTag.Healing, ItemTag.OnKillEffect };
         }
 
 
@@ -106,7 +109,7 @@ namespace LoLItems
                 orig(self);
                 if (self.master != null && !originalBaseMaxHealth.ContainsKey(self.master.netId))
                 {
-                    Utilities.AddValueInDictionary(ref originalBaseMaxHealth, self.master, self.baseMaxHealth);
+                    Utilities.SetValueInDictionary(ref originalBaseMaxHealth, self.master, self.baseMaxHealth, false);
                 }
             };
             
@@ -123,16 +126,15 @@ namespace LoLItems
             On.RoR2.UI.HUD.Update += (orig, self) => 
             {
                 orig(self);
-                // ChatMessage.Send("Called: On.RoR2.UI.HUD.Update");
                 if (self.itemInventoryDisplay && self.targetMaster)
                 {
+                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
 #pragma warning disable Publicizer001
                     self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
                     {
-                        if (item.itemIndex == myItemDef.itemIndex && heartsteelHealth.TryGetValue(self.targetMaster.netId, out float health))
-                        {
-                            item.tooltipProvider.overrideBodyText =
-                                Language.GetString(myItemDef.descriptionToken) + "<br><br>Health gained: " + health;
+                        // Update the description for an item in the HUD
+                        if (item.itemIndex == myItemDef.itemIndex){
+                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
                         }
                     });
 #pragma warning restore Publicizer001
@@ -143,21 +145,52 @@ namespace LoLItems
             On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
             {
                 orig(self, characterMaster);
-                if (self.itemInventoryDisplay && characterMaster)
+                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
+            };
+
+
+            // Open Scoreboard
+            On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
+            {
+                orig(self, newIndex, newCount);
+                if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
                 {
-                    // Hooks.DisplayToMasterRef[self.itemInventoryDisplay] = master;
-#pragma warning disable Publicizer001
-                    self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
-                    {
-                        if (item.itemIndex == myItemDef.itemIndex && heartsteelHealth.TryGetValue(characterMaster.netId, out float health))
-                        {
-                            item.tooltipProvider.overrideBodyText =
-                                Language.GetString(myItemDef.descriptionToken) + "<br><br>Health gained: " + health;
-                        }
-                    });
-#pragma warning restore Publicizer001
+                    IconToMasterRef.TryGetValue(self, out CharacterMaster master);
+                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
                 }
             };
+
+            // Open Scoreboard
+            On.RoR2.UI.ItemInventoryDisplay.AllocateIcons += (orig, self, count) =>
+            {
+                orig(self, count);
+                List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
+                DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
+                icons.ForEach(i => IconToMasterRef[i] = masterRef);
+            };
+
+            // Add to stat dict for end of game screen
+            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
+            {
+                orig(self, playerInfo);
+                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
+                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
+                {
+                    if (entry.Value == playerInfo.master)
+                    {
+                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
+                    }
+                }
+            };
+        }
+
+        private static string GetDisplayInformation(CharacterMaster masterRef)
+        {
+            // Update the description for an item in the HUD
+            if (masterRef != null && heartsteelHealth.TryGetValue(masterRef.netId, out float damageDealt)){
+                return Language.GetString(myItemDef.descriptionToken) + "<br><br>Health gained: " + String.Format("{0:#}", damageDealt);
+            }
+            return Language.GetString(myItemDef.descriptionToken);
         }
 
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!

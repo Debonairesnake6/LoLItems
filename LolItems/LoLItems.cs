@@ -30,7 +30,7 @@ namespace LoLItems
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Debo";
         public const string PluginName = "LoLItems";
-        public const string PluginVersion = "0.1.7";
+        public const string PluginVersion = "0.1.8";
 
         public static BepInEx.Logging.ManualLogSource Log;
         public GameObject multiShopPrefab;
@@ -59,7 +59,7 @@ namespace LoLItems
             MejaisSoulstealer.Init();
 
             // This line of log will appear in the bepinex console when the Awake method is done.
-            Log.LogInfo(nameof(Awake) + " done.");
+            Log.LogInfo("LoLItems successfully loaded.");
         }
 
         //The Update() method is run on every frame of the game.

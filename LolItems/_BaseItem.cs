@@ -9,6 +9,7 @@ using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System;
+using System.Linq;
 
 namespace LoLItems
 {
@@ -20,6 +21,8 @@ namespace LoLItems
 
         public static float exampleValue = 1f;
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> exampleStoredValue = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
+        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
         // This runs when loading the file
         internal static void Init()
@@ -28,7 +31,9 @@ namespace LoLItems
             // ENABLE for buff
             // CreateBuff();
             AddTokens();
-            var displayRules = new ItemDisplayRuleDict(null);
+            ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
+            // Enable for custom display rules
+            // ItemDisplayRuleDict itemDisplayRuleDict = CreateDisplayRules();
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             // ENABLE for buff
             // ContentAddition.AddBuffDef(myBuffDef);
@@ -46,6 +51,8 @@ namespace LoLItems
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
             myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/Base/Common/Tier1Def.asset").WaitForCompletion();
 #pragma warning restore Publicizer001
+            // ENABLE for void item, disable above
+            // myItemDef.deprecatedTier = ItemTier.VoidTier2;
             // DEFAULT icons
             myItemDef.pickupIconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
             myItemDef.pickupModelPrefab = Resources.Load<GameObject>("Prefabs/PickupModels/PickupMystery");
@@ -54,6 +61,7 @@ namespace LoLItems
             // myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("MyExampleItemPrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
+            myItemDef.tags = new ItemTag[4] { ItemTag.Damage, ItemTag.Healing, ItemTag.Utility, ItemTag.OnKillEffect };
         }
 
         // ENABLE for buff
@@ -75,6 +83,24 @@ namespace LoLItems
 
         private static void hooks()
         {
+            // ENABLE for void item
+            // // Create void item
+            // On.RoR2.Items.ContagiousItemManager.Init += (orig) => 
+            // {
+            //     List<ItemDef.Pair> newVoidPairs = new List<ItemDef.Pair>();
+            //     foreach(string itemName in new List<string> { "Syringe", "Seed" })
+            //     {
+            //         ItemDef.Pair newVoidPair = new ItemDef.Pair()
+            //     {
+            //         itemDef1 = ItemCatalog.GetItemDef(ItemCatalog.FindItemIndex(itemName)),
+            //         itemDef2 = myItemDef
+            //     };
+            //     newVoidPairs.Add(newVoidPair);
+            //     ItemDef.Pair[] voidPairs = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem];
+            //     ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = voidPairs.Union(newVoidPairs).ToArray();
+            //     orig();
+            // };
+
             // Do something on character death
             On.RoR2.GlobalEventManager.OnCharacterDeath += (orig, globalEventManager, damageReport) =>
             {
@@ -115,14 +141,13 @@ namespace LoLItems
                 orig(self);
                 if (self.itemInventoryDisplay && self.targetMaster)
                 {
+                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
 #pragma warning disable Publicizer001
                     self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
                     {
                         // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex && exampleStoredValue.TryGetValue(self.targetMaster.netId, out float value)){
-                            // ENABLE for description update
-                            // item.tooltipProvider.overrideBodyText =
-                            //     Language.GetString(myItemDef.descriptionToken) + "<br><br>Value gained: " + String.Format("{0:#}", value);
+                        if (item.itemIndex == myItemDef.itemIndex){
+                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
                         }
                     });
 #pragma warning restore Publicizer001
@@ -133,18 +158,41 @@ namespace LoLItems
             On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
             {
                 orig(self, characterMaster);
-                if (self.itemInventoryDisplay && characterMaster)
+                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
+            };
+
+
+            // Open Scoreboard
+            On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
+            {
+                orig(self, newIndex, newCount);
+                if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
                 {
-#pragma warning disable Publicizer001
-                    self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
+                    IconToMasterRef.TryGetValue(self, out CharacterMaster master);
+                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
+                }
+            };
+
+            // Open Scoreboard
+            On.RoR2.UI.ItemInventoryDisplay.AllocateIcons += (orig, self, count) =>
+            {
+                orig(self, count);
+                List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
+                DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
+                icons.ForEach(i => IconToMasterRef[i] = masterRef);
+            };
+
+            // Add to stat dict for end of game screen
+            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
+            {
+                orig(self, playerInfo);
+                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
+                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
+                {
+                    if (entry.Value == playerInfo.master)
                     {
-                        // NOT WORKING
-                        // if (item.itemIndex == myItemDef.itemIndex && exampleStoredValue.TryGetValue(characterMaster.netId, out float value)){
-                        //     item.tooltipProvider.overrideBodyText =
-                        //         Language.GetString(myItemDef.descriptionToken) + "<br><br>Health gained: " + value;
-                        // }
-                    });
-#pragma warning restore Publicizer001
+                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
+                    }
                 }
             };
 
@@ -220,6 +268,194 @@ namespace LoLItems
                 }
                 orig(self);
             };
+        }
+
+        private static string GetDisplayInformation(CharacterMaster masterRef)
+        {
+            // Update the description for an item in the HUD
+            if (masterRef != null && exampleStoredValue.TryGetValue(masterRef.netId, out float damageDealt)){
+                return Language.GetString(myItemDef.descriptionToken) + "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+            }
+            return Language.GetString(myItemDef.descriptionToken);
+        }
+
+        public static ItemDisplayRuleDict SetupItemDisplays()
+        {
+            GameObject ItemBodyModelPrefab = Assets.prefabs.LoadAsset<GameObject>("RabadonsPrefab");
+            RoR2.ItemDisplay itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
+            itemDisplay.rendererInfos = Utilities.ItemDisplaySetup(ItemBodyModelPrefab);
+
+            ItemDisplayRuleDict rules = new ItemDisplayRuleDict();
+                        rules.Add("mdlCommandoDualies", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    localPos = new Vector3(-0.00109F, 0.30543F, 0.02332F),
+                    localAngles = new Vector3(0F, 0F, 0F),
+                    localScale = new Vector3(1F, 1F, 1F)
+                }
+            });
+            rules.Add("mdlHuntress", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    localPos = new Vector3(-0.00443F, 0.26112F, -0.04558F),
+                    localAngles = new Vector3(0F, 0F, 0F),
+                    localScale = new Vector3(0.8F, 0.8F, 0.8F)
+                }
+            });
+            rules.Add("mdlBandit2", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    localPos = new Vector3(-0.01902F, 0.10885F, -0.00051F),
+                    localAngles = new Vector3(0F, 0F, 0F),
+                    localScale = new Vector3(0.8F, 0.8F, 0.8F)
+                }
+            });
+            rules.Add("mdlToolbot", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    localPos = new Vector3(-0.00801F, 2.62205F, 1.32762F),
+                    localAngles = new Vector3(45F, 0F, 0F),
+                    localScale = new Vector3(8F, 8F, 8F)
+                }
+            });
+            rules.Add("mdlEngi", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "HeadCenter",
+                    localPos = new Vector3(0F, 0F, 0F),
+                    localAngles = new Vector3(0F, 0F, 0F),
+                    localScale = new Vector3(1F, 1F, 1F)
+                }
+            });
+            rules.Add("mdlEngiTurret", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule //alt turret
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    localPos = new Vector3(0F, 0.74023F, 0F),
+                    localAngles = new Vector3(0F, 0F, 0F),
+                    localScale = new Vector3(3F, 3F, 3F)
+                }
+            });
+            rules.Add("mdlMage", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    localPos = new Vector3(-0.00065F, 0.10994F, 0.0013F),
+                    localAngles = new Vector3(15F, 0F, 0F),
+                    localScale = new Vector3(0.7F, 0.7F, 0.7F)
+                }
+                
+            });
+            rules.Add("mdlMerc", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    localPos = new Vector3(-0.00079F, 0.18756F, 0.04691F),
+                    localAngles = new Vector3(10F, 0F, 0F),
+                    localScale = new Vector3(0.7F, 0.7F, 0.7F)
+                }
+            });
+            rules.Add("mdlTreebot", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "FlowerBase",
+                    localPos = new Vector3(0F, 1.50821F, 0F),
+                    localAngles = new Vector3(0F, 0F, 0F),
+                    localScale = new Vector3(3F, 3F, 3F)
+                }
+            });
+            rules.Add("mdlLoader", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    localPos = new Vector3(-0.00093F, 0.17562F, -0.00083F),
+                    localAngles = new Vector3(10F, 0F, 0F),
+                    localScale = new Vector3(0.7F, 0.7F, 0.7F)
+                }
+            });
+            rules.Add("mdlCroco", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    localPos = new Vector3(-0.03017F, 1.00393F, 1.37941F),
+                    localAngles = new Vector3(90F, 0F, 0F),
+                    localScale = new Vector3(6F, 6F, 6F)
+                }
+            });
+            rules.Add("mdlCaptain", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    localPos = new Vector3(-0.00131F, 0.22096F, -0.01855F),
+                    localAngles = new Vector3(327F, 0F, 0F),
+                    localScale = new Vector3(0.6F, 0.6F, 0.6F)
+                }
+            });
+            rules.Add("mdlRailGunner", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    localPos = new Vector3(-0.00046F, 0.16635F, -0.04072F),
+                    localAngles = new Vector3(0F, 0F, 0F),
+                    localScale = new Vector3(0.5F, 0.5F, 0.5F)
+                }
+            });
+            rules.Add("mdlVoidSurvivor", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    localPos = new Vector3(-0.00355F, 0.118F, -0.03936F),
+                    localAngles = new Vector3(330F, 0F, 0F),
+                    localScale = new Vector3(0.6F, 0.6F, 0.6F)
+                }
+            });
+            return rules;
         }
 
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
