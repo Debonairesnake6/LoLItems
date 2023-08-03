@@ -104,8 +104,15 @@ namespace LoLItems
                 if (self?.inventory && self.inventory.GetItemCount(myItemDef.itemIndex) > 0)
                 {
                     float itemCount = self.inventory.GetItemCount(myItemDef.itemIndex);
-                    self.crit += itemCount * bonusCritChance;
                     self.critMultiplier += itemCount * bonusCritDamage * 0.01f;
+                    if (self.inventory.GetItemCount(DLC1Content.Items.ConvertCritChanceToCritDamage) == 0)
+                    {
+                        self.crit += itemCount * bonusCritChance;
+                    }
+                    else
+                    {
+                        self.critMultiplier += itemCount * bonusCritChance * 0.01f;
+                    }
                 }
             };
 
@@ -147,10 +154,22 @@ namespace LoLItems
         private static string GetDisplayInformation(CharacterMaster masterRef)
         {
             // Update the description for an item in the HUD
+            string statusText = "";
+            int itemCount = masterRef.inventory.GetItemCount(myItemDef.itemIndex);
+            if (masterRef.inventory.GetItemCount(DLC1Content.Items.ConvertCritChanceToCritDamage) == 0)
+            {
+                statusText = "<br><br>Bonus crit chance: " + String.Format("{0:#}", itemCount * bonusCritChance)
+                + "%<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage);
+            }
+            else
+            {
+                statusText = "<br><br>Bonus crit chance: 0"
+                + "%<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage + itemCount * bonusCritChance);
+            }
             if (masterRef != null && bonusDamageDealt.TryGetValue(masterRef.netId, out float damageDealt)){
                 return Language.GetString(myItemDef.descriptionToken)
-                + "<br><br>Bonus crit chance: " + String.Format("{0:#}", masterRef.inventory.GetItemCount(myItemDef.itemIndex) * bonusCritChance)
-                + "<br>Bonus damage dealt: " + String.Format("{0:#}", damageDealt);
+                + statusText
+                + "%<br>Bonus damage dealt: " + String.Format("{0:#}", damageDealt);
             }
             return Language.GetString(myItemDef.descriptionToken);
         }

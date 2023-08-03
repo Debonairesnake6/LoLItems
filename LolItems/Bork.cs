@@ -68,7 +68,9 @@ namespace LoLItems
             myItemDef.pickupToken = "BorkItem";
             myItemDef.descriptionToken = "BorkDesc";
             myItemDef.loreToken = "BorkLore";
-            myItemDef.deprecatedTier = ItemTier.VoidTier2;
+#pragma warning disable Publicizer001
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/DLC1/Common/VoidTier2Def.asset").WaitForCompletion();
+#pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("BorkIcon");
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("BorkPrefab");
             myItemDef.canRemove = true;
@@ -83,7 +85,6 @@ namespace LoLItems
 
             myCounterBuffDef.iconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
             myCounterBuffDef.name = "BorkCounterBuff";
-            myCounterBuffDef.buffColor = Color.green;
             myCounterBuffDef.canStack = true;
             myCounterBuffDef.isDebuff = false;
             myCounterBuffDef.isCooldown = false;
@@ -94,7 +95,6 @@ namespace LoLItems
 
             myTimerBuffDef.iconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
             myTimerBuffDef.name = "BorkTimerBuff";
-            myTimerBuffDef.buffColor = Color.green;
             myTimerBuffDef.canStack = true;
             myTimerBuffDef.isDebuff = false;
             myTimerBuffDef.isCooldown = true;
@@ -117,8 +117,10 @@ namespace LoLItems
                 };
                 newVoidPairs.Add(newVoidPair);
                 }
+#pragma warning disable Publicizer001
                 ItemDef.Pair[] voidPairs = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem];
                 ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = voidPairs.Union(newVoidPairs).ToArray();
+#pragma warning restore Publicizer001
                 orig();
             };
 

@@ -42,7 +42,9 @@ namespace LoLItems
             myItemDef.pickupToken = "ImperialMandateItem";
             myItemDef.descriptionToken = "ImperialMandateDesc";
             myItemDef.loreToken = "ImperialMandateLore";
-            myItemDef.deprecatedTier = ItemTier.VoidTier2;
+#pragma warning disable Publicizer001
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/DLC1/Common/VoidTier2Def.asset").WaitForCompletion();
+#pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("ImperialMandateIcon");
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("ImperialMandatePrefab");
             myItemDef.canRemove = true;
@@ -62,8 +64,10 @@ namespace LoLItems
                     itemDef2 = myItemDef
                 };
                 newVoidPairs.Add(newVoidPair);
+#pragma warning disable Publicizer001
                 ItemDef.Pair[] voidPairs = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem];
                 ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = voidPairs.Union(newVoidPairs).ToArray();
+#pragma warning restore Publicizer001
                 orig();
             };
 
