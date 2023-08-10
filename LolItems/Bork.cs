@@ -280,7 +280,8 @@ namespace LoLItems
             LanguageAPI.Add("BorkItem", "Attack speed. Every " + procForBigHit + " hits do damage and heal, and has a cooldown. Corrupts <style=cIsVoid>Syringes</style> and <style=cIsVoid>Leaching Seeds</style>.");
 
             //The Description is where you put the actual numbers and give an advanced description.
-            LanguageAPI.Add("BorkDesc", "Deals <style=cIsDamage>" + onHitDamageAmount + "%</style> <style=cStack>(+" + onHitDamageAmount + 
+            LanguageAPI.Add("BorkDesc", "Gives <style=cIsDamage>" + attackSpeed + "%</style> <style=cStack>(+" + attackSpeed + 
+            "%)</style> attack speed. Deals <style=cIsDamage>" + onHitDamageAmount + "%</style> <style=cStack>(+" + onHitDamageAmount + 
             "%)</style> current enemy hp every third hit, and heal for <style=cIsHealing>" + onHitHealPercent + "%</style> of that damage on a " + bigOnHitTimer + 
             " second cooldown. Corrupts <style=cIsVoid>Syringes</style> and <style=cIsVoid>Leaching Seeds</style>.");
 

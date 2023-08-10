@@ -154,19 +154,19 @@ namespace LoLItems
         private static string GetDisplayInformation(CharacterMaster masterRef)
         {
             // Update the description for an item in the HUD
-            string statusText = "";
-            int itemCount = masterRef.inventory.GetItemCount(myItemDef.itemIndex);
-            if (masterRef.inventory.GetItemCount(DLC1Content.Items.ConvertCritChanceToCritDamage) == 0)
-            {
-                statusText = "<br><br>Bonus crit chance: " + String.Format("{0:#}", itemCount * bonusCritChance)
-                + "%<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage);
-            }
-            else
-            {
-                statusText = "<br><br>Bonus crit chance: 0"
-                + "%<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage + itemCount * bonusCritChance);
-            }
             if (masterRef != null && bonusDamageDealt.TryGetValue(masterRef.netId, out float damageDealt)){
+                string statusText = "";
+                int itemCount = masterRef.inventory.GetItemCount(myItemDef.itemIndex);
+                if (masterRef.inventory.GetItemCount(DLC1Content.Items.ConvertCritChanceToCritDamage) == 0)
+                {
+                    statusText = "<br><br>Bonus crit chance: " + String.Format("{0:#}", itemCount * bonusCritChance)
+                    + "%<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage);
+                }
+                else
+                {
+                    statusText = "<br><br>Bonus crit chance: 0"
+                    + "%<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage + itemCount * bonusCritChance);
+                }
                 return Language.GetString(myItemDef.descriptionToken)
                 + statusText
                 + "%<br>Bonus damage dealt: " + String.Format("{0:#}", damageDealt);
