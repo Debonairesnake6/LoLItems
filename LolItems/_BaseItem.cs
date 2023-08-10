@@ -50,9 +50,9 @@ namespace LoLItems
             myItemDef.loreToken = "MyExampleItemLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
             myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/Base/Common/Tier1Def.asset").WaitForCompletion();
-#pragma warning restore Publicizer001
             // ENABLE for void item, disable above
-            // myItemDef.deprecatedTier = ItemTier.VoidTier2;
+            // myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/DLC1/Common/VoidTier2Def.asset").WaitForCompletion();
+#pragma warning restore Publicizer001
             // DEFAULT icons
             myItemDef.pickupIconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
             myItemDef.pickupModelPrefab = Resources.Load<GameObject>("Prefabs/PickupModels/PickupMystery");

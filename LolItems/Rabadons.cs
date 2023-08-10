@@ -324,7 +324,6 @@ namespace LoLItems
                             float damageMultiplier = 1 + inventoryCount * damageAmp;
                             Utilities.AddValueInDictionary(ref rabadonsBonusDamage, attackerCharacterBody.master, damageInfo.damage * (damageMultiplier - 1));
                             damageInfo.damage = damageMultiplier * damageInfo.damage;
-                            
                         }
                     }
                 }

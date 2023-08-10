@@ -67,9 +67,6 @@
       <HintPath>libs\Zio.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <!-- <Reference Include="ItemStatsMod">
-      <HintPath>C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\ontrigger-ItemStatsMod\ItemStats.dll</HintPath>
-    </Reference> -->
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
@@ -77,8 +74,11 @@
     <Copy SourceFiles="$(ProjectDir)bin\Debug\netstandard2.0\LoLItems.pdb" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItemsLocal" />
     <Copy SourceFiles="$(ProjectDir)Assets\icons" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItemsLocal" />
     <Copy SourceFiles="$(ProjectDir)Assets\prefabs" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItemsLocal" />
+    <Copy SourceFiles="$(ProjectDir)Assets\Soundbank.bnk" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItemsLocal" />
+    <Move SourceFiles="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItemsLocal\Soundbank.bnk" DestinationFiles="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItemsLocal\Soundbank.sound" />
     <Copy SourceFiles="$(ProjectDir)../manifest.json" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItemsLocal" />
     <Copy SourceFiles="$(ProjectDir)../README.md" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItemsLocal" />
+    <Copy SourceFiles="$(ProjectDir)../icon.png" DestinationFolder="C:\Users\Ryan S\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\personal\BepInEx\plugins\Debo-LoLItemsLocal" />
   </Target>
 
   <Target Name="BuildZip" AfterTargets="PostBuild">

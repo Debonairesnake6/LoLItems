@@ -4,6 +4,7 @@ using R2API.Utils;
 using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using System.Collections.Generic;
 
 namespace LoLItems
 {
@@ -30,7 +31,7 @@ namespace LoLItems
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Debo";
         public const string PluginName = "LoLItems";
-        public const string PluginVersion = "0.1.8";
+        public const string PluginVersion = "0.1.9";
 
         public static BepInEx.Logging.ManualLogSource Log;
         public GameObject multiShopPrefab;
@@ -68,19 +69,17 @@ namespace LoLItems
             // ONLY FOR TESTING
             // if (Input.GetKeyDown(KeyCode.F2))
             // {
-            //     //Get the player body to use a position:
+            // //     //Get the player body to use a position:
             //     var transform = PlayerCharacterMasterController.instances[0].master.GetBodyObject().transform;
 
-            //     //And then drop our defined item in front of the player.
+            // //     //And then drop our defined item in front of the player.
 
             //     Log.LogInfo($"Player pressed F2. Spawning our custom item at coordinates {transform.position}");
-            //     // PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(WhiteClover.myItemDef.itemIndex), transform.position, transform.forward * 20f);
-            //     PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(Heartsteel.myItemDef.itemIndex), transform.position, transform.forward * 20f);
-            //     PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(Bork.myItemDef.itemIndex), transform.position, transform.forward * 20f);
-            //     PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(Rabadons.myItemDef.itemIndex), transform.position, transform.forward * 20f);
-            //     PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(Liandrys.myItemDef.itemIndex), transform.position, transform.forward * 20f);
-            //     PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(GuinsoosRageblade.myItemDef.itemIndex), transform.position, transform.forward * 20f);
-            //     PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(BannerOfCommand.myItemDef.itemIndex), transform.position, transform.forward * 20f);
+            //     List<ItemDef> myItems = new() { Heartsteel.myItemDef, Bork.myItemDef, Rabadons.myItemDef, Liandrys.myItemDef, BannerOfCommand.myItemDef, GuinsoosRageblade.myItemDef, ImperialMandate.myItemDef, InfinityEdge.myItemDef, MejaisSoulstealer.myItemDef };
+            //     foreach (ItemDef myItem in myItems)
+            //     {
+            //         PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(myItem.itemIndex), transform.position, transform.forward * 20f);
+            //     }
             // }
         }
     }
