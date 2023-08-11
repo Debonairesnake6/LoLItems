@@ -122,7 +122,8 @@ namespace LoLItems
             };
 
              On.RoR2.GlobalEventManager.OnHitEnemy += (orig, self, damageInfo, victim) =>
-            {                
+            {    
+                orig(self, damageInfo, victim);
                 if (damageInfo.attacker && damageInfo.procCoefficient > 0)
                 {
                     CharacterBody attackerCharacterBody = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -141,17 +142,13 @@ namespace LoLItems
                             onHitProc.inflictor = damageInfo.attacker;
                             onHitProc.damage = damage;
                             onHitProc.damageColorIndex = DamageColorIndex.Item;
-                            orig(self, damageInfo, victim);
                             victimCharacterBody.healthComponent.TakeDamage(onHitProc);
                             Utilities.AddValueInDictionary(ref heartsteelBonusDamage, attackerCharacterBody.master, damage, false);
                             AkSoundEngine.PostEvent(3202319100, damageInfo.attacker.gameObject);
                         }
                     }
                 }
-                else
-                {
-                    orig(self, damageInfo, victim);
-                }
+
             };
 
             On.RoR2.CharacterBody.Start += (orig, self) =>

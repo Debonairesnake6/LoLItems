@@ -18,6 +18,11 @@ Icon | Name | Tier | Description
 
 ## Changelog
 
+**0.1.10**
+
+* Fixed a bug where on hit effects would only proc when you had Heartsteel
+  * https://github.com/Debonairesnake6/LoLItems/issues/17
+
 **0.1.9**
 
 * Improved the way void items are defined
