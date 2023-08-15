@@ -2,5 +2,5 @@ Event	ID	Name			Wwise Object Path	Notes
 	3202319100	Heartsteel			\Default Work Unit\Heartsteel	
 
 In Memory Audio	ID	Name	Audio source file		Wwise Object Path	Notes	Data Size
-	479608490	Heartsteel_trigger	C:\Users\Ryan S\Documents\WwiseProjects\LoLItems\.cache\Windows\SFX\Heartsteel_trigger_10C4C929.wem		\Actor-Mixer Hierarchy\Default Work Unit\Heartsteel_trigger		140480
+	479608490	Heartsteel_trigger	C:\Users\Ryan S\Documents\WwiseProjects\LoLItems\.cache\Windows\SFX\Heartsteel_trigger_10C4C929.wem		\Actor-Mixer Hierarchy\Default Work Unit\SFX_Mixxer\Heartsteel_trigger		140480
 

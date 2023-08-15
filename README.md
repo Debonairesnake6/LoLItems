@@ -18,6 +18,11 @@ Icon | Name | Tier | Description
 
 ## Changelog
 
+**0.1.11**
+
+* Fixed the Heartsteel sound effect to properly scale with your SFX volume slider
+  * https://github.com/Debonairesnake6/LoLItems/issues/19
+
 **0.1.10**
 
 * Fixed a bug where on hit effects would only proc when you had Heartsteel
