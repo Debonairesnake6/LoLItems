@@ -18,6 +18,11 @@ Icon | Name | Tier | Description
 
 ## Changelog
 
+**0.1.12**
+
+* Reduced the sound of Heartsteel
+  * https://github.com/Debonairesnake6/LoLItems/issues/21
+
 **0.1.11**
 
 * Fixed the Heartsteel sound effect to properly scale with your SFX volume slider
