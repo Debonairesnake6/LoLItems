@@ -76,5 +76,13 @@ namespace LoLItems
     
             return renderInfos;
         }
+
+        public static void RemoveBuffStacks(CharacterBody characterBody, BuffIndex buffIndex)
+        {
+            while (characterBody.GetBuffCount(buffIndex) > 0)
+            {
+                characterBody.RemoveBuff(buffIndex);
+            }
+        }
     }
 }
