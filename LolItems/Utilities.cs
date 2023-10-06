@@ -84,5 +84,10 @@ namespace LoLItems
                 characterBody.RemoveBuff(buffIndex);
             }
         }
+
+        public static float HyperbolicScale(int itemCount, float value)
+        {
+            return 1 - (1 / (itemCount * value + 1));
+        }
     }
 }
