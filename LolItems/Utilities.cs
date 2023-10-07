@@ -76,5 +76,28 @@ namespace LoLItems
     
             return renderInfos;
         }
+
+        public static void RemoveBuffStacks(CharacterBody characterBody, BuffIndex buffIndex)
+        {
+            while (characterBody.GetBuffCount(buffIndex) > 0)
+            {
+                characterBody.RemoveBuff(buffIndex);
+            }
+        }
+
+        public static float HyperbolicScale(int itemCount, float value)
+        {
+            return 1 - (1 / (itemCount * value + 1));
+        }
+
+        public static void AddTimedBuff(CharacterBody characterBody, BuffDef buffDef, float duration)
+        {
+            float myTimer = 1;
+            while (myTimer <= duration)
+            {
+                characterBody.AddTimedBuff(buffDef, myTimer);
+                myTimer++;
+            }
+        }
     }
 }
