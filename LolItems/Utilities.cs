@@ -89,5 +89,15 @@ namespace LoLItems
         {
             return 1 - (1 / (itemCount * value + 1));
         }
+
+        public static void AddTimedBuff(CharacterBody characterBody, BuffDef buffDef, float duration)
+        {
+            float myTimer = 1;
+            while (myTimer <= duration)
+            {
+                characterBody.AddTimedBuff(buffDef, myTimer);
+                myTimer++;
+            }
+        }
     }
 }

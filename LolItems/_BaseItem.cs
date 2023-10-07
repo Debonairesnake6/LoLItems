@@ -71,7 +71,7 @@ namespace LoLItems
 
         //     myBuffDef.iconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
         //     //  ENABLE for custom assets
-        //     // myItemDef.iconSprite = Assets.icons.LoadAsset<Sprite>("MyExampleItemIcon");
+        //     // myBuffDef.iconSprite = Assets.icons.LoadAsset<Sprite>("MyExampleItemIcon");
         //     myBuffDef.name = "MyExampleItemBuff";
         //     myBuffDef.buffColor = Color.red;
         //     myBuffDef.canStack = true;
