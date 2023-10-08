@@ -21,6 +21,15 @@ Icon | Name | Tier | Description
 
 ## Changelog
 
+**0.1.14**
+
+* Fixed KrakenSlayer not properly scaling with additional stacks
+  * https://github.com/Debonairesnake6/LoLItems/issues/27
+* Fixed KrakenSlayer taking 3 hits on the same enemy rather than any enemy
+  * https://github.com/Debonairesnake6/LoLItems/issues/28
+* Added a visual buff indicator for KrakenSlayer
+  * https://github.com/Debonairesnake6/LoLItems/issues/28
+
 **0.1.13**
 
 * Added KrakenSlayer
