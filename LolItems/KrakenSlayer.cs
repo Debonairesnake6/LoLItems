@@ -71,12 +71,12 @@ namespace LoLItems
             // Create a buff to count the number of stacks before a big proc
             myCounterBuffDef = ScriptableObject.CreateInstance<BuffDef>();
 
-            myCounterBuffDef.iconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
+            myCounterBuffDef.iconSprite = Assets.icons.LoadAsset<Sprite>("KrakenSlayerIcon");
             myCounterBuffDef.name = "KrakenSlayerCounterBuff";
             myCounterBuffDef.canStack = true;
             myCounterBuffDef.isDebuff = false;
             myCounterBuffDef.isCooldown = false;
-            myCounterBuffDef.isHidden = true;
+            myCounterBuffDef.isHidden = false;
         }
 
 
@@ -97,16 +97,16 @@ namespace LoLItems
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
                         {
-                            int currentBuffCount = victimCharacterBody.healthComponent.body.GetBuffCount(myCounterBuffDef);
-                            if (currentBuffCount < procRequirement - 1)
-                            {
-                                victimCharacterBody.AddBuff(myCounterBuffDef);
-                            }
-                            else
-                            {
-                                Utilities.RemoveBuffStacks(victimCharacterBody, myCounterBuffDef.buffIndex);
+                            attackerCharacterBody.AddBuff(myCounterBuffDef);
 
-                                float damage = attackerCharacterBody.damage * procDamage / 100f;
+                            if (attackerCharacterBody.healthComponent.body.GetBuffCount(myCounterBuffDef) > procRequirement)
+                            {
+                                foreach (int value in Enumerable.Range(2, procRequirement))
+                                {
+                                    attackerCharacterBody.RemoveBuff(myCounterBuffDef);
+                                }
+
+                                float damage = attackerCharacterBody.damage * procDamage / 100f * inventoryCount;
                                 DamageInfo onHitProc = damageInfo;
                                 onHitProc.crit = false;
                                 onHitProc.procCoefficient = 0f;
@@ -119,6 +119,20 @@ namespace LoLItems
                             }
                         }
                     }
+                }
+            };
+
+            // Modify character values
+            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
+            {
+                orig(self);
+                if (self?.inventory && self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && !self.HasBuff(myCounterBuffDef))
+                {
+                    self.AddBuff(myCounterBuffDef);
+                }
+                else if (self?.inventory && self.inventory.GetItemCount(myItemDef.itemIndex) == 0 && self.HasBuff(myCounterBuffDef))
+                {
+                    Utilities.RemoveBuffStacks(self, myCounterBuffDef.buffIndex);
                 }
             };
 
