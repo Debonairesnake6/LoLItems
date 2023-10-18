@@ -12,7 +12,7 @@ Icon | Name | Tier | Description
 ![GuardiansBlade](https://static.wikia.nocookie.net/leagueoflegends/images/f/f2/Guardian%27s_Blade_item.png/revision/latest?cb=20221019163250) | GuardiansBlade | White | Reduce cooldown on secondary and utility skills.
 ![InfinityEdge](https://static.wikia.nocookie.net/leagueoflegends/images/a/aa/Infinity_Edge_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221230173431) | InfinityEdge | Green | Crit chance and crit damage.
 ![Liandrys](https://static.wikia.nocookie.net/leagueoflegends/images/3/30/Liandry%27s_Anguish_item.png/revision/latest?cb=20201118211533) | Liandrys | Green | Burn enemies for % max health damage on hit.
-![KrakenSlayer](https://static.wikia.nocookie.net/leagueoflegends/images/e/e9/Kraken_Slayer_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201110232124) | Liandrys | Green | Bonus damage every few hits.
+![KrakenSlayer](https://static.wikia.nocookie.net/leagueoflegends/images/e/e9/Kraken_Slayer_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201110232124) | KrakenSlayer | Green | Bonus damage every few hits.
 ![ImmortalShieldbow](https://static.wikia.nocookie.net/leagueoflegends/images/2/2b/Immortal_Shieldbow_item.png/revision/latest?cb=20201118205028) | ImmortalShieldbow | Green | Gives a barrier based on your max health when low.
 ![Rabadons](https://static.wikia.nocookie.net/leagueoflegends/images/c/c5/Rabadon%27s_Deathcap_item.png/revision/latest?cb=20201118205704) | Rabadons | Red | Do more damage.
 ![Heartsteel](https://static.wikia.nocookie.net/leagueoflegends/images/8/87/Heartsteel_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221115195510) | Heartsteel | Red | Gain permanent health on kill with no cap. Every few seconds deal a portion of your health as extra damage on hit.
@@ -20,6 +20,11 @@ Icon | Name | Tier | Description
 ![Bork](https://static.wikia.nocookie.net/leagueoflegends/images/2/2f/Blade_of_the_Ruined_King_item.png/revision/latest?cb=20221210230042) | Bork | Void Green | Attack speed. Every few hits do damage and heal, and has a cooldown. Corrupts **Syringes** and **Leaching Seeds**.
 
 ## Changelog
+
+**0.1.15**
+
+* Fixed a bug with GuardiansBlade that broke characters/minions without a secondary or utility skill
+  * https://github.com/Debonairesnake6/LoLItems/issues/30
 
 **0.1.14**
 

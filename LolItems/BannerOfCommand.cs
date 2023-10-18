@@ -146,7 +146,7 @@ namespace LoLItems
             return Language.GetString(myItemDef.descriptionToken);
         }
 
-        //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
+        //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opinionated. Make your own judgments!
         private static void AddTokens()
         {
             // Styles
