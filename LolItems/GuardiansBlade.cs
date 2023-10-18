@@ -117,7 +117,7 @@ namespace LoLItems
             On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
             {
                 orig(self);
-                if (self.inventory != null && self.inventory.GetItemCount(myItemDef.itemIndex) > 0)
+                if (self.inventory != null && self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && self.skillLocator?.utilityBonusStockSkill?.cooldownScale != null && self.skillLocator?.secondaryBonusStockSkill?.cooldownScale != null)
                 {
                     float cdr = Math.Abs(Utilities.HyperbolicScale(self.inventory.GetItemCount(myItemDef.itemIndex), cooldownReduction / 100) - 1);
                     self.skillLocator.utilityBonusStockSkill.cooldownScale *= cdr;

@@ -31,7 +31,7 @@ namespace LoLItems
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Debo";
         public const string PluginName = "LoLItems";
-        public const string PluginVersion = "0.1.14";
+        public const string PluginVersion = "0.1.15";
 
         public static BepInEx.Logging.ManualLogSource Log;
         public GameObject multiShopPrefab;
@@ -61,6 +61,7 @@ namespace LoLItems
             KrakenSlayer.Init();
             GuardiansBlade.Init();
             ImmortalShieldbow.Init();
+            // Cull.Init();
 
             // This line of log will appear in the bepinex console when the Awake method is done.
             Log.LogInfo("LoLItems successfully loaded.");

@@ -130,7 +130,7 @@ namespace LoLItems
                         // MyExampleItemOrb.target = Util.FindBodyMainHurtBox(damageReport.attackerBody);
                         // MyExampleItemOrb.maxHpValue = 0;
                         // OrbManager.instance.AddOrb(MyExampleItemOrb);
-                        // Utilities.AddValueToDictionary(ref exampleStoredValue, damageReport.attackerBody.master.netId, exampleValue);
+                        // Utilities.AddValueInDictionary(ref exampleStoredValue, damageReport.attackerBody.master, exampleValue);
 					}
                 }
             };
