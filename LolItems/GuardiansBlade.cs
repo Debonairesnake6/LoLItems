@@ -12,13 +12,17 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System;
 using System.Linq;
+using BepInEx.Configuration;
 
 namespace LoLItems
 {
     internal class GuardiansBlade
     {
         public static ItemDef myItemDef;
-        public static float cooldownReduction = 5f;
+        public static ConfigEntry<float> cooldownReduction { get; set; }
+        public static ConfigEntry<bool> enabled { get; set; }
+        public static ConfigEntry<string> rarity { get; set; }
+        public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> cooldownReductionTracker = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
@@ -26,11 +30,50 @@ namespace LoLItems
         // This runs when loading the file
         internal static void Init()
         {
+            LoadConfig();
+            if (!enabled.Value)
+            {
+                return;
+            }
+            
             CreateItem();
             AddTokens();
             ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             hooks();
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "GuardiansBlade");
+        }
+
+        private static void LoadConfig()
+        {
+            enabled = LoLItems.MyConfig.Bind<bool>(
+                "GuardiansBlade",
+                "Enabled",
+                true,
+                "Determines if the item should be loaded by the game."
+            );
+
+            rarity = LoLItems.MyConfig.Bind<string>(
+                "GuardiansBlade",
+                "Rarity",
+                "Tier1Def",
+                "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
+            );
+
+            voidItems = LoLItems.MyConfig.Bind<string>(
+                "GuardiansBlade",
+                "Void Items",
+                "",
+                "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
+            );
+
+            cooldownReduction = LoLItems.MyConfig.Bind<float>(
+                "GuardiansBlade",
+                "Cooldown Reduction",
+                5f,
+                "Amount of cooldown reduction each item will grant."
+
+            );
         }
 
         private static void CreateItem()
@@ -42,7 +85,7 @@ namespace LoLItems
             myItemDef.descriptionToken = "GuardiansBladeDesc";
             myItemDef.loreToken = "GuardiansBladeLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/Base/Common/Tier1Def.asset").WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("GuardiansBladeIcon");
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("GuardiansBladePrefab");
@@ -52,74 +95,13 @@ namespace LoLItems
         }
 
         private static void hooks()
-        {
-            // Called basically every frame to update your HUD info
-            On.RoR2.UI.HUD.Update += (orig, self) => 
-            {
-                orig(self);
-                if (self.itemInventoryDisplay && self.targetMaster)
-                {
-                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
-#pragma warning disable Publicizer001
-                    self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
-                    {
-                        // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex){
-                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
-                        }
-                    });
-#pragma warning restore Publicizer001
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
-            {
-                orig(self, characterMaster);
-                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
-            };
-
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
-            {
-                orig(self, newIndex, newCount);
-                if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
-                {
-                    IconToMasterRef.TryGetValue(self, out CharacterMaster master);
-                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemInventoryDisplay.AllocateIcons += (orig, self, count) =>
-            {
-                orig(self, count);
-                List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
-                DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
-                icons.ForEach(i => IconToMasterRef[i] = masterRef);
-            };
-
-            // Add to stat dict for end of game screen
-            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
-            {
-                orig(self, playerInfo);
-                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
-                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
-                {
-                    if (entry.Value == playerInfo.master)
-                    {
-                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
-                    }
-                }
-            };
-            
+        {            
             On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
             {
                 orig(self);
                 if (self.inventory != null && self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && self.skillLocator?.utilityBonusStockSkill?.cooldownScale != null && self.skillLocator?.secondaryBonusStockSkill?.cooldownScale != null)
                 {
-                    float cdr = Math.Abs(Utilities.HyperbolicScale(self.inventory.GetItemCount(myItemDef.itemIndex), cooldownReduction / 100) - 1);
+                    float cdr = Math.Abs(Utilities.HyperbolicScale(self.inventory.GetItemCount(myItemDef.itemIndex), cooldownReduction.Value / 100) - 1);
                     self.skillLocator.utilityBonusStockSkill.cooldownScale *= cdr;
                     self.skillLocator.secondaryBonusStockSkill.cooldownScale *= cdr;
                     Utilities.SetValueInDictionary(ref cooldownReductionTracker, self.master, Math.Abs(cdr - 1) * 100, false);
@@ -147,7 +129,7 @@ namespace LoLItems
             LanguageAPI.Add("GuardiansBladeItem", "Reduce the cooldown on secondary and utility skills");
 
             // Long description
-            LanguageAPI.Add("GuardiansBladeDesc", "Reduce the cooldown on your secondary and utility skills by <style=cIsUtility>" + cooldownReduction + "%</style> <style=cStack>(+" + cooldownReduction + ")</style>. Scales hyperbolically, just like tougher times.");
+            LanguageAPI.Add("GuardiansBladeDesc", "Reduce the cooldown on your secondary and utility skills by <style=cIsUtility>" + cooldownReduction.Value + "%</style> <style=cStack>(+" + cooldownReduction.Value + ")</style>. Scales hyperbolically, just like tougher times.");
 
             // Lore
             LanguageAPI.Add("GuardiansBladeLore", "Awesome Refund And Movement.");

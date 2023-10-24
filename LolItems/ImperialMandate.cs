@@ -10,16 +10,17 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System;
 using System.Linq;
+using BepInEx.Configuration;
 
 namespace LoLItems
 {
     internal class ImperialMandate
     {
         public static ItemDef myItemDef;
-        // ENABLE for buff
-        // public static BuffDef myBuffDef;
-
-        public static float damageAmpPerStack = 8f;
+        public static ConfigEntry<float> damageAmpPerStack { get; set; }
+        public static ConfigEntry<bool> enabled { get; set; }
+        public static ConfigEntry<string> rarity { get; set; }
+        public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> bonusDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
@@ -27,11 +28,50 @@ namespace LoLItems
         // This runs when loading the file
         internal static void Init()
         {
+            LoadConfig();
+            if (!enabled.Value)
+            {
+                return;
+            }
+
             CreateItem();
             AddTokens();
             var displayRules = new ItemDisplayRuleDict(null);
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             hooks();
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "ImperialMandate");
+        }
+
+        private static void LoadConfig()
+        {
+            enabled = LoLItems.MyConfig.Bind<bool>(
+                "ImperialMandate",
+                "Enabled",
+                true,
+                "Determines if the item should be loaded by the game."
+            );
+
+            rarity = LoLItems.MyConfig.Bind<string>(
+                "ImperialMandate",
+                "Rarity",
+                "VoidTier2Def",
+                "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
+            );
+
+            voidItems = LoLItems.MyConfig.Bind<string>(
+                "ImperialMandate",
+                "Void Items",
+                "DeathMark",
+                "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
+            );
+
+            damageAmpPerStack = LoLItems.MyConfig.Bind<float>(
+                "ImperialMandate",
+                "Damage Amp",
+                8f,
+                "Amount of bonus damage each item will grant."
+
+            );
         }
 
         private static void CreateItem()
@@ -43,7 +83,7 @@ namespace LoLItems
             myItemDef.descriptionToken = "ImperialMandateDesc";
             myItemDef.loreToken = "ImperialMandateLore";
 #pragma warning disable Publicizer001
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/DLC1/Common/VoidTier2Def.asset").WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("ImperialMandateIcon");
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("ImperialMandatePrefab");
@@ -54,84 +94,6 @@ namespace LoLItems
 
         private static void hooks()
         {
-            // Create void item
-            On.RoR2.Items.ContagiousItemManager.Init += (orig) => 
-            {
-                List<ItemDef.Pair> newVoidPairs = new List<ItemDef.Pair>();
-                ItemDef.Pair newVoidPair = new ItemDef.Pair()
-                {
-                    itemDef1 = ItemCatalog.GetItemDef(ItemCatalog.FindItemIndex("DeathMark")),
-                    itemDef2 = myItemDef
-                };
-                newVoidPairs.Add(newVoidPair);
-#pragma warning disable Publicizer001
-                ItemDef.Pair[] voidPairs = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem];
-                ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = voidPairs.Union(newVoidPairs).ToArray();
-#pragma warning restore Publicizer001
-                orig();
-            };
-
-            // Called basically every frame to update your HUD info
-            On.RoR2.UI.HUD.Update += (orig, self) => 
-            {
-                orig(self);
-                if (self.itemInventoryDisplay && self.targetMaster)
-                {
-                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
-#pragma warning disable Publicizer001
-                    self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
-                    {
-                        // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex){
-                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
-                        }
-                    });
-#pragma warning restore Publicizer001
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
-            {
-                orig(self, characterMaster);
-                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
-            };
-
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
-            {
-                orig(self, newIndex, newCount);
-                if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
-                {
-                    IconToMasterRef.TryGetValue(self, out CharacterMaster master);
-                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemInventoryDisplay.AllocateIcons += (orig, self, count) =>
-            {
-                orig(self, count);
-                List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
-                DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
-                icons.ForEach(i => IconToMasterRef[i] = masterRef);
-            };
-
-            // Add to stat dict for end of game screen
-            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
-            {
-                orig(self, playerInfo);
-                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
-                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
-                {
-                    if (entry.Value == playerInfo.master)
-                    {
-                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
-                    }
-                }
-            };
-
             // When something takes damage
             On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
             {
@@ -158,7 +120,7 @@ namespace LoLItems
                                     if (dotController.HasDotActive(dotIndex)) debuffsActive += 1;
                                 }
                             }
-                            float extraDamage = damageInfo.damage * damageAmpPerStack / 100 * inventoryCount * debuffsActive;
+                            float extraDamage = damageInfo.damage * damageAmpPerStack.Value / 100 * inventoryCount * debuffsActive;
                             damageInfo.damage += extraDamage;
                             Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, extraDamage);
                         }
@@ -205,7 +167,7 @@ namespace LoLItems
             LanguageAPI.Add("ImperialMandateItem", "Do more damage to enemies for each debuff. Corrupts <style=cIsVoid>Death Mark</style>.");
 
             // Long description
-            LanguageAPI.Add("ImperialMandateDesc", "Do <style=cIsDamage>" + damageAmpPerStack + "%</style> <style=cStack>(+" + damageAmpPerStack + "%)</style> more damage to enemies for each debuff. Corrupts <style=cIsVoid>Death Mark</style>.");
+            LanguageAPI.Add("ImperialMandateDesc", "Do <style=cIsDamage>" + damageAmpPerStack.Value + "%</style> <style=cStack>(+" + damageAmpPerStack.Value + "%)</style> more damage to enemies for each debuff. Corrupts <style=cIsVoid>Death Mark</style>.");
 
             // Lore
             LanguageAPI.Add("ImperialMandateLore", "Hunt your prey.");

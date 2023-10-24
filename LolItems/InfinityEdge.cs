@@ -9,6 +9,7 @@ using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System;
+using BepInEx.Configuration;
 
 namespace LoLItems
 {
@@ -16,19 +17,69 @@ namespace LoLItems
     {
         public static ItemDef myItemDef;
 
-        public static float bonusCritChance = 5f;
-        public static float bonusCritDamage = 15f;
+        public static ConfigEntry<float> bonusCritChance { get; set; }
+        public static ConfigEntry<float> bonusCritDamage { get; set; }
+        public static ConfigEntry<bool> enabled { get; set; }
+        public static ConfigEntry<string> rarity { get; set; }
+        public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> bonusDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
         internal static void Init()
         {
+            LoadConfig();
+            if (!enabled.Value)
+            {
+                return;
+            }
+
             CreateItem();
             AddTokens();
             var displayRules = new ItemDisplayRuleDict(null);
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             hooks();
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "InfinityEdge");
+        }
+
+        private static void LoadConfig()
+        {
+            enabled = LoLItems.MyConfig.Bind<bool>(
+                "InfinityEdge",
+                "Enabled",
+                true,
+                "Determines if the item should be loaded by the game."
+            );
+
+            rarity = LoLItems.MyConfig.Bind<string>(
+                "InfinityEdge",
+                "Rarity",
+                "Tier2Def",
+                "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
+            );
+
+            voidItems = LoLItems.MyConfig.Bind<string>(
+                "InfinityEdge",
+                "Void Items",
+                "",
+                "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
+            );
+
+            bonusCritChance = LoLItems.MyConfig.Bind<float>(
+                "InfinityEdge",
+                "Crit Chance",
+                5f,
+                "Amount of crit chance each item will grant."
+
+            );
+
+            bonusCritDamage = LoLItems.MyConfig.Bind<float>(
+                "InfinityEdge",
+                "Crit Damage",
+                15f,
+                "Amount of crit damage each item will grant."
+
+            );
         }
 
         private static void CreateItem()
@@ -40,7 +91,7 @@ namespace LoLItems
             myItemDef.descriptionToken = "InfinityEdgeDesc";
             myItemDef.loreToken = "InfinityEdgeLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/Base/Common/Tier2Def.asset").WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("InfinityEdgeIcon");
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("InfinityEdgePrefab");
@@ -49,54 +100,7 @@ namespace LoLItems
         }
 
         private static void hooks()
-        {
-            // Called basically every frame to update your HUD info
-            On.RoR2.UI.HUD.Update += (orig, self) => 
-            {
-                orig(self);
-                if (self.itemInventoryDisplay && self.targetMaster)
-                {
-                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
-#pragma warning disable Publicizer001
-                    self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
-                    {
-                        // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex){
-                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
-                        }
-                    });
-#pragma warning restore Publicizer001
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
-            {
-                orig(self, characterMaster);
-                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
-            };
-
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
-            {
-                orig(self, newIndex, newCount);
-                if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
-                {
-                    IconToMasterRef.TryGetValue(self, out CharacterMaster master);
-                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemInventoryDisplay.AllocateIcons += (orig, self, count) =>
-            {
-                orig(self, count);
-                List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
-                DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
-                icons.ForEach(i => IconToMasterRef[i] = masterRef);
-            };
-            
+        {            
             // Modify character values
             On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
             {
@@ -104,14 +108,14 @@ namespace LoLItems
                 if (self?.inventory && self.inventory.GetItemCount(myItemDef.itemIndex) > 0)
                 {
                     float itemCount = self.inventory.GetItemCount(myItemDef.itemIndex);
-                    self.critMultiplier += itemCount * bonusCritDamage * 0.01f;
+                    self.critMultiplier += itemCount * bonusCritDamage.Value * 0.01f;
                     if (self.inventory.GetItemCount(DLC1Content.Items.ConvertCritChanceToCritDamage) == 0)
                     {
-                        self.crit += itemCount * bonusCritChance;
+                        self.crit += itemCount * bonusCritChance.Value;
                     }
                     else
                     {
-                        self.critMultiplier += itemCount * bonusCritChance * 0.01f;
+                        self.critMultiplier += itemCount * bonusCritChance.Value * 0.01f;
                     }
                 }
             };
@@ -129,23 +133,9 @@ namespace LoLItems
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0)
                         {
-                            float damageDealt = damageInfo.damage * attackerCharacterBody.critMultiplier * (inventoryCount * bonusCritDamage * 0.01f / attackerCharacterBody.critMultiplier);
+                            float damageDealt = damageInfo.damage * attackerCharacterBody.critMultiplier * (inventoryCount * bonusCritDamage.Value * 0.01f / attackerCharacterBody.critMultiplier);
                             Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, damageDealt);
                         }
-                    }
-                }
-            };
-
-            // Add to stat dict for end of game screen
-            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
-            {
-                orig(self, playerInfo);
-                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
-                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
-                {
-                    if (entry.Value == playerInfo.master)
-                    {
-                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
                     }
                 }
             };
@@ -159,13 +149,13 @@ namespace LoLItems
                 int itemCount = masterRef.inventory.GetItemCount(myItemDef.itemIndex);
                 if (masterRef.inventory.GetItemCount(DLC1Content.Items.ConvertCritChanceToCritDamage) == 0)
                 {
-                    statusText = "<br><br>Bonus crit chance: " + String.Format("{0:#}", itemCount * bonusCritChance)
-                    + "%<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage);
+                    statusText = "<br><br>Bonus crit chance: " + String.Format("{0:#}", itemCount * bonusCritChance.Value)
+                    + "%<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage.Value);
                 }
                 else
                 {
                     statusText = "<br><br>Bonus crit chance: 0"
-                    + "%<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage + itemCount * bonusCritChance);
+                    + "%<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage.Value + itemCount * bonusCritChance.Value);
                 }
                 return Language.GetString(myItemDef.descriptionToken)
                 + statusText
@@ -184,7 +174,7 @@ namespace LoLItems
             LanguageAPI.Add("InfinityEdgeItem", "Gain crit chance and crit damage");
 
             // Long description
-            LanguageAPI.Add("InfinityEdgeDesc", "Gain <style=cIsUtility>" + bonusCritChance + "%</style> crit chance and <style=cIsDamage>" + bonusCritDamage + "%</style> crit damage");
+            LanguageAPI.Add("InfinityEdgeDesc", "Gain <style=cIsUtility>" + bonusCritChance.Value + "%</style> <style=cStack>(+" + bonusCritChance.Value + ")</style> crit chance and <style=cIsDamage>" + bonusCritDamage.Value + "%</style> <style=cStack>(+" + bonusCritDamage.Value + ")</style> crit damage");
 
             // Lore
             LanguageAPI.Add("InfinityEdgeLore", "For when enemies need to die");

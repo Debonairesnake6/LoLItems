@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System;
 using System.Collections;
+using BepInEx.Configuration;
 
 namespace LoLItems
 {
@@ -20,11 +21,12 @@ namespace LoLItems
         //We need our item definition to persist through our functions, and therefore make it a class field.
         public static ItemDef myItemDef;
         public static BuffDef myTimerBuffDef;
-
-        // Set luck amount in one location
-        public static float bonusHealthAmount = 2f;
-        public static int damageCooldown = 10;
-        public static int damageBonus = 50;
+        public static ConfigEntry<float> bonusHealthAmount { get; set; }
+        public static ConfigEntry<float> damageCooldown { get; set; }
+        public static ConfigEntry<float> damageBonus { get; set; }
+        public static ConfigEntry<bool> enabled { get; set; }
+        public static ConfigEntry<string> rarity { get; set; }
+        public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> heartsteelHealth = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> originalBaseMaxHealth = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> heartsteelBonusDamage = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
@@ -33,23 +35,68 @@ namespace LoLItems
 
         internal static void Init()
         {
-            //Generate the basic information for the item
+            LoadConfig();
+            if (!enabled.Value)
+            {
+                return;
+            }
+
             CreateItem();
             CreateBuff();
-
-            //Now let's turn the tokens we made into actual strings for the game:
             AddTokens();
-
-            //You can add your own display rules here, where the first argument passed are the default display rules: the ones used when no specific display rules for a character are found.
-            //For this example, we are omitting them, as they are quite a pain to set up without tools like ItemDisplayPlacementHelper
-            var displayRules = new ItemDisplayRuleDict(null);
-
-            //Then finally add it to R2API
+            ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             ContentAddition.AddBuffDef(myTimerBuffDef);
-
-            // Initialize the hooks
             hooks();
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "Heartsteel");
+        }
+
+        private static void LoadConfig()
+        {
+            enabled = LoLItems.MyConfig.Bind<bool>(
+                "Heartsteel",
+                "Enabled",
+                true,
+                "Determines if the item should be loaded by the game."
+            );
+
+            rarity = LoLItems.MyConfig.Bind<string>(
+                "Heartsteel",
+                "Rarity",
+                "Tier3Def",
+                "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
+            );
+
+            voidItems = LoLItems.MyConfig.Bind<string>(
+                "Heartsteel",
+                "Void Items",
+                "",
+                "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
+            );
+
+            bonusHealthAmount = LoLItems.MyConfig.Bind<float>(
+                "Heartsteel",
+                "Health Per Kill",
+                2f,
+                "Amount of health per kill each item will grant."
+
+            );
+
+            damageCooldown = LoLItems.MyConfig.Bind<float>(
+                "Heartsteel",
+                "Damage Cooldown",
+                10f,
+                "The cooldown of the damage proc."
+
+            );
+
+            damageBonus = LoLItems.MyConfig.Bind<float>(
+                "Heartsteel",
+                "Bonus Damage Percent",
+                50f,
+                "The percentage of your health that will be dealt as damage."
+
+            );
         }
 
         private static void CreateItem()
@@ -64,7 +111,7 @@ namespace LoLItems
             myItemDef.descriptionToken = "HeartsteelDesc";
             myItemDef.loreToken = "HeartsteelLore";
 #pragma warning disable Publicizer001
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/Base/Common/Tier3Def.asset").WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("HeartsteelIcon");
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("HeartsteelPrefab");
@@ -116,7 +163,7 @@ namespace LoLItems
                         HeartsteelOrb.maxHpValue = 0;
                         OrbManager.instance.AddOrb(HeartsteelOrb);
 
-                        Utilities.AddValueInDictionary(ref heartsteelHealth, damageReport.attackerMaster, bonusHealthAmount * inventoryCount, false);
+                        Utilities.AddValueInDictionary(ref heartsteelHealth, damageReport.attackerMaster, bonusHealthAmount.Value * inventoryCount, false);
 					}
                 }
             };
@@ -134,8 +181,8 @@ namespace LoLItems
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0 && !attackerCharacterBody.HasBuff(myTimerBuffDef))
                         {
-                            attackerCharacterBody.healthComponent.body.AddTimedBuff(myTimerBuffDef, damageCooldown);
-                            float damage = attackerCharacterBody.healthComponent.fullHealth * inventoryCount * damageBonus / 100 * damageInfo.procCoefficient;
+                            attackerCharacterBody.healthComponent.body.AddTimedBuff(myTimerBuffDef, damageCooldown.Value);
+                            float damage = attackerCharacterBody.healthComponent.fullHealth * inventoryCount * damageBonus.Value / 100 * damageInfo.procCoefficient;
                             DamageInfo onHitProc = damageInfo;
                             onHitProc.procCoefficient = 1f;
                             onHitProc.damageType = DamageType.Generic;
@@ -168,67 +215,6 @@ namespace LoLItems
                 }
                 orig(self);
             };
-
-            // Called basically every frame            
-            On.RoR2.UI.HUD.Update += (orig, self) => 
-            {
-                orig(self);
-                if (self.itemInventoryDisplay && self.targetMaster)
-                {
-                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
-#pragma warning disable Publicizer001
-                    self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
-                    {
-                        // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex){
-                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
-                        }
-                    });
-#pragma warning restore Publicizer001
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
-            {
-                orig(self, characterMaster);
-                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
-            };
-
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
-            {
-                orig(self, newIndex, newCount);
-                if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
-                {
-                    IconToMasterRef.TryGetValue(self, out CharacterMaster master);
-                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemInventoryDisplay.AllocateIcons += (orig, self, count) =>
-            {
-                orig(self, count);
-                List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
-                DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
-                icons.ForEach(i => IconToMasterRef[i] = masterRef);
-            };
-
-            // Add to stat dict for end of game screen
-            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
-            {
-                orig(self, playerInfo);
-                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
-                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
-                {
-                    if (entry.Value == playerInfo.master)
-                    {
-                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
-                    }
-                }
-            };
         }
 
         private static string GetDisplayInformation(CharacterMaster masterRef)
@@ -252,7 +238,7 @@ namespace LoLItems
             LanguageAPI.Add("HeartsteelItem", "Gain permanent health on kill with no cap. Every few seconds deal a portion of your health as extra damage on hit.");
 
             //The Description is where you put the actual numbers and give an advanced description.
-            LanguageAPI.Add("HeartsteelDesc", "Adds <style=cIsHealth>" + bonusHealthAmount + "</style> <style=cStack>(+" + bonusHealthAmount + ")</style> base health per kill with no cap. Every <style=cIsUtility>" + damageCooldown + "</style> seconds deal <style=cIsDamage>" + damageBonus + "%</style> of your max health as damage on hit.");
+            LanguageAPI.Add("HeartsteelDesc", "Adds <style=cIsHealth>" + bonusHealthAmount.Value + "</style> <style=cStack>(+" + bonusHealthAmount.Value + ")</style> base health per kill with no cap. Every <style=cIsUtility>" + damageCooldown.Value + "</style> seconds deal <style=cIsDamage>" + damageBonus.Value + "%</style> of your max health as damage on hit.");
 
             //The Lore is, well, flavor. You can write pretty much whatever you want here.
             LanguageAPI.Add("HeartsteelLore", "Lore was meant to go here, but Sion trampled it.");
