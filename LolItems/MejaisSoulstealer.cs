@@ -9,6 +9,7 @@ using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System;
+using BepInEx.Configuration;
 
 namespace LoLItems
 {
@@ -18,9 +19,12 @@ namespace LoLItems
         public static BuffDef currentStacks;
         public static BuffDef currentDuration;
 
-        public static float bonusDamagePercent = 0.5f;
-        public static int maxStacks = 25;
-        public static int duration = 10;
+        public static ConfigEntry<float> bonusDamagePercent { get; set; }
+        public static ConfigEntry<int> maxStacks { get; set; }
+        public static ConfigEntry<float> duration { get; set; }
+        public static ConfigEntry<bool> enabled { get; set; }
+        public static ConfigEntry<string> rarity { get; set; }
+        public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> bonusDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
@@ -28,6 +32,12 @@ namespace LoLItems
         // This runs when loading the file
         internal static void Init()
         {
+            LoadConfig();
+            if (!enabled.Value)
+            {
+                return;
+            }
+
             CreateItem();
             CreateBuff();
             AddTokens();
@@ -36,6 +46,55 @@ namespace LoLItems
             ContentAddition.AddBuffDef(currentStacks);
             ContentAddition.AddBuffDef(currentDuration);
             hooks();
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "MejaisSoulstealer");
+        }
+
+        private static void LoadConfig()
+        {
+            enabled = LoLItems.MyConfig.Bind<bool>(
+                "MejaisSoulstealer",
+                "Enabled",
+                true,
+                "Determines if the item should be loaded by the game."
+            );
+
+            rarity = LoLItems.MyConfig.Bind<string>(
+                "MejaisSoulstealer",
+                "Rarity",
+                "Tier1Def",
+                "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
+            );
+
+            voidItems = LoLItems.MyConfig.Bind<string>(
+                "MejaisSoulstealer",
+                "Void Items",
+                "",
+                "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
+            );
+
+            bonusDamagePercent = LoLItems.MyConfig.Bind<float>(
+                "MejaisSoulstealer",
+                "Bonus Damage Per Stack",
+                0.5f,
+                "Amount of bonus damage each stack will grant."
+
+            );
+
+            maxStacks = LoLItems.MyConfig.Bind<int>(
+                "MejaisSoulstealer",
+                "Max Stacks",
+                25,
+                "Maximum amount of stacks for the buff."
+
+            );
+
+            duration = LoLItems.MyConfig.Bind<float>(
+                "MejaisSoulstealer",
+                "Duration",
+                10f,
+                "Duration of the buff."
+
+            );
         }
 
         private static void CreateItem()
@@ -47,7 +106,7 @@ namespace LoLItems
             myItemDef.descriptionToken = "MejaisSoulstealerDesc";
             myItemDef.loreToken = "MejaisSoulstealerLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/Base/Common/Tier1Def.asset").WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("MejaisSoulstealerIcon");
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("MejaisSoulstealerPrefab");
@@ -87,73 +146,12 @@ namespace LoLItems
                     int inventoryCount = damageReport.attackerMaster.inventory.GetItemCount(myItemDef.itemIndex);
 					if (inventoryCount > 0)
 					{
-                        damageReport.attackerBody.AddTimedBuff(currentDuration, duration * inventoryCount);
-                        if (damageReport.attackerBody.GetBuffCount(currentStacks) < maxStacks)
+                        damageReport.attackerBody.AddTimedBuff(currentDuration, duration.Value * inventoryCount);
+                        if (damageReport.attackerBody.GetBuffCount(currentStacks) < maxStacks.Value)
                         {
                             damageReport.attackerBody.AddBuff(currentStacks);
                         }
 					}
-                }
-            };
-
-            // Called basically every frame to update your HUD info
-            On.RoR2.UI.HUD.Update += (orig, self) => 
-            {
-                orig(self);
-                if (self.itemInventoryDisplay && self.targetMaster)
-                {
-                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
-#pragma warning disable Publicizer001
-                    self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
-                    {
-                        // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex){
-                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
-                        }
-                    });
-#pragma warning restore Publicizer001
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
-            {
-                orig(self, characterMaster);
-                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
-            };
-
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
-            {
-                orig(self, newIndex, newCount);
-                if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
-                {
-                    IconToMasterRef.TryGetValue(self, out CharacterMaster master);
-                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemInventoryDisplay.AllocateIcons += (orig, self, count) =>
-            {
-                orig(self, count);
-                List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
-                DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
-                icons.ForEach(i => IconToMasterRef[i] = masterRef);
-            };
-
-            // Add to stat dict for end of game screen
-            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
-            {
-                orig(self, playerInfo);
-                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
-                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
-                {
-                    if (entry.Value == playerInfo.master)
-                    {
-                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
-                    }
                 }
             };
 
@@ -169,7 +167,7 @@ namespace LoLItems
                         int buffCount = attackerCharacterBody.GetBuffCount(currentStacks.buffIndex);
                         if (buffCount > 0)
                         {
-                            float extraDamage = damageInfo.damage * (buffCount * bonusDamagePercent) / 100f;
+                            float extraDamage = damageInfo.damage * (buffCount * bonusDamagePercent.Value) / 100f;
                             damageInfo.damage += extraDamage;
                             Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, extraDamage);
                         }
@@ -211,9 +209,9 @@ namespace LoLItems
             LanguageAPI.Add("MejaisSoulstealerItem", "Killing enemies grants more damage for a short time");
 
             // Long description
-            LanguageAPI.Add("MejaisSoulstealerDesc", "Killing an enemy grants a stack which gives <style=cIsDamage>" + bonusDamagePercent + 
-            "%</style> bonus damage. Max <style=cIsUtility>" + maxStacks + 
-            "</style> stacks, buff lasts for <style=cIsUtility>" + duration + "</style> <style=cStack>(+" + duration + ")</style> seconds.");
+            LanguageAPI.Add("MejaisSoulstealerDesc", "Killing an enemy grants a stack which gives <style=cIsDamage>" + bonusDamagePercent.Value + 
+            "%</style> bonus damage. Max <style=cIsUtility>" + maxStacks.Value + 
+            "</style> stacks, buff lasts for <style=cIsUtility>" + duration.Value + "</style> <style=cStack>(+" + duration.Value + ")</style> seconds.");
 
             // Lore
             LanguageAPI.Add("MejaisSoulstealerLore", "Your death note.");

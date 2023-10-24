@@ -9,6 +9,7 @@ using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System;
+using BepInEx.Configuration;
 
 namespace LoLItems
 {
@@ -16,18 +17,60 @@ namespace LoLItems
     {
 
         public static ItemDef myItemDef;
-        public static float procCoef = 0.1f;
+        public static ConfigEntry<float> procCoef { get; set; }
+        public static ConfigEntry<bool> enabled { get; set; }
+        public static ConfigEntry<string> rarity { get; set; }
+        public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> totalProcCoef = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
         internal static void Init()
         {
+            LoadConfig();
+            if (!enabled.Value)
+            {
+                return;
+            }
+
             CreateItem();
             AddTokens();
             var displayRules = new ItemDisplayRuleDict(null);
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             hooks();
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "GuinsoosRageblade");
+        }
+
+        private static void LoadConfig()
+        {
+            enabled = LoLItems.MyConfig.Bind<bool>(
+                "GuinsoosRageblade",
+                "Enabled",
+                true,
+                "Determines if the item should be loaded by the game."
+            );
+
+            rarity = LoLItems.MyConfig.Bind<string>(
+                "GuinsoosRageblade",
+                "Rarity",
+                "Tier2Def",
+                "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
+            );
+
+            voidItems = LoLItems.MyConfig.Bind<string>(
+                "GuinsoosRageblade",
+                "Void Items",
+                "",
+                "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
+            );
+
+            procCoef = LoLItems.MyConfig.Bind<float>(
+                "GuinsoosRageblade",
+                "ProcCoef",
+                0.1f,
+                "Amount of profCoef each item will grant"
+
+            );
         }
 
         private static void CreateItem()
@@ -39,7 +82,7 @@ namespace LoLItems
             myItemDef.descriptionToken = "GuinsoosRagebladeDesc";
             myItemDef.loreToken = "GuinsoosRagebladeLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/Base/Common/Tier1Def.asset").WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("GuinsoosRagebladeIcon");
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("GuinsoosRagebladePrefab");
@@ -63,7 +106,7 @@ namespace LoLItems
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
                         {
-                            float extraTotal = procCoef * inventoryCount;
+                            float extraTotal = procCoef.Value * inventoryCount;
                             Utilities.SetValueInDictionary(ref totalProcCoef, attackerCharacterBody.master, extraTotal);
                             damageInfo.procCoefficient += extraTotal;
                         }
@@ -71,73 +114,13 @@ namespace LoLItems
                 }
                 orig(self, damageInfo, victim);
             };
-
-            On.RoR2.UI.HUD.Update += (orig, self) => 
-            {
-                orig(self);
-                if (self.itemInventoryDisplay && self.targetMaster)
-                {
-                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
-#pragma warning disable Publicizer001
-                    self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
-                    {
-                        // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex){
-                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
-                        }
-                    });
-#pragma warning restore Publicizer001
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
-            {
-                orig(self, characterMaster);
-                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
-            };
-
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
-            {
-                orig(self, newIndex, newCount);
-                if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
-                {
-                    IconToMasterRef.TryGetValue(self, out CharacterMaster master);
-                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemInventoryDisplay.AllocateIcons += (orig, self, count) =>
-            {
-                orig(self, count);
-                List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
-                DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
-                icons.ForEach(i => IconToMasterRef[i] = masterRef);
-            };
-
-            // Add to stat dict for end of game screen
-            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
-            {
-                orig(self, playerInfo);
-                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
-                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
-                {
-                    if (entry.Value == playerInfo.master)
-                    {
-                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
-                    }
-                }
-            };
         }
 
         private static string GetDisplayInformation(CharacterMaster masterRef)
         {
             // Update the description for an item in the HUD
-            if (masterRef != null && totalProcCoef.TryGetValue(masterRef.netId, out float damageDealt)){
-                return Language.GetString(myItemDef.descriptionToken) + "<br><br>Extra procCoef: " + String.Format("{0:F1}", damageDealt);
+            if (masterRef != null && totalProcCoef.TryGetValue(masterRef.netId, out float value)){
+                return Language.GetString(myItemDef.descriptionToken) + "<br><br>Extra procCoef: " + String.Format("{0:F1}", value);
             }
             return Language.GetString(myItemDef.descriptionToken);
         }
@@ -151,7 +134,7 @@ namespace LoLItems
             LanguageAPI.Add("GuinsoosRagebladeItem", "Increase proc coefficient of everything");
 
             // Long description
-            LanguageAPI.Add("GuinsoosRagebladeDesc", "Gives <style=cIsUtility>" + procCoef + "</style> <style=cStack>(+" + procCoef + ")</style> proc coefficient to everything");
+            LanguageAPI.Add("GuinsoosRagebladeDesc", "Gives <style=cIsUtility>" + procCoef.Value + "</style> <style=cStack>(+" + procCoef.Value + ")</style> proc coefficient to everything");
 
             // Lore
             LanguageAPI.Add("GuinsoosRagebladeLore", "Procs go brrrrrrr.");

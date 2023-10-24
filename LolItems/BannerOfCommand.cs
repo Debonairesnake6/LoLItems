@@ -9,6 +9,8 @@ using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System;
+using BepInEx.Configuration;
+
 
 namespace LoLItems
 {
@@ -16,7 +18,10 @@ namespace LoLItems
     {
         public static ItemDef myItemDef;
 
-        public static float damagePercentAmp = 15f;
+        public static ConfigEntry<float> damagePercentAmp { get; set; }
+        public static ConfigEntry<bool> enabled { get; set; }
+        public static ConfigEntry<string> rarity { get; set; }
+        public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> bonusDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
@@ -24,11 +29,50 @@ namespace LoLItems
         // This runs when loading the file
         internal static void Init()
         {
+            LoadConfig();
+            if (!enabled.Value)
+            {
+                return;
+            }
+
             CreateItem();
             AddTokens();
             var displayRules = new ItemDisplayRuleDict(null);
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             hooks();
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "BannerOfCommand");
+        }
+
+        private static void LoadConfig()
+        {
+            enabled = LoLItems.MyConfig.Bind<bool>(
+                "BannerOfCommand",
+                "Enabled",
+                true,
+                "Determines if the item should be loaded by the game."
+            );
+
+            rarity = LoLItems.MyConfig.Bind<string>(
+                "BannerOfCommand",
+                "Rarity",
+                "Tier1Def",
+                "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
+            );
+
+            voidItems = LoLItems.MyConfig.Bind<string>(
+                "BannerOfCommand",
+                "Void Items",
+                "",
+                "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
+            );
+
+            damagePercentAmp = LoLItems.MyConfig.Bind<float>(
+                "BannerOfCommand",
+                "Damage Amp",
+                10f,
+                "Amount of damage amp each stack will grant."
+
+            );
         }
 
         private static void CreateItem()
@@ -40,7 +84,7 @@ namespace LoLItems
             myItemDef.descriptionToken = "BannerOfCommandDesc";
             myItemDef.loreToken = "BannerOfCommandLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/Base/Common/Tier1Def.asset").WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("BannerOfCommandIcon");
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("BannerOfCommandPrefab");
@@ -52,68 +96,6 @@ namespace LoLItems
 
         private static void hooks()
         {
-
-            // Called basically every frame to update your HUD info
-            On.RoR2.UI.HUD.Update += (orig, self) => 
-            {
-                orig(self);
-                if (self.itemInventoryDisplay && self.targetMaster)
-                {
-                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
-#pragma warning disable Publicizer001
-                    self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
-                    {
-                        // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex){
-                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
-                        }
-                    });
-#pragma warning restore Publicizer001
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
-            {
-                orig(self, characterMaster);
-                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
-            };
-
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
-            {
-                orig(self, newIndex, newCount);
-                if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
-                {
-                    IconToMasterRef.TryGetValue(self, out CharacterMaster master);
-                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemInventoryDisplay.AllocateIcons += (orig, self, count) =>
-            {
-                orig(self, count);
-                List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
-                DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
-                icons.ForEach(i => IconToMasterRef[i] = masterRef);
-            };
-
-            // Add to stat dict for end of game screen
-            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
-            {
-                orig(self, playerInfo);
-                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
-                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
-                {
-                    if (entry.Value == playerInfo.master)
-                    {
-                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
-                    }
-                }
-            };
-
             // When something takes damage
             On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
             {
@@ -127,7 +109,7 @@ namespace LoLItems
                         int inventoryCount = ownerMaster.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0)
                         {
-                            float extraDamage = 1 + (inventoryCount * damagePercentAmp / 100);
+                            float extraDamage = 1 + (inventoryCount * damagePercentAmp.Value / 100);
                             Utilities.AddValueInDictionary(ref bonusDamageDealt, ownerMaster, extraDamage * damageInfo.damage);
                             damageInfo.damage *= extraDamage;
                         }
@@ -149,24 +131,6 @@ namespace LoLItems
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opinionated. Make your own judgments!
         private static void AddTokens()
         {
-            // Styles
-            // <style=cIsHealth>" + exampleValue + "</style>
-            // <style=cIsDamage>" + exampleValue + "</style>
-            // <style=cIsHealing>" + exampleValue + "</style>
-            // <style=cIsUtility>" + exampleValue + "</style>
-            // <style=cIsVoid>" + exampleValue + "</style>
-            // <style=cHumanObjective>" + exampleValue + "</style>
-            // <style=cLunarObjective>" + exampleValue + "</style>
-            // <style=cStack>" + exampleValue + "</style>
-            // <style=cWorldEvent>" + exampleValue + "</style>
-            // <style=cArtifact>" + exampleValue + "</style>
-            // <style=cUserSetting>" + exampleValue + "</style>
-            // <style=cDeath>" + exampleValue + "</style>
-            // <style=cSub>" + exampleValue + "</style>
-            // <style=cMono>" + exampleValue + "</style>
-            // <style=cShrine>" + exampleValue + "</style>
-            // <style=cEvent>" + exampleValue + "</style>
-
             // Name of the item
             LanguageAPI.Add("BannerOfCommand", "BannerOfCommand");
 
@@ -174,7 +138,7 @@ namespace LoLItems
             LanguageAPI.Add("BannerOfCommandItem", "Increase allied minion damage");
 
             // Long description
-            LanguageAPI.Add("BannerOfCommandDesc", "Increase the damage of allied minions by <style=cIsUtility>" + damagePercentAmp + "%</style> <style=cStack>(+" + damagePercentAmp + "%)</style>");
+            LanguageAPI.Add("BannerOfCommandDesc", "Increase the damage of allied minions by <style=cIsUtility>" + damagePercentAmp.Value + "%</style> <style=cStack>(+" + damagePercentAmp.Value + "%)</style>");
 
             // Lore
             LanguageAPI.Add("BannerOfCommandLore", "Split pushing is boring.");

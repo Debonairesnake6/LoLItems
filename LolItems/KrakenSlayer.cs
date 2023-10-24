@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System;
 using System.Linq;
+using BepInEx.Configuration;
 
 namespace LoLItems
 {
@@ -16,33 +17,73 @@ namespace LoLItems
 
         //We need our item definition to persist through our functions, and therefore make it a class field.
         public static ItemDef myItemDef;
-
         public static BuffDef myCounterBuffDef;
-        public static int procRequirement = 3;
-        public static float procDamage = 20f;
+
+        public static ConfigEntry<int> procRequirement { get; set; }
+        public static ConfigEntry<float> procDamage { get; set; }
+        public static ConfigEntry<bool> enabled { get; set; }
+        public static ConfigEntry<string> rarity { get; set; }
+        public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> bonusDamage = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
         internal static void Init()
         {
-            //Generate the basic information for the item
+            LoadConfig();
+            if (!enabled.Value)
+            {
+                return;
+            }
+
             CreateItem();
             CreateBuff();
-
-            //Now let's turn the tokens we made into actual strings for the game:
             AddTokens();
-
-            //You can add your own display rules here, where the first argument passed are the default display rules: the ones used when no specific display rules for a character are found.
-            //For this example, we are omitting them, as they are quite a pain to set up without tools like ItemDisplayPlacementHelper
             var displayRules = new ItemDisplayRuleDict(null);
-
-            //Then finally add it to R2API
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             ContentAddition.AddBuffDef(myCounterBuffDef);
-
-            // Initialize the hooks
             hooks();
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "KrakenSlayer");
+        }
+
+        private static void LoadConfig()
+        {
+            enabled = LoLItems.MyConfig.Bind<bool>(
+                "KrakenSlayer",
+                "Enabled",
+                true,
+                "Determines if the item should be loaded by the game."
+            );
+
+            rarity = LoLItems.MyConfig.Bind<string>(
+                "KrakenSlayer",
+                "Rarity",
+                "Tier2Def",
+                "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
+            );
+
+            voidItems = LoLItems.MyConfig.Bind<string>(
+                "KrakenSlayer",
+                "Void Items",
+                "",
+                "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
+            );
+
+            procRequirement = LoLItems.MyConfig.Bind<int>(
+                "KrakenSlayer",
+                "On Hit Proc Requirement",
+                3,
+                "Amount of hits required to proc the on hit damage."
+
+            );
+
+            procDamage = LoLItems.MyConfig.Bind<float>(
+                "KrakenSlayer",
+                "Base Damage Percent",
+                20f,
+                "Amount of additional percent base damage each item will grant."
+
+            );
         }
 
         private static void CreateItem()
@@ -57,7 +98,7 @@ namespace LoLItems
             myItemDef.descriptionToken = "KrakenSlayerDesc";
             myItemDef.loreToken = "KrakenSlayerLore";
 #pragma warning disable Publicizer001
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/Base/Common/Tier2Def.asset").WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("KrakenSlayerIcon");
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("KrakenSlayerPrefab");
@@ -99,14 +140,14 @@ namespace LoLItems
                         {
                             attackerCharacterBody.AddBuff(myCounterBuffDef);
 
-                            if (attackerCharacterBody.healthComponent.body.GetBuffCount(myCounterBuffDef) > procRequirement)
+                            if (attackerCharacterBody.healthComponent.body.GetBuffCount(myCounterBuffDef) > procRequirement.Value)
                             {
-                                foreach (int value in Enumerable.Range(2, procRequirement))
+                                foreach (int value in Enumerable.Range(2, procRequirement.Value))
                                 {
                                     attackerCharacterBody.RemoveBuff(myCounterBuffDef);
                                 }
 
-                                float damage = attackerCharacterBody.damage * procDamage / 100f * inventoryCount;
+                                float damage = attackerCharacterBody.damage * procDamage.Value / 100f * inventoryCount;
                                 DamageInfo onHitProc = damageInfo;
                                 onHitProc.crit = false;
                                 onHitProc.procCoefficient = 0f;
@@ -135,67 +176,6 @@ namespace LoLItems
                     Utilities.RemoveBuffStacks(self, myCounterBuffDef.buffIndex);
                 }
             };
-
-            // Called basically every frame to update your HUD info
-            On.RoR2.UI.HUD.Update += (orig, self) => 
-            {
-                orig(self);
-                if (self.itemInventoryDisplay && self.targetMaster)
-                {
-                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
-#pragma warning disable Publicizer001
-                    self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
-                    {
-                        // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex){
-                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
-                        }
-                    });
-#pragma warning restore Publicizer001
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
-            {
-                orig(self, characterMaster);
-                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
-            };
-
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
-            {
-                orig(self, newIndex, newCount);
-                if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
-                {
-                    IconToMasterRef.TryGetValue(self, out CharacterMaster master);
-                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemInventoryDisplay.AllocateIcons += (orig, self, count) =>
-            {
-                orig(self, count);
-                List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
-                DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
-                icons.ForEach(i => IconToMasterRef[i] = masterRef);
-            };
-
-            // Add to stat dict for end of game screen
-            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
-            {
-                orig(self, playerInfo);
-                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
-                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
-                {
-                    if (entry.Value == playerInfo.master)
-                    {
-                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
-                    }
-                }
-            };
         }
 
         private static string GetDisplayInformation(CharacterMaster masterRef)
@@ -215,10 +195,10 @@ namespace LoLItems
             LanguageAPI.Add("KrakenSlayer", "KrakenSlayer");
 
             //The Pickup is the short text that appears when you first pick this up. This text should be short and to the point, numbers are generally ommited.
-            LanguageAPI.Add("KrakenSlayerItem", "Every " + procRequirement + " hits do bonus damage.");
+            LanguageAPI.Add("KrakenSlayerItem", "Every " + procRequirement.Value + " hits do bonus damage.");
 
             //The Description is where you put the actual numbers and give an advanced description.
-            LanguageAPI.Add("KrakenSlayerDesc", "Every " + procRequirement + " hits do an extra <style=cIsDamage>" + procDamage + "%</style> <style=cStack>(+" + procDamage + "%)</style> base damage.");
+            LanguageAPI.Add("KrakenSlayerDesc", "Every " + procRequirement.Value + " hits do an extra <style=cIsDamage>" + procDamage.Value + "%</style> <style=cStack>(+" + procDamage.Value + "%)</style> base damage.");
 
             //The Lore is, well, flavor. You can write pretty much whatever you want here.
             LanguageAPI.Add("KrakenSlayerLore", "Legend has it that this item is no longer mythical.");

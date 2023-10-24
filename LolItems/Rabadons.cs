@@ -9,56 +9,81 @@ using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System;
+using BepInEx.Configuration;
 
 namespace LoLItems
 {
     internal class Rabadons
     {
-
-        //We need our item definition to persist through our functions, and therefore make it a class field.
         public static ItemDef myItemDef;
         public static GameObject ItemBodyModelPrefab;
 
-        // Set value amount in one location
-        public static float damageAmp = 0.30f;
+        public static ConfigEntry<float> damageAmp { get; set; }
+        public static ConfigEntry<bool> enabled { get; set; }
+        public static ConfigEntry<string> rarity { get; set; }
+        public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> rabadonsBonusDamage = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
-        // This runs when loading the file
         internal static void Init()
         {
-            //Generate the basic information for the item
+            LoadConfig();
+            if (!enabled.Value)
+            {
+                return;
+            }
+
             CreateItem();
             ItemDisplayRuleDict itemDisplayRuleDict = CreateDisplayRules();
-
-            //Now let's turn the tokens we made into actual strings for the game:
             AddTokens();
-
-            // Don't worry about displaying the item on the character
-            // var displayRules = new ItemDisplayRuleDict(null);
-
-            // Then finally add it to R2API
             ItemAPI.Add(new CustomItem(myItemDef, itemDisplayRuleDict));
-
-            // Initialize the hooks
             hooks();
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "Rabadons");
+        }
+
+        private static void LoadConfig()
+        {
+            enabled = LoLItems.MyConfig.Bind<bool>(
+                "Rabadons",
+                "Enabled",
+                true,
+                "Determines if the item should be loaded by the game."
+            );
+
+            rarity = LoLItems.MyConfig.Bind<string>(
+                "Rabadons",
+                "Rarity",
+                "Tier3Def",
+                "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
+            );
+
+            voidItems = LoLItems.MyConfig.Bind<string>(
+                "Rabadons",
+                "Void Items",
+                "",
+                "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
+            );
+
+            damageAmp = LoLItems.MyConfig.Bind<float>(
+                "Rabadons",
+                "Damage Amp",
+                30f,
+                "Amount of bonus percentage damage each item will grant."
+
+            );
         }
 
         private static void CreateItem()
         {
-            //First let's define our item
             myItemDef = ScriptableObject.CreateInstance<ItemDef>();
-
-            // Language Tokens, check AddTokens() below.
             myItemDef.name = "Rabadons";
             myItemDef.nameToken = "RabadonsItem";
             myItemDef.pickupToken = "RabadonsItemItem";
             myItemDef.descriptionToken = "RabadonsItemDesc";
             myItemDef.loreToken = "RabadonsItemLore";
-
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/Base/Common/Tier3Def.asset").WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("RabadonsIcon");
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("RabadonsPrefab");
@@ -245,71 +270,8 @@ namespace LoLItems
             return rules;
         }
 
-
         private static void hooks()
         {
-
-            // Called basically every frame to update your HUD info
-            On.RoR2.UI.HUD.Update += (orig, self) => 
-            {
-                orig(self);
-                if (self.itemInventoryDisplay && self.targetMaster)
-                {
-                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
-#pragma warning disable Publicizer001
-                    self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
-                    {
-                        // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex){
-                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
-                        }
-                    });
-#pragma warning restore Publicizer001
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
-            {
-                orig(self, characterMaster);
-                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
-            };
-
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
-            {
-                orig(self, newIndex, newCount);
-                if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
-                {
-                    IconToMasterRef.TryGetValue(self, out CharacterMaster master);
-                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemInventoryDisplay.AllocateIcons += (orig, self, count) =>
-            {
-                orig(self, count);
-                List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
-                DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
-                icons.ForEach(i => IconToMasterRef[i] = masterRef);
-            };
-
-            // Add to stat dict for end of game screen
-            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
-            {
-                orig(self, playerInfo);
-                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
-                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
-                {
-                    if (entry.Value == playerInfo.master)
-                    {
-                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
-                    }
-                }
-            };
-
             On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
             {
                 if (damageInfo.attacker)
@@ -321,7 +283,7 @@ namespace LoLItems
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0)
                         {
-                            float damageMultiplier = 1 + inventoryCount * damageAmp;
+                            float damageMultiplier = 1 + inventoryCount * (damageAmp.Value / 100);
                             Utilities.AddValueInDictionary(ref rabadonsBonusDamage, attackerCharacterBody.master, damageInfo.damage * (damageMultiplier - 1));
                             damageInfo.damage = damageMultiplier * damageInfo.damage;
                         }
@@ -343,24 +305,6 @@ namespace LoLItems
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
         private static void AddTokens()
         {
-            // Styles
-            // <style=cIsHealth>" + exampleValue + "</style>
-            // <style=cIsDamage>" + exampleValue + "</style>
-            // <style=cIsHealing>" + exampleValue + "</style>
-            // <style=cIsUtility>" + exampleValue + "</style>
-            // <style=cIsVoid>" + exampleValue + "</style>
-            // <style=cHumanObjective>" + exampleValue + "</style>
-            // <style=cLunarObjective>" + exampleValue + "</style>
-            // <style=cStack>" + exampleValue + "</style>
-            // <style=cWorldEvent>" + exampleValue + "</style>
-            // <style=cArtifact>" + exampleValue + "</style>
-            // <style=cUserSetting>" + exampleValue + "</style>
-            // <style=cDeath>" + exampleValue + "</style>
-            // <style=cSub>" + exampleValue + "</style>
-            // <style=cMono>" + exampleValue + "</style>
-            // <style=cShrine>" + exampleValue + "</style>
-            // <style=cEvent>" + exampleValue + "</style>
-
             //The Name should be self explanatory
             LanguageAPI.Add("RabadonsItem", "RabadonsItem");
 
@@ -368,7 +312,7 @@ namespace LoLItems
             LanguageAPI.Add("RabadonsItemItem", "Hat makes them go splat");
 
             //The Description is where you put the actual numbers and give an advanced description.
-            LanguageAPI.Add("RabadonsItemDesc", "Do <style=cIsUtility>" + damageAmp * 100 + "%</style> <style=cStack>(+" + damageAmp * 100 + "%)</style> more damage");
+            LanguageAPI.Add("RabadonsItemDesc", "Do <style=cIsUtility>" + damageAmp.Value + "%</style> <style=cStack>(+" + damageAmp.Value + "%)</style> more damage");
 
             //The Lore is, well, flavor. You can write pretty much whatever you want here.
             LanguageAPI.Add("RabadonsItemLore", "Makes you feel like a wizard.");

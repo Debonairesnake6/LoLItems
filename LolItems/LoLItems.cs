@@ -5,6 +5,7 @@ using RoR2;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System.Collections.Generic;
+using BepInEx.Configuration;
 
 namespace LoLItems
 {
@@ -34,6 +35,7 @@ namespace LoLItems
         public const string PluginVersion = "0.1.15";
 
         public static BepInEx.Logging.ManualLogSource Log;
+        public static ConfigFile MyConfig { get; set; }
         public GameObject multiShopPrefab;
         public ItemTier[] itemTiers;
         public static PluginInfo PInfo {get; private set;}
@@ -43,6 +45,7 @@ namespace LoLItems
         {
             //Init our logging class so that we can properly log for debugging
             Log = Logger;
+            MyConfig = Config;
 
             PInfo = Info;
             Assets.Init();

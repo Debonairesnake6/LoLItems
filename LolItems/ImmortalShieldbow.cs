@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System;
 using System.Linq;
+using BepInEx.Configuration;
 
 namespace LoLItems
 {
@@ -17,10 +18,12 @@ namespace LoLItems
     {
         public static ItemDef myItemDef;
         public static BuffDef myBuffDefCooldown;
-
-        public static float barrierPercent = 40f;
-        public static float buffCooldown = 40f;
-        public static float barrierThreshold = 30f;
+        public static ConfigEntry<float> barrierPercent { get; set; }
+        public static ConfigEntry<float> buffCooldown { get; set; }
+        public static ConfigEntry<float> barrierThreshold { get; set; }
+        public static ConfigEntry<bool> enabled { get; set; }
+        public static ConfigEntry<string> rarity { get; set; }
+        public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> totalShieldGiven = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
@@ -28,6 +31,12 @@ namespace LoLItems
         // This runs when loading the file
         internal static void Init()
         {
+            LoadConfig();
+            if (!enabled.Value)
+            {
+                return;
+            }
+
             CreateItem();
             CreateBuff();
             AddTokens();
@@ -35,6 +44,55 @@ namespace LoLItems
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             ContentAddition.AddBuffDef(myBuffDefCooldown);
             hooks();
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "ImmortalShieldbow");
+        }
+
+        private static void LoadConfig()
+        {
+            enabled = LoLItems.MyConfig.Bind<bool>(
+                "ImmortalShieldbow",
+                "Enabled",
+                true,
+                "Determines if the item should be loaded by the game."
+            );
+
+            rarity = LoLItems.MyConfig.Bind<string>(
+                "ImmortalShieldbow",
+                "Rarity",
+                "Tier2Def",
+                "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
+            );
+
+            voidItems = LoLItems.MyConfig.Bind<string>(
+                "ImmortalShieldbow",
+                "Void Items",
+                "",
+                "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
+            );
+
+            barrierPercent = LoLItems.MyConfig.Bind<float>(
+                "ImmortalShieldbow",
+                "Barrier Percent",
+                40f,
+                "Amount of percent max health barrier each item will grant."
+
+            );
+
+            buffCooldown = LoLItems.MyConfig.Bind<float>(
+                "ImmortalShieldbow",
+                "Cooldown",
+                40f,
+                "Cooldown of the barrier."
+
+            );
+
+            barrierThreshold = LoLItems.MyConfig.Bind<float>(
+                "ImmortalShieldbow",
+                "Health Threshold",
+                30f,
+                "Health threshold to trigger the barrier."
+
+            );
         }
 
         private static void CreateItem()
@@ -46,7 +104,7 @@ namespace LoLItems
             myItemDef.descriptionToken = "ImmortalShieldbowDesc";
             myItemDef.loreToken = "ImmortalShieldbowLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/Base/Common/Tier2Def.asset").WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("ImmortalShieldbowIcon");
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("ImmortalShieldbowPrefab");
@@ -69,78 +127,16 @@ namespace LoLItems
 
 
         private static void hooks()
-        {
-
-            // Called basically every frame to update your HUD info
-            On.RoR2.UI.HUD.Update += (orig, self) => 
-            {
-                orig(self);
-                if (self.itemInventoryDisplay && self.targetMaster)
-                {
-                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
-#pragma warning disable Publicizer001
-                    self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
-                    {
-                        // Update the description for an item in the HUD
-                        if (item.itemIndex == myItemDef.itemIndex){
-                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
-                        }
-                    });
-#pragma warning restore Publicizer001
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
-            {
-                orig(self, characterMaster);
-                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
-            };
-
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
-            {
-                orig(self, newIndex, newCount);
-                if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
-                {
-                    IconToMasterRef.TryGetValue(self, out CharacterMaster master);
-                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
-                }
-            };
-
-            // Open Scoreboard
-            On.RoR2.UI.ItemInventoryDisplay.AllocateIcons += (orig, self, count) =>
-            {
-                orig(self, count);
-                List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
-                DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
-                icons.ForEach(i => IconToMasterRef[i] = masterRef);
-            };
-
-            // Add to stat dict for end of game screen
-            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
-            {
-                orig(self, playerInfo);
-                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
-                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
-                {
-                    if (entry.Value == playerInfo.master)
-                    {
-                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
-                    }
-                }
-            };
-            
+        {            
             // Modify character values
             On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
             {
-                if (self?.inventory && self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && self.healthComponent?.health < self.healthComponent?.fullHealth * barrierThreshold / 100 && !self.HasBuff(myBuffDefCooldown))
+                if (self?.inventory && self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && self.healthComponent?.health < self.healthComponent?.fullHealth * barrierThreshold.Value / 100 && !self.HasBuff(myBuffDefCooldown))
                 {
-                    float barrierAmount = self.healthComponent.fullHealth * barrierPercent / 100 * self.inventory.GetItemCount(myItemDef.itemIndex);
+                    float barrierAmount = self.healthComponent.fullHealth * barrierPercent.Value / 100 * self.inventory.GetItemCount(myItemDef.itemIndex);
                     if (barrierAmount > self.healthComponent.fullHealth) { barrierAmount = self.healthComponent.fullHealth; }
                     self.healthComponent.AddBarrier(barrierAmount);
-                    Utilities.AddTimedBuff(self, myBuffDefCooldown, buffCooldown);
+                    Utilities.AddTimedBuff(self, myBuffDefCooldown, buffCooldown.Value);
                     Utilities.AddValueInDictionary(ref totalShieldGiven, self.master, barrierAmount, false);
                 }
                 orig(self);
@@ -166,7 +162,7 @@ namespace LoLItems
             LanguageAPI.Add("ImmortalShieldbowItem", "Gives a barrier when low on health.");
 
             // Long description
-            LanguageAPI.Add("ImmortalShieldbowDesc", "Gives a barrier for <style=cIsHealth>" + barrierPercent + "%</style> <style=cStack>(+" + barrierPercent + "%)</style> of your max health when dropping below <style=cIsHealth>" + barrierThreshold + "%</style> max health. On a <style=cIsUtility>" + buffCooldown + "</style> second cooldown.");
+            LanguageAPI.Add("ImmortalShieldbowDesc", "Gives a barrier for <style=cIsHealth>" + barrierPercent.Value + "%</style> <style=cStack>(+" + barrierPercent.Value + "%)</style> of your max health when dropping below <style=cIsHealth>" + barrierThreshold.Value + "%</style> max health. On a <style=cIsUtility>" + buffCooldown.Value + "</style> second cooldown.");
 
             // Lore
             LanguageAPI.Add("ImmortalShieldbowLore", "Here to save you for when you mess up.");
