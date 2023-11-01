@@ -64,6 +64,7 @@ namespace LoLItems
             KrakenSlayer.Init();
             GuardiansBlade.Init();
             ImmortalShieldbow.Init();
+            GargoyleStoneplate.Init();
             // Cull.Init();
 
             // This line of log will appear in the bepinex console when the Awake method is done.
