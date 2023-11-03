@@ -32,7 +32,7 @@ namespace LoLItems
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Debo";
         public const string PluginName = "LoLItems";
-        public const string PluginVersion = "0.1.15";
+        public const string PluginVersion = "1.1.0";
 
         public static BepInEx.Logging.ManualLogSource Log;
         public static ConfigFile MyConfig { get; set; }
