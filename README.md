@@ -21,6 +21,11 @@ Icon | Name | Tier | Description
 
 ## Changelog
 
+**.1.1.0**
+
+* Buffed GuardiansBlade
+* Buffed Liandrys when stacking the item
+
 **1.0.0**
 
 * Added config settings for every item. Balance the mod as you see fit! I'm still welcoming reports for balancing the base mod

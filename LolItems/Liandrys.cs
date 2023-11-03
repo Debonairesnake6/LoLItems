@@ -166,9 +166,9 @@ namespace LoLItems
                     inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                 }
 #pragma warning disable Publicizer001
-                float baseDotDamage = self.victimBody.maxHealth * burnDamagePercent.Value / 100f / burnDamageDuration.Value * myDotDef.interval * inventoryCount;
+                float baseDotDamage = self.victimBody.maxHealth * burnDamagePercent.Value / 100f / burnDamageDuration.Value * myDotDef.interval;
 #pragma warning restore Publicizer001
-                float dotDamage = Math.Max(burnDamageMin.Value * attackerCharacterBody.damage, Math.Min(burnDamageMax.Value * attackerCharacterBody.damage, baseDotDamage)) / burnDamageDuration.Value;
+                float dotDamage = Math.Max(burnDamageMin.Value * attackerCharacterBody.damage, Math.Min(burnDamageMax.Value * attackerCharacterBody.damage, baseDotDamage)) / burnDamageDuration.Value * inventoryCount;
                 dotStack.damage = dotDamage;
             }
         }

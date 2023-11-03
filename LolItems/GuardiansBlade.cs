@@ -70,7 +70,7 @@ namespace LoLItems
             cooldownReduction = LoLItems.MyConfig.Bind<float>(
                 "GuardiansBlade",
                 "Cooldown Reduction",
-                5f,
+                10f,
                 "Amount of cooldown reduction each item will grant."
 
             );
