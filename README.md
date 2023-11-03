@@ -26,8 +26,8 @@ Icon | Name | Tier | Description
 
 * Buffed GuardiansBlade
 * Buffed Liandrys when stacking the item
-* Add GargoyleStoneplate
-  * Credit to @ggreer91 for implementing
+* Added GargoyleStoneplate
+  * Credit to [ggreer91](https://github.com/ggreer91) for implementing
 
 **1.0.0**
 
