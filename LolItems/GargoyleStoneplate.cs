@@ -36,8 +36,6 @@ namespace LoLItems
             CreateItem();
             AddTokens();
             ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
-            // Enable for custom display rules
-            // ItemDisplayRuleDict itemDisplayRuleDict = CreateDisplayRules();
             ItemAPI.Add(new CustomEquipment(myEquipmentDef, displayRules));
             hooks();
             //Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myEquipmentDef, GetDisplayInformation, "GargoyleStoneplate");
@@ -124,24 +122,6 @@ namespace LoLItems
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgments!
         private static void AddTokens()
         {
-            // Styles
-            // <style=cIsHealth>" + exampleValue.Value + "</style>
-            // <style=cIsDamage>" + exampleValue.Value + "</style>
-            // <style=cIsHealing>" + exampleValue.Value + "</style>
-            // <style=cIsUtility>" + exampleValue.Value + "</style>
-            // <style=cIsVoid>" + exampleValue.Value + "</style>
-            // <style=cHumanObjective>" + exampleValue.Value + "</style>
-            // <style=cLunarObjective>" + exampleValue.Value + "</style>
-            // <style=cStack>" + exampleValue.Value + "</style>
-            // <style=cWorldEvent>" + exampleValue.Value + "</style>
-            // <style=cArtifact>" + exampleValue.Value + "</style>
-            // <style=cUserSetting>" + exampleValue.Value + "</style>
-            // <style=cDeath>" + exampleValue.Value + "</style>
-            // <style=cSub>" + exampleValue.Value + "</style>
-            // <style=cMono>" + exampleValue.Value + "</style>
-            // <style=cShrine>" + exampleValue.Value + "</style>
-            // <style=cEvent>" + exampleValue.Value + "</style>
-
             // Name of the item
             LanguageAPI.Add("GargoyleStoneplate", "Gargoyle Stoneplate");
 
