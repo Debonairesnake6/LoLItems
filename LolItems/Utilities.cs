@@ -120,11 +120,15 @@ namespace LoLItems
             Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef, 
             Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef, 
             ItemDef myItemDef, 
-            Func<CharacterMaster, string> GetDisplayInformation, 
+            Func<CharacterMaster, string> GetDisplayInformation,
             ConfigEntry<string> rarity, 
             ConfigEntry<string> voidItems,
             string customItemName)
         {
+
+            // Setup the base hooks
+            ReadOnlyHooks(DisplayToMasterRef);
+
             // Called basically every frame to update your HUD info
             On.RoR2.UI.HUD.Update += (orig, self) => 
             {
@@ -145,14 +149,6 @@ namespace LoLItems
             };
 
             // Open Scoreboard
-            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
-            {
-                orig(self, characterMaster);
-                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
-            };
-
-
-            // Open Scoreboard
             On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
             {
                 orig(self, newIndex, newCount);
@@ -170,20 +166,6 @@ namespace LoLItems
                 List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
                 DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
                 icons.ForEach(i => IconToMasterRef[i] = masterRef);
-            };
-
-            // Add to stat dict for end of game screen
-            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
-            {
-                orig(self, playerInfo);
-                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
-                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
-                {
-                    if (entry.Value == playerInfo.master)
-                    {
-                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
-                    }
-                }
             };
 
             // Create void item
@@ -217,5 +199,73 @@ namespace LoLItems
                 orig();
             };
         }
+
+//         public static void SetupReadOnlyHooks(
+//             Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef, 
+//             Dictionary<RoR2.UI.EquipmentIcon, CharacterMaster> IconToMasterRef, 
+//             EquipmentDef myItemDef, 
+//             Func<CharacterMaster, string> GetDisplayInformation,
+//             string customItemName)
+//         {
+//             // Setup the base hooks
+//             ReadOnlyHooks(DisplayToMasterRef, IconToMasterRef);
+
+//             // Called basically every frame to update your HUD info
+//             On.RoR2.UI.HUD.Update += (orig, self) => 
+//             {
+//                 orig(self);
+//                 if (self.itemInventoryDisplay && self.targetMaster)
+//                 {
+//                     DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
+// #pragma warning disable Publicizer001
+//                     self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.EquipmentIcon item)
+//                     {
+//                         // Update the description for an item in the HUD
+//                         if (item.itemIndex == myItemDef.equipmentIndex){
+//                             item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
+//                         }
+//                     });
+// #pragma warning restore Publicizer001
+//                 }
+//             };
+
+//             // Open Scoreboard
+//             On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
+//             {
+//                 orig(self, newIndex, newCount);
+//                 if (self.tooltipProvider != null && newIndex == myItemDef.equipmentIndex)
+//                 {
+//                     IconToMasterRef.TryGetValue(self, out CharacterMaster master);
+//                     self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
+//                 }
+//             };
+//         }
+
+        private static void ReadOnlyHooks(
+            Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef
+        )
+        {
+            // Open Scoreboard
+            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
+            {
+                orig(self, characterMaster);
+                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
+            };
+
+            // Add to stat dict for end of game screen
+            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
+            {
+                orig(self, playerInfo);
+                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
+                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
+                {
+                    if (entry.Value == playerInfo.master)
+                    {
+                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
+                    }
+                }
+            };
+        }
+
     }
 }
