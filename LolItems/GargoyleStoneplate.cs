@@ -23,6 +23,7 @@ namespace LoLItems
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> totalBarrierGiven = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.EquipmentIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.EquipmentIcon, CharacterMaster>();
+        public static uint activateSoundEffectID = 2213188569;
 
         // This runs when loading the file
         internal static void Init()
@@ -106,7 +107,7 @@ namespace LoLItems
             slot.characterBody.healthComponent.AddBarrier(barrierAmount);
             Utilities.AddValueInDictionary(ref totalBarrierGiven, slot.characterBody.master, barrierAmount, false);
             // UNCOMMENT WHEN SOUND IS ADDED!!
-            // AkSoundEngine.PostEvent(1234567890, slot.characterBody.gameObject);
+            AkSoundEngine.PostEvent(activateSoundEffectID, slot.characterBody.gameObject);
             return true;
         }
 

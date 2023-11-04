@@ -27,6 +27,8 @@ namespace LoLItems
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> exampleStoredValue = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
+        // ENABLE if a sound effect int is needed (replace num with proper value)
+        // public static uint soundEffectID = 1234567890;
 
         // This runs when loading the file
         internal static void Init()
