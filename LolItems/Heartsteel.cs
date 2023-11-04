@@ -32,6 +32,7 @@ namespace LoLItems
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> heartsteelBonusDamage = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
+        public static uint triggerSoundEffectID = 3202319100;
 
         internal static void Init()
         {
@@ -191,7 +192,7 @@ namespace LoLItems
                             onHitProc.damageColorIndex = DamageColorIndex.Item;
                             victimCharacterBody.healthComponent.TakeDamage(onHitProc);
                             Utilities.AddValueInDictionary(ref heartsteelBonusDamage, attackerCharacterBody.master, damage, false);
-                            AkSoundEngine.PostEvent(3202319100, damageInfo.attacker.gameObject);
+                            AkSoundEngine.PostEvent(triggerSoundEffectID, damageInfo.attacker.gameObject);
                         }
                     }
                 }
