@@ -13,6 +13,9 @@ using System;
 using System.Linq;
 using System.Collections;
 using BepInEx.Configuration;
+using IL.RoR2.UI;
+using MonoMod.Cil;
+using Mono.Cecil.Cil;
 
 namespace LoLItems
 {
@@ -220,16 +223,9 @@ namespace LoLItems
 #pragma warning disable Publicizer001
                     foreach (RoR2.UI.EquipmentIcon equipment in self.equipmentIcons)
                     {
-                        if (equipment.targetEquipmentSlot.equipmentIndex == myEquipmentDef.equipmentIndex)
+                        if (equipment.currentDisplayData.equipmentDef == myEquipmentDef)
                             equipment.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
                     };
-                    // self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.EquipmentIcon item)
-                    // {
-                    //     // Update the description for an item in the HUD
-                    //     if (item.itemIndex == myEquipmentDef.equipmentIndex){
-                    //         item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
-                    //     }
-                    // });
 #pragma warning restore Publicizer001
                 }
             };
