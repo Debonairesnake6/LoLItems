@@ -116,6 +116,7 @@ namespace LoLItems
             return result;
         }
 
+        // for items
         public static void SetupReadOnlyHooks(
             Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef, 
             Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef, 
@@ -200,46 +201,39 @@ namespace LoLItems
             };
         }
 
-//         public static void SetupReadOnlyHooks(
-//             Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef, 
-//             Dictionary<RoR2.UI.EquipmentIcon, CharacterMaster> IconToMasterRef, 
-//             EquipmentDef myItemDef, 
-//             Func<CharacterMaster, string> GetDisplayInformation,
-//             string customItemName)
-//         {
-//             // Setup the base hooks
-//             ReadOnlyHooks(DisplayToMasterRef, IconToMasterRef);
+        // for equipments
+        public static void SetupReadOnlyHooks(
+            Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef,
+            EquipmentDef myEquipmentDef,
+            Func<CharacterMaster, string> GetDisplayInformation)
+        {
+            // Setup the base hooks
+            ReadOnlyHooks(DisplayToMasterRef);
 
-//             // Called basically every frame to update your HUD info
-//             On.RoR2.UI.HUD.Update += (orig, self) => 
-//             {
-//                 orig(self);
-//                 if (self.itemInventoryDisplay && self.targetMaster)
-//                 {
-//                     DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
-// #pragma warning disable Publicizer001
-//                     self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.EquipmentIcon item)
-//                     {
-//                         // Update the description for an item in the HUD
-//                         if (item.itemIndex == myItemDef.equipmentIndex){
-//                             item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
-//                         }
-//                     });
-// #pragma warning restore Publicizer001
-//                 }
-//             };
-
-//             // Open Scoreboard
-//             On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
-//             {
-//                 orig(self, newIndex, newCount);
-//                 if (self.tooltipProvider != null && newIndex == myItemDef.equipmentIndex)
-//                 {
-//                     IconToMasterRef.TryGetValue(self, out CharacterMaster master);
-//                     self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
-//                 }
-//             };
-//         }
+            // Called basically every frame to update your HUD info
+            On.RoR2.UI.HUD.Update += (orig, self) => 
+            {
+                orig(self);
+                if (self.itemInventoryDisplay && self.targetMaster)
+                {
+                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
+#pragma warning disable Publicizer001
+                    foreach (RoR2.UI.EquipmentIcon equipment in self.equipmentIcons)
+                    {
+                        if (equipment.targetEquipmentSlot.equipmentIndex == myEquipmentDef.equipmentIndex)
+                            equipment.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
+                    };
+                    // self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.EquipmentIcon item)
+                    // {
+                    //     // Update the description for an item in the HUD
+                    //     if (item.itemIndex == myEquipmentDef.equipmentIndex){
+                    //         item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
+                    //     }
+                    // });
+#pragma warning restore Publicizer001
+                }
+            };
+        }
 
         private static void ReadOnlyHooks(
             Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef

@@ -38,7 +38,7 @@ namespace LoLItems
             ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
             ItemAPI.Add(new CustomEquipment(myEquipmentDef, displayRules));
             hooks();
-            //Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myEquipmentDef, GetDisplayInformation, "GargoyleStoneplate");
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, myEquipmentDef, GetDisplayInformation);
         }
 
         private static void LoadConfig()
