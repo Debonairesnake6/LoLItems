@@ -116,13 +116,19 @@ namespace LoLItems
             };
         }
 
-        private static string GetDisplayInformation(CharacterMaster masterRef)
+        private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
         {
-            // Update the description for an item in the HUD
-            if (masterRef != null && totalProcCoef.TryGetValue(masterRef.netId, out float value)){
-                return Language.GetString(myItemDef.descriptionToken) + "<br><br>Extra procCoef: " + String.Format("{0:F1}", value);
-            }
-            return Language.GetString(myItemDef.descriptionToken);
+            if (masterRef == null)
+                return (Language.GetString(myItemDef.descriptionToken), "");
+            
+            string customDescription = "";
+
+            if (totalProcCoef.TryGetValue(masterRef.netId, out float value))
+                customDescription += "<br><br>Extra procCoef: " + String.Format("{0:F1}", value);
+            else
+                customDescription += "<br><br>Extra procCoef: 0";
+
+            return (Language.GetString(myItemDef.descriptionToken), customDescription);
         }
 
         private static void AddTokens()

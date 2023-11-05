@@ -111,13 +111,19 @@ namespace LoLItems
             return true;
         }
 
-        private static string GetDisplayInformation(CharacterMaster masterRef)
+        private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
         {
-            // Update the description for an item in the HUD
-            if (masterRef != null && totalBarrierGiven.TryGetValue(masterRef.netId, out float barrierGiven)){
-                return Language.GetString(myEquipmentDef.descriptionToken) + "<br><br>Barrier given: " + String.Format("{0:#}", barrierGiven);
-            }
-            return Language.GetString(myEquipmentDef.descriptionToken);
+            if (masterRef == null)
+                return (Language.GetString(myEquipmentDef.descriptionToken), "");
+            
+            string customDescription = "";
+
+            if (totalBarrierGiven.TryGetValue(masterRef.netId, out float barrierGiven))
+                customDescription += "<br><br>Barrier given: " + String.Format("{0:#}", barrierGiven);
+            else
+                customDescription += "<br><br>Barrier given: 0";
+
+            return (Language.GetString(myEquipmentDef.descriptionToken), customDescription);
         }
 
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgments!

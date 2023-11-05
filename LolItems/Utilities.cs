@@ -13,9 +13,6 @@ using System;
 using System.Linq;
 using System.Collections;
 using BepInEx.Configuration;
-using IL.RoR2.UI;
-using MonoMod.Cil;
-using Mono.Cecil.Cil;
 
 namespace LoLItems
 {
@@ -124,7 +121,7 @@ namespace LoLItems
             Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef, 
             Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef, 
             ItemDef myItemDef, 
-            Func<CharacterMaster, string> GetDisplayInformation,
+            Func<CharacterMaster, (string, string)> GetDisplayInformation,
             ConfigEntry<string> rarity, 
             ConfigEntry<string> voidItems,
             string customItemName)
@@ -145,7 +142,7 @@ namespace LoLItems
                     {
                         // Update the description for an item in the HUD
                         if (item.itemIndex == myItemDef.itemIndex){
-                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
+                            item.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(item.tooltipProvider.overrideBodyText, GetDisplayInformation, self.targetMaster);
                         }
                     });
 #pragma warning restore Publicizer001
@@ -159,7 +156,7 @@ namespace LoLItems
                 if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
                 {
                     IconToMasterRef.TryGetValue(self, out CharacterMaster master);
-                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
+                    self.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(self.tooltipProvider.overrideBodyText, GetDisplayInformation, master);
                 }
             };
 
@@ -208,7 +205,7 @@ namespace LoLItems
         public static void SetupReadOnlyHooks(
             Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef,
             EquipmentDef myEquipmentDef,
-            Func<CharacterMaster, string> GetDisplayInformation)
+            Func<CharacterMaster, (string, string)> GetDisplayInformation)
         {
             // Setup the base hooks
             ReadOnlyHooks(DisplayToMasterRef);
@@ -224,10 +221,21 @@ namespace LoLItems
                     foreach (RoR2.UI.EquipmentIcon equipment in self.equipmentIcons)
                     {
                         if (equipment.currentDisplayData.equipmentDef == myEquipmentDef)
-                            equipment.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
+                            equipment.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(equipment.tooltipProvider.overrideBodyText, GetDisplayInformation, self.targetMaster);
                     };
 #pragma warning restore Publicizer001
                 }
+            };
+
+            On.RoR2.UI.ScoreboardStrip.Update += (orig, self) =>
+            {
+                orig(self);
+#pragma warning disable Publicizer001
+                if (self.equipmentIcon?.currentDisplayData.equipmentDef == myEquipmentDef && self?.master && self?.equipmentIcon?.tooltipProvider)
+                {
+                    self.equipmentIcon.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(self.equipmentIcon.tooltipProvider.overrideBodyText, GetDisplayInformation, self.master);
+                }
+#pragma warning restore Publicizer001
             };
         }
 
@@ -255,6 +263,27 @@ namespace LoLItems
                     }
                 }
             };
+        }
+
+        // Add our custom description while keeping the custom description added by other mods (e.g. equipment cooldown)
+        private static string AddCustomDescriptionRegexReplace(string overrideBodyText, Func<CharacterMaster, (string, string)> GetDisplayInformation, CharacterMaster characterMaster)
+        {
+            (string baseDescription, string customDescription) = GetDisplayInformation(characterMaster);
+
+            // No custom description or text from other mod
+            if (overrideBodyText.Length == 0 && customDescription.Length == 0)
+                return baseDescription;
+
+            // No custom text
+            else if (customDescription.Length == 0)
+                return overrideBodyText;
+
+            // Have custom text but not currently in the string
+            else if (!overrideBodyText.Contains(customDescription.Substring(0, 14)))
+                return overrideBodyText + customDescription;
+            
+            // Replace our old text with the next text, preserving text form other mods
+            return overrideBodyText.Substring(0, overrideBodyText.IndexOf(customDescription.Substring(0, 14))) + customDescription;
         }
 
     }

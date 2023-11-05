@@ -234,13 +234,19 @@ namespace LoLItems
             };
         }
 
-        private static string GetDisplayInformation(CharacterMaster masterRef)
+        private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
         {
-            // Update the description for an item in the HUD
-            if (masterRef != null && exampleStoredValue.TryGetValue(masterRef.netId, out float damageDealt)){
-                return Language.GetString(myItemDef.descriptionToken) + "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
-            }
-            return Language.GetString(myItemDef.descriptionToken);
+            if (masterRef == null)
+                return (Language.GetString(myItemDef.descriptionToken), "");
+            
+            string customDescription = "";
+
+            if (exampleStoredValue.TryGetValue(masterRef.netId, out float damageDealt))
+                customDescription += "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+            else
+                customDescription += "<br><br>Damage dealt: 0";
+
+            return (Language.GetString(myItemDef.descriptionToken), customDescription);
         }
 
         // public static ItemDisplayRuleDict SetupItemDisplays()

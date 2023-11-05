@@ -110,13 +110,16 @@ namespace LoLItems
 
         }
 
-        private static string GetDisplayInformation(CharacterMaster masterRef)
+        private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
         {
-            // Update the description for an item in the HUD
-            if (masterRef != null && cooldownReductionTracker.TryGetValue(masterRef.netId, out float cdr)){
-                return Language.GetString(myItemDef.descriptionToken) + "<br><br>Cooldown reduction: " + String.Format("{0:F1}", cdr);
-            }
-            return Language.GetString(myItemDef.descriptionToken);
+            string customDescription = "";
+
+            if (cooldownReductionTracker.TryGetValue(masterRef.netId, out float cdr))
+                customDescription += "<br><br>Cooldown reduction: " + String.Format("{0:F1}", cdr);
+            else
+                customDescription += "<br><br>Cooldown reduction: 0";
+
+            return (Language.GetString(myItemDef.descriptionToken), customDescription);
         }
 
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!

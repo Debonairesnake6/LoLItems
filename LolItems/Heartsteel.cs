@@ -218,15 +218,24 @@ namespace LoLItems
             };
         }
 
-        private static string GetDisplayInformation(CharacterMaster masterRef)
+        private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
         {
-            // Update the description for an item in the HUD
-            if (masterRef != null && heartsteelHealth.TryGetValue(masterRef.netId, out float healthGained) && heartsteelBonusDamage.TryGetValue(masterRef.netId, out float damageDealt)){
-                return Language.GetString(myItemDef.descriptionToken) 
-                + "<br><br>Health gained: " + String.Format("{0:#}", healthGained)
-                + "<br>Damage dealt: " + String.Format("{0:#}", damageDealt);
-            }
-            return Language.GetString(myItemDef.descriptionToken);
+            if (masterRef == null)
+                return (Language.GetString(myItemDef.descriptionToken), "");
+            
+            string customDescription = "";
+
+            if (heartsteelHealth.TryGetValue(masterRef.netId, out float healthGained))
+                customDescription += "<br><br>Health gained: " + String.Format("{0:#}", healthGained);
+            else
+                customDescription += "<br><br>Health gained: 0";
+
+            if (heartsteelBonusDamage.TryGetValue(masterRef.netId, out float damageDealt))
+                customDescription += "<br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+            else
+                customDescription += "<br>Damage dealt: 0";
+
+            return (Language.GetString(myItemDef.descriptionToken), customDescription);
         }
 
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!

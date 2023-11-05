@@ -28,6 +28,9 @@ Icon | Name | Tier | Description
 * Buffed Liandrys when stacking the item
 * Added GargoyleStoneplate
   * Credit to [ggreer91](https://github.com/ggreer91) for implementing
+* Item tooltip stats will now always display when the stat is still 0
+* Item tooltip text will now append to the tooltip, rather than overwrite text from other mods
+* Fixed Rabadons not showing up as an in game model
 
 **1.0.0**
 
