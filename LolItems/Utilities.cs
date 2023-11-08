@@ -271,11 +271,11 @@ namespace LoLItems
             (string baseDescription, string customDescription) = GetDisplayInformation(characterMaster);
 
             // No custom description or text from other mod
-            if (overrideBodyText.Length == 0 && customDescription.Length == 0)
-                return baseDescription;
+            if (overrideBodyText.Length == 0)
+                overrideBodyText = baseDescription;
 
             // No custom text
-            else if (customDescription.Length == 0)
+            if (customDescription.Length == 0)
                 return overrideBodyText;
 
             // Have custom text but not currently in the string
