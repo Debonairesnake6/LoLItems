@@ -210,32 +210,20 @@ namespace LoLItems
             // Setup the base hooks
             ReadOnlyHooks(DisplayToMasterRef);
 
-            // Called basically every frame to update your HUD info
-            On.RoR2.UI.HUD.Update += (orig, self) => 
+            On.RoR2.UI.EquipmentIcon.Update += (orig, self) => 
             {
                 orig(self);
-                if (self.itemInventoryDisplay && self.targetMaster)
-                {
-                    DisplayToMasterRef[self.itemInventoryDisplay] = self.targetMaster;
-#pragma warning disable Publicizer001
-                    foreach (RoR2.UI.EquipmentIcon equipment in self.equipmentIcons)
-                    {
-                        if (equipment.currentDisplayData.equipmentDef == myEquipmentDef)
-                            equipment.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(equipment.tooltipProvider.overrideBodyText, GetDisplayInformation, self.targetMaster);
-                    };
-#pragma warning restore Publicizer001
-                }
-            };
 
-            On.RoR2.UI.ScoreboardStrip.Update += (orig, self) =>
-            {
-                orig(self);
 #pragma warning disable Publicizer001
-                if (self.equipmentIcon?.currentDisplayData.equipmentDef == myEquipmentDef && self?.master && self?.equipmentIcon?.tooltipProvider)
-                {
-                    self.equipmentIcon.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(self.equipmentIcon.tooltipProvider.overrideBodyText, GetDisplayInformation, self.master);
-                }
+                if (self.currentDisplayData.equipmentDef == myEquipmentDef && self.targetInventory)
 #pragma warning restore Publicizer001
+                {
+                    foreach (RoR2.PlayerCharacterMasterController player in RoR2.PlayerCharacterMasterController.instances)
+                    {
+                        if (self.targetInventory == player.master.inventory)
+                            self.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(self.tooltipProvider.overrideBodyText, GetDisplayInformation, player.master);   
+                    }
+                }
             };
         }
 
