@@ -30,6 +30,7 @@ namespace LoLItems
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> liandrysDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string liandrysDamageDealtToken = "Liandrys.liandrysDamageDealt";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
@@ -52,6 +53,7 @@ namespace LoLItems
             myDotDefIndex = DotAPI.RegisterDotDef(myDotDef, myDotCustomBehaviour);
             hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "Liandrys");
+            SetupNetworkMappings();
         }
 
         private static void LoadConfig()
@@ -222,7 +224,7 @@ namespace LoLItems
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0 && damageInfo.dotIndex == myDotDefIndex) 
                         {
-                            Utilities.AddValueInDictionary(ref liandrysDamageDealt, attackerCharacterBody.master, damageInfo.damage);
+                            Utilities.AddValueInDictionary(ref liandrysDamageDealt, attackerCharacterBody.master, damageInfo.damage, liandrysDamageDealtToken);
                         }
                     }
                 }
@@ -269,6 +271,11 @@ namespace LoLItems
 
             // ENABLE for buff
             LanguageAPI.Add("LiandrysBuff", "Liandrys is burning this unit");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(liandrysDamageDealtToken, liandrysDamageDealt);
         }
     }
 }

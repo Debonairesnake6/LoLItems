@@ -25,6 +25,7 @@ namespace LoLItems
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> totalShieldGiven = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string totalShieldGivenToken = "ImmortalShieldbow.totalShieldGiven";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
@@ -45,6 +46,7 @@ namespace LoLItems
             ContentAddition.AddBuffDef(myBuffDefCooldown);
             hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "ImmortalShieldbow");
+            SetupNetworkMappings();
         }
 
         private static void LoadConfig()
@@ -137,7 +139,7 @@ namespace LoLItems
                     if (barrierAmount > self.healthComponent.fullHealth) { barrierAmount = self.healthComponent.fullHealth; }
                     self.healthComponent.AddBarrier(barrierAmount);
                     Utilities.AddTimedBuff(self, myBuffDefCooldown, buffCooldown.Value);
-                    Utilities.AddValueInDictionary(ref totalShieldGiven, self.master, barrierAmount, false);
+                    Utilities.AddValueInDictionary(ref totalShieldGiven, self.master, barrierAmount, totalShieldGivenToken, false);
                 }
                 orig(self);
             };
@@ -175,6 +177,11 @@ namespace LoLItems
 
             // ENABLE for buff
             LanguageAPI.Add("ImmortalShieldbowBuff", "ImmortalShieldbow is recharging.");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(totalShieldGivenToken, totalShieldGiven);
         }
     }
 }

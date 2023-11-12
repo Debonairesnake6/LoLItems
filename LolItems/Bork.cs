@@ -31,9 +31,11 @@ namespace LoLItems
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> borkBonusDamage = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string borkBonusDamageToken = "Bork.borkBonusDamage";
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> borkBonusHeal = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
-        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> borkAtkSpd = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string borkBonusHealToken = "Bork.borkBonusHeal";
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> originalAtkSpd = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string originalAtkSpdToken = "Bork.originalAtkSpd";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
@@ -64,6 +66,7 @@ namespace LoLItems
             // Initialize the hooks
             hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "Bork");
+            SetupNetworkMappings();
         }
 
         private static void LoadConfig()
@@ -236,11 +239,11 @@ namespace LoLItems
                                     onHitProc.damage = damage;
                                     onHitProc.damageColorIndex = DamageColorIndex.Nearby;
                                     victimCharacterBody.healthComponent.TakeDamage(onHitProc);
-                                    Utilities.AddValueInDictionary(ref borkBonusDamage, attackerCharacterBody.master, damage);
+                                    Utilities.AddValueInDictionary(ref borkBonusDamage, attackerCharacterBody.master, damage, borkBonusDamageToken);
 
                                     float healAmount = damage * (onHitHealPercent.Value / 100);
                                     attackerCharacterBody.healthComponent.Heal(healAmount, onHitProc.procChainMask);
-                                    Utilities.AddValueInDictionary(ref borkBonusHeal, attackerCharacterBody.master, healAmount);
+                                    Utilities.AddValueInDictionary(ref borkBonusHeal, attackerCharacterBody.master, healAmount, borkBonusHealToken);
                                 }
                             }                            
                         }
@@ -253,7 +256,7 @@ namespace LoLItems
                 orig(self);
                 if (self.master != null && !originalAtkSpd.ContainsKey(self.master.netId))
                 {
-                    Utilities.SetValueInDictionary(ref originalAtkSpd, self.master, self.baseAttackSpeed, false);
+                    Utilities.SetValueInDictionary(ref originalAtkSpd, self.master, self.baseAttackSpeed, originalAtkSpdToken, false);
                 }
             };
 
@@ -304,6 +307,13 @@ namespace LoLItems
 
             //The Lore is, well, flavor. You can write pretty much whatever you want here.
             LanguageAPI.Add("BorkLore", "Viego is a plague to everything he touches.");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(borkBonusDamageToken, borkBonusDamage);
+            LoLItems.networkMappings.Add(borkBonusHealToken, borkBonusHeal);
+            LoLItems.networkMappings.Add(originalAtkSpdToken, originalAtkSpd);
         }
     }
 }

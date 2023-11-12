@@ -24,6 +24,7 @@ namespace LoLItems
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> cooldownReductionTracker = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string cooldownReductionTrackerToken = "GuardiansBlade.cooldownReductionTracker";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
@@ -42,6 +43,7 @@ namespace LoLItems
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "GuardiansBlade");
+            SetupNetworkMappings();
         }
 
         private static void LoadConfig()
@@ -104,7 +106,7 @@ namespace LoLItems
                     float cdr = Math.Abs(Utilities.HyperbolicScale(self.inventory.GetItemCount(myItemDef.itemIndex), cooldownReduction.Value / 100) - 1);
                     self.skillLocator.utilityBonusStockSkill.cooldownScale *= cdr;
                     self.skillLocator.secondaryBonusStockSkill.cooldownScale *= cdr;
-                    Utilities.SetValueInDictionary(ref cooldownReductionTracker, self.master, Math.Abs(cdr - 1) * 100, false);
+                    Utilities.SetValueInDictionary(ref cooldownReductionTracker, self.master, Math.Abs(cdr - 1) * 100, cooldownReductionTrackerToken, false);
                 }
             };
 
@@ -136,6 +138,11 @@ namespace LoLItems
 
             // Lore
             LanguageAPI.Add("GuardiansBladeLore", "Awesome Refund And Movement.");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(cooldownReductionTrackerToken, cooldownReductionTracker);
         }
     }
 }

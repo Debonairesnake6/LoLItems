@@ -22,6 +22,7 @@ namespace LoLItems
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> bonusDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string bonusDamageDealtToken = "ImperialMandate.bonusDamageDealt";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
@@ -40,6 +41,7 @@ namespace LoLItems
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "ImperialMandate");
+            SetupNetworkMappings();
         }
 
         private static void LoadConfig()
@@ -122,7 +124,7 @@ namespace LoLItems
                             }
                             float extraDamage = damageInfo.damage * damageAmpPerStack.Value / 100 * inventoryCount * debuffsActive;
                             damageInfo.damage += extraDamage;
-                            Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, extraDamage);
+                            Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, extraDamage, bonusDamageDealtToken);
                         }
                     }
                 }
@@ -177,6 +179,11 @@ namespace LoLItems
 
             // Lore
             LanguageAPI.Add("ImperialMandateLore", "Hunt your prey.");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(bonusDamageDealtToken, bonusDamageDealt);
         }
     }
 }

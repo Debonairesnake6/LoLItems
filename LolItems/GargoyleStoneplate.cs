@@ -11,6 +11,10 @@ using UnityEngine.AddressableAssets;
 using System;
 using System.Linq;
 using BepInEx.Configuration;
+using R2API.Networking.Interfaces;
+using UnityEngine.Networking;
+using R2API.Networking;
+using EntityStates.AffixVoid;
 
 namespace LoLItems
 {
@@ -21,6 +25,7 @@ namespace LoLItems
         public static ConfigEntry<float> barrierCooldown { get; set; }
         public static ConfigEntry<bool> enabled { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> totalBarrierGiven = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string totalBarrierGivenToken = "GargoyleStoneplate.totalBarrierGiven";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.EquipmentIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.EquipmentIcon, CharacterMaster>();
         public static uint activateSoundEffectID = 2213188569;
@@ -40,6 +45,7 @@ namespace LoLItems
             ItemAPI.Add(new CustomEquipment(myEquipmentDef, displayRules));
             hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, myEquipmentDef, GetDisplayInformation);
+            SetupNetworkMappings();
         }
 
         private static void LoadConfig()
@@ -105,8 +111,7 @@ namespace LoLItems
             if (barrierAmount > slot.characterBody.healthComponent.fullHealth)
                 barrierAmount = slot.characterBody.healthComponent.fullHealth;
             slot.characterBody.healthComponent.AddBarrier(barrierAmount);
-            Utilities.AddValueInDictionary(ref totalBarrierGiven, slot.characterBody.master, barrierAmount, false);
-            // UNCOMMENT WHEN SOUND IS ADDED!!
+            Utilities.AddValueInDictionary(ref totalBarrierGiven, slot.characterBody.master, barrierAmount, totalBarrierGivenToken, false);
             AkSoundEngine.PostEvent(activateSoundEffectID, slot.characterBody.gameObject);
             return true;
         }
@@ -140,6 +145,11 @@ namespace LoLItems
 
             // Lore
             LanguageAPI.Add("GargoyleStoneplateLore", "Whoever thought of breaking this off of a gargoyle's body and strapping it onto their own body was a genius.");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(totalBarrierGivenToken, totalBarrierGiven);
         }
     }
 }

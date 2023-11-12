@@ -26,6 +26,7 @@ namespace LoLItems
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> bonusDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string bonusDamageDealtToken = "MejaisSoulstealer.bonusDamageDealt";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
@@ -47,6 +48,7 @@ namespace LoLItems
             ContentAddition.AddBuffDef(currentDuration);
             hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "MejaisSoulstealer");
+            SetupNetworkMappings();
         }
 
         private static void LoadConfig()
@@ -169,7 +171,7 @@ namespace LoLItems
                         {
                             float extraDamage = damageInfo.damage * (buffCount * bonusDamagePercent.Value) / 100f;
                             damageInfo.damage += extraDamage;
-                            Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, extraDamage);
+                            Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, extraDamage, bonusDamageDealtToken);
                         }
                     }
                 }
@@ -224,6 +226,11 @@ namespace LoLItems
 
             LanguageAPI.Add("MejaisSoulstealerBuff", "Mejais stacks");
             LanguageAPI.Add("MejaisSoulstealerBuffDuration", "Mejais duration remaining");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(bonusDamageDealtToken, bonusDamageDealt);
         }
     }
 }

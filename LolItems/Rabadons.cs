@@ -23,6 +23,7 @@ namespace LoLItems
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> rabadonsBonusDamage = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string rabadonsBonusDamageToken = "Rabadons.rabadonsBonusDamage";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
@@ -40,6 +41,7 @@ namespace LoLItems
             ItemAPI.Add(new CustomItem(myItemDef, itemDisplayRuleDict));
             hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "Rabadons");
+            SetupNetworkMappings();
         }
 
         private static void LoadConfig()
@@ -284,7 +286,7 @@ namespace LoLItems
                         if (inventoryCount > 0)
                         {
                             float damageMultiplier = 1 + inventoryCount * (damageAmp.Value / 100);
-                            Utilities.AddValueInDictionary(ref rabadonsBonusDamage, attackerCharacterBody.master, damageInfo.damage * (damageMultiplier - 1));
+                            Utilities.AddValueInDictionary(ref rabadonsBonusDamage, attackerCharacterBody.master, damageInfo.damage * (damageMultiplier - 1), rabadonsBonusDamageToken);
                             damageInfo.damage = damageMultiplier * damageInfo.damage;
                         }
                     }
@@ -322,6 +324,11 @@ namespace LoLItems
 
             //The Lore is, well, flavor. You can write pretty much whatever you want here.
             LanguageAPI.Add("RabadonsItemLore", "Makes you feel like a wizard.");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(rabadonsBonusDamageToken, rabadonsBonusDamage);
         }
     }
 }

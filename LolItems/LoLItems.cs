@@ -6,6 +6,8 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System.Collections.Generic;
 using BepInEx.Configuration;
+using R2API.Networking.Interfaces;
+using R2API.Networking;
 
 namespace LoLItems
 {
@@ -39,6 +41,7 @@ namespace LoLItems
         public GameObject multiShopPrefab;
         public ItemTier[] itemTiers;
         public static PluginInfo PInfo {get; private set;}
+        public static Dictionary<string, Dictionary<UnityEngine.Networking.NetworkInstanceId, float>> networkMappings = new Dictionary<string, Dictionary<UnityEngine.Networking.NetworkInstanceId, float>>();
 
         //The Awake() method is run at the very start when the game is initialized.
         public void Awake()
@@ -66,6 +69,9 @@ namespace LoLItems
             ImmortalShieldbow.Init();
             GargoyleStoneplate.Init();
             // Cull.Init();
+
+            NetworkingAPI.RegisterMessageType<SyncDictionary>();
+
 
             // This line of log will appear in the bepinex console when the Awake method is done.
             Log.LogInfo("LoLItems successfully loaded.");

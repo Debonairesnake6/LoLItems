@@ -23,6 +23,7 @@ namespace LoLItems
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> bonusDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string bonusDamageDealtToken = "InfinityEdge.bonusDamageDealt";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
@@ -134,7 +135,7 @@ namespace LoLItems
                         if (inventoryCount > 0)
                         {
                             float damageDealt = damageInfo.damage * attackerCharacterBody.critMultiplier * (inventoryCount * bonusCritDamage.Value * 0.01f / attackerCharacterBody.critMultiplier);
-                            Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, damageDealt);
+                            Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, damageDealt, bonusDamageDealtToken);
                         }
                     }
                 }
@@ -181,6 +182,11 @@ namespace LoLItems
 
             // Lore
             LanguageAPI.Add("InfinityEdgeLore", "For when enemies need to die");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(bonusDamageDealtToken, bonusDamageDealt);
         }
     }
 }
