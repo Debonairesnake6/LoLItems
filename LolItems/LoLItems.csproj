@@ -69,7 +69,16 @@
     </Reference>
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+  <Target Name="PostBuildNetworkPatch" AfterTargets="PostBuildEvent">
+    <Exec Command="robocopy %22$(TargetDir) %22 %22$(ProjectDir)NetworkWeaver%22 $(TargetFileName) > %22$(TargetDir)Robocopy%22" IgnoreExitCode="true"/>
+    <Exec Command="%22$(ProjectDir)\NetworkWeaver\Unity.UNetWeaver.exe%22 %22$(ProjectDir)\libs\UnityEngine.CoreModule.dll%22 %22$(ProjectDir)\libs\com.unity.multiplayer-hlapi.Runtime.dll%22 %22Patched/%22  %22$(ProjectDir)NetworkWeaver\$(TargetFileName)%22 %22$(ProjectDir)\libs%22"/>
+    <Exec Command="IF EXIST %22$(ProjectDir)NetworkWeaver\$(TargetFileName).prepatch%22 (DEL /F %22$(ProjectDir)\NetworkWeaver\$(TargetFileName).prepatch%22)"/>
+    <Exec Command="ren %22$(ProjectDir)NetworkWeaver\$(TargetFileName)%22 $(TargetFileName).prepatch"/>
+    <Exec Command="robocopy %22$(ProjectDir)Patched%22 %22$(TargetDir) %22  $(TargetFileName) > %22$(TargetDir)Robocopy%22" IgnoreExitCode="true"/>
+    <Exec Command="del %22$(ProjectDir)Patched\$(TargetFileName)%22"/>
+  </Target>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildNetworkPatch">
     <Copy SourceFiles="$(ProjectDir)bin\Debug\netstandard2.0\LoLItems.dll" DestinationFolder="$(LoLItemsLocal)" />
     <Copy SourceFiles="$(ProjectDir)bin\Debug\netstandard2.0\LoLItems.pdb" DestinationFolder="$(LoLItemsLocal)" />
     <Copy SourceFiles="$(ProjectDir)Assets\icons" DestinationFolder="$(LoLItemsLocal)" />

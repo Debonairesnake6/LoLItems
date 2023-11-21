@@ -20,9 +20,9 @@ namespace LoLItems
 {
     public class Utilities
     {
-        public static void AddValueInDictionary(ref Dictionary<UnityEngine.Networking.NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value, string dictToken, bool checkMinionOwnership = true)
+        public static void AddValueInDictionary(ref Dictionary<NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value, string dictToken, bool checkMinionOwnership = true)
         {
-            UnityEngine.Networking.NetworkInstanceId id = characterMaster.netId;
+            NetworkInstanceId id = characterMaster.netId;
             if (checkMinionOwnership)
             {
                 id = CheckForMinionOwner(characterMaster);
@@ -37,13 +37,12 @@ namespace LoLItems
                 myDictionary.Add(id, value);
             }
 
-            if (NetworkServer.active)
-                new SyncDictionary(id, myDictionary[id], dictToken);
+            // NetworkManager.SyncDictionary(id, myDictionary[id], dictToken);
         }
 
-        public static void SetValueInDictionary(ref Dictionary<UnityEngine.Networking.NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value, string dictToken, bool checkMinionOwnership = true)
+        public static void SetValueInDictionary(ref Dictionary<NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value, string dictToken, bool checkMinionOwnership = true)
         {
-            UnityEngine.Networking.NetworkInstanceId id = characterMaster.netId;
+            NetworkInstanceId id = characterMaster.netId;
             if (checkMinionOwnership)
             {
                 id = CheckForMinionOwner(characterMaster);
@@ -58,11 +57,10 @@ namespace LoLItems
                 myDictionary.Add(id, value);
             }
 
-            if (NetworkServer.active)
-                new SyncDictionary(id, myDictionary[id], dictToken);
+            // NetworkManager.SyncDictionary(id, myDictionary[id], dictToken);
         }
 
-        private static UnityEngine.Networking.NetworkInstanceId CheckForMinionOwner(CharacterMaster characterMaster)
+        private static NetworkInstanceId CheckForMinionOwner(CharacterMaster characterMaster)
         {
             return characterMaster?.minionOwnership?.ownerMaster?.netId != null ? characterMaster.minionOwnership.ownerMaster.netId : characterMaster.netId;
         }
@@ -289,68 +287,52 @@ namespace LoLItems
             return overrideBodyText.Substring(0, overrideBodyText.IndexOf(customDescription.Substring(0, 14))) + customDescription;
         }
 
-        public static bool GetCharacterMasterFromNetId(UnityEngine.Networking.NetworkInstanceId netId, out CharacterMaster characterMaster)
-        {
-            characterMaster = null;
-            foreach (RoR2.PlayerCharacterMasterController player in RoR2.PlayerCharacterMasterController.instances)
-            {
-                if (player.netId == netId)
-                    characterMaster = player.master;
-            }
-
-            if (characterMaster)
-                return true;
-
-            LoLItems.Log.LogWarning($"NetId not found: {netId}");
-            return false;
-        }
+        
 
     }
 
-    internal class SyncDictionary : INetMessage
-    {
-        public NetworkInstanceId netId;
-        public float value;
-        public string dictToken;
-        public Dictionary<string, Dictionary<UnityEngine.Networking.NetworkInstanceId, float>> mapping = new Dictionary<string, Dictionary<UnityEngine.Networking.NetworkInstanceId, float>>();
+    // public class SyncDictionary : INetMessage
+    // {
+    //     public NetworkInstanceId netId;
+    //     public float value;
+    //     public string dictToken;
 
-        public SyncDictionary()
-        {
+    //     public SyncDictionary()
+    //     {
 
-        }
+    //     }
 
-        public SyncDictionary(NetworkInstanceId netId, float value, string dictToken)
-        {
-            this.netId = netId;
-            this.value = value;
-            this.dictToken = dictToken;
-            mapping = LoLItems.networkMappings;
-        }
+    //     public SyncDictionary(NetworkInstanceId netId, float value, string dictToken)
+    //     {
+    //         this.netId = netId;
+    //         this.value = value;
+    //         this.dictToken = dictToken;
+    //     }
 
-        public void Deserialize(NetworkReader reader)
-        {
-            netId = reader.ReadNetworkId();
-            value = reader.ReadSingle();
-            dictToken = reader.ReadString();
-        }
+    //     public void Deserialize(NetworkReader reader)
+    //     {
+    //         netId = reader.ReadNetworkId();
+    //         value = reader.ReadSingle();
+    //         dictToken = reader.ReadString();
+    //     }
 
-        public void OnReceived()
-        {
-            if (NetworkServer.active)
-                return;
+    //     public void OnReceived()
+    //     {
+    //         if (NetworkServer.active)
+    //             return;
             
-            if (LoLItems.networkMappings.TryGetValue(dictToken, out Dictionary<UnityEngine.Networking.NetworkInstanceId, float> myDictionary) && Utilities.GetCharacterMasterFromNetId(netId, out CharacterMaster characterMaster))
-            {
-                Utilities.SetValueInDictionary(ref myDictionary, characterMaster, value, dictToken);
-            }
-        }
+    //         if (LoLItems.networkMappings.TryGetValue(dictToken, out Dictionary<NetworkInstanceId, float> myDictionary) && Utilities.GetCharacterMasterFromNetId(netId, out CharacterMaster characterMaster))
+    //         {
+    //             Utilities.SetValueInDictionary(ref myDictionary, characterMaster, value, dictToken);
+    //         }
+    //     }
 
-        public void Serialize(NetworkWriter writer)
-        {
-            writer.Write(netId);
-            writer.Write(value);
-            writer.Write(dictToken);
-        }
-    }
+    //     public void Serialize(NetworkWriter writer)
+    //     {
+    //         writer.Write(netId);
+    //         writer.Write(value);
+    //         writer.Write(dictToken);
+    //     }
+    // }
     
 }

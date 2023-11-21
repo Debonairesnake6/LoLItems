@@ -31,7 +31,6 @@ Icon | Name | Tier | Description
 * Item tooltip stats will now always display when the stat is still 0
 * Item tooltip text will now append to the tooltip, rather than overwrite text from other mods
 * Fixed Rabadons not showing up as an in game model
-* Item tooltips should now also work in multiplayer
 
 **1.0.0**
 
