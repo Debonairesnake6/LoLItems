@@ -24,6 +24,7 @@ namespace LoLItems
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> cooldownReductionTracker = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string cooldownReductionTrackerToken = "GuardiansBlade.cooldownReductionTracker";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
@@ -42,6 +43,7 @@ namespace LoLItems
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "GuardiansBlade");
+            SetupNetworkMappings();
         }
 
         private static void LoadConfig()
@@ -70,7 +72,7 @@ namespace LoLItems
             cooldownReduction = LoLItems.MyConfig.Bind<float>(
                 "GuardiansBlade",
                 "Cooldown Reduction",
-                5f,
+                10f,
                 "Amount of cooldown reduction each item will grant."
 
             );
@@ -104,19 +106,22 @@ namespace LoLItems
                     float cdr = Math.Abs(Utilities.HyperbolicScale(self.inventory.GetItemCount(myItemDef.itemIndex), cooldownReduction.Value / 100) - 1);
                     self.skillLocator.utilityBonusStockSkill.cooldownScale *= cdr;
                     self.skillLocator.secondaryBonusStockSkill.cooldownScale *= cdr;
-                    Utilities.SetValueInDictionary(ref cooldownReductionTracker, self.master, Math.Abs(cdr - 1) * 100, false);
+                    Utilities.SetValueInDictionary(ref cooldownReductionTracker, self.master, Math.Abs(cdr - 1) * 100, cooldownReductionTrackerToken, false);
                 }
             };
 
         }
 
-        private static string GetDisplayInformation(CharacterMaster masterRef)
+        private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
         {
-            // Update the description for an item in the HUD
-            if (masterRef != null && cooldownReductionTracker.TryGetValue(masterRef.netId, out float cdr)){
-                return Language.GetString(myItemDef.descriptionToken) + "<br><br>Cooldown reduction: " + String.Format("{0:F1}", cdr);
-            }
-            return Language.GetString(myItemDef.descriptionToken);
+            string customDescription = "";
+
+            if (cooldownReductionTracker.TryGetValue(masterRef.netId, out float cdr))
+                customDescription += "<br><br>Cooldown reduction: " + String.Format("{0:F1}", cdr);
+            else
+                customDescription += "<br><br>Cooldown reduction: 0";
+
+            return (Language.GetString(myItemDef.descriptionToken), customDescription);
         }
 
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
@@ -133,6 +138,11 @@ namespace LoLItems
 
             // Lore
             LanguageAPI.Add("GuardiansBladeLore", "Awesome Refund And Movement.");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(cooldownReductionTrackerToken, cooldownReductionTracker);
         }
     }
 }

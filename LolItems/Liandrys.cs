@@ -30,6 +30,7 @@ namespace LoLItems
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> liandrysDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string liandrysDamageDealtToken = "Liandrys.liandrysDamageDealt";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
@@ -52,6 +53,7 @@ namespace LoLItems
             myDotDefIndex = DotAPI.RegisterDotDef(myDotDef, myDotCustomBehaviour);
             hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "Liandrys");
+            SetupNetworkMappings();
         }
 
         private static void LoadConfig()
@@ -166,9 +168,9 @@ namespace LoLItems
                     inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                 }
 #pragma warning disable Publicizer001
-                float baseDotDamage = self.victimBody.maxHealth * burnDamagePercent.Value / 100f / burnDamageDuration.Value * myDotDef.interval * inventoryCount;
+                float baseDotDamage = self.victimBody.maxHealth * burnDamagePercent.Value / 100f / burnDamageDuration.Value * myDotDef.interval;
 #pragma warning restore Publicizer001
-                float dotDamage = Math.Max(burnDamageMin.Value * attackerCharacterBody.damage, Math.Min(burnDamageMax.Value * attackerCharacterBody.damage, baseDotDamage)) / burnDamageDuration.Value;
+                float dotDamage = Math.Max(burnDamageMin.Value * attackerCharacterBody.damage, Math.Min(burnDamageMax.Value * attackerCharacterBody.damage, baseDotDamage)) / burnDamageDuration.Value * inventoryCount;
                 dotStack.damage = dotDamage;
             }
         }
@@ -222,7 +224,7 @@ namespace LoLItems
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0 && damageInfo.dotIndex == myDotDefIndex) 
                         {
-                            Utilities.AddValueInDictionary(ref liandrysDamageDealt, attackerCharacterBody.master, damageInfo.damage);
+                            Utilities.AddValueInDictionary(ref liandrysDamageDealt, attackerCharacterBody.master, damageInfo.damage, liandrysDamageDealtToken);
                         }
                     }
                 }
@@ -237,13 +239,19 @@ namespace LoLItems
             };
         }
 
-        private static string GetDisplayInformation(CharacterMaster masterRef)
+        private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
         {
-            // Update the description for an item in the HUD
-            if (masterRef != null && liandrysDamageDealt.TryGetValue(masterRef.netId, out float damageDealt)){
-                return Language.GetString(myItemDef.descriptionToken) + "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
-            }
-            return Language.GetString(myItemDef.descriptionToken);
+            if (masterRef == null)
+                return (Language.GetString(myItemDef.descriptionToken), "");
+            
+            string customDescription = "";
+
+            if (liandrysDamageDealt.TryGetValue(masterRef.netId, out float damageDealt))
+                customDescription += "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+            else
+                customDescription += "<br><br>Damage dealt: 0";
+
+            return (Language.GetString(myItemDef.descriptionToken), customDescription);
         }
 
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
@@ -263,6 +271,11 @@ namespace LoLItems
 
             // ENABLE for buff
             LanguageAPI.Add("LiandrysBuff", "Liandrys is burning this unit");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(liandrysDamageDealtToken, liandrysDamageDealt);
         }
     }
 }

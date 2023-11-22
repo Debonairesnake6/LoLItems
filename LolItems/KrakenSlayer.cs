@@ -25,6 +25,7 @@ namespace LoLItems
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> bonusDamage = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string bonusDamageToken = "KrakenSlayer.bonusDamage";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
@@ -44,6 +45,7 @@ namespace LoLItems
             ContentAddition.AddBuffDef(myCounterBuffDef);
             hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "KrakenSlayer");
+            SetupNetworkMappings();
         }
 
         private static void LoadConfig()
@@ -156,7 +158,7 @@ namespace LoLItems
                                 onHitProc.damage = damage;
                                 onHitProc.damageColorIndex = DamageColorIndex.Item;
                                 victimCharacterBody.healthComponent.TakeDamage(onHitProc);
-                                Utilities.AddValueInDictionary(ref bonusDamage, attackerCharacterBody.master, damage);
+                                Utilities.AddValueInDictionary(ref bonusDamage, attackerCharacterBody.master, damage, bonusDamageToken);
                             }
                         }
                     }
@@ -178,14 +180,19 @@ namespace LoLItems
             };
         }
 
-        private static string GetDisplayInformation(CharacterMaster masterRef)
+        private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
         {
-            // Update the description for an item in the HUD
-            if (masterRef != null && bonusDamage.TryGetValue(masterRef.netId, out float damageDealt)){
-                return Language.GetString(myItemDef.descriptionToken) + 
-                "<br><br>Bonus damage dealt: " + String.Format("{0:#}", damageDealt);
-            }
-            return Language.GetString(myItemDef.descriptionToken);
+            if (masterRef == null)
+                return (Language.GetString(myItemDef.descriptionToken), "");
+            
+            string customDescription = "";
+
+            if (bonusDamage.TryGetValue(masterRef.netId, out float damageDealt))
+                customDescription += "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+            else
+                customDescription += "<br><br>Damage dealt: 0";
+
+            return (Language.GetString(myItemDef.descriptionToken), customDescription);
         }
 
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
@@ -202,6 +209,11 @@ namespace LoLItems
 
             //The Lore is, well, flavor. You can write pretty much whatever you want here.
             LanguageAPI.Add("KrakenSlayerLore", "Legend has it that this item is no longer mythical.");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(bonusDamageToken, bonusDamage);
         }
     }
 }

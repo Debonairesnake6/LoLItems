@@ -25,6 +25,7 @@ namespace LoLItems
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> totalShieldGiven = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string totalShieldGivenToken = "ImmortalShieldbow.totalShieldGiven";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
@@ -45,6 +46,7 @@ namespace LoLItems
             ContentAddition.AddBuffDef(myBuffDefCooldown);
             hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "ImmortalShieldbow");
+            SetupNetworkMappings();
         }
 
         private static void LoadConfig()
@@ -137,19 +139,25 @@ namespace LoLItems
                     if (barrierAmount > self.healthComponent.fullHealth) { barrierAmount = self.healthComponent.fullHealth; }
                     self.healthComponent.AddBarrier(barrierAmount);
                     Utilities.AddTimedBuff(self, myBuffDefCooldown, buffCooldown.Value);
-                    Utilities.AddValueInDictionary(ref totalShieldGiven, self.master, barrierAmount, false);
+                    Utilities.AddValueInDictionary(ref totalShieldGiven, self.master, barrierAmount, totalShieldGivenToken, false);
                 }
                 orig(self);
             };
         }
 
-        private static string GetDisplayInformation(CharacterMaster masterRef)
+        private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
         {
-            // Update the description for an item in the HUD
-            if (masterRef != null && totalShieldGiven.TryGetValue(masterRef.netId, out float barrierGiven)){
-                return Language.GetString(myItemDef.descriptionToken) + "<br><br>Barrier given: " + String.Format("{0:#}", barrierGiven);
-            }
-            return Language.GetString(myItemDef.descriptionToken);
+            if (masterRef == null)
+                return (Language.GetString(myItemDef.descriptionToken), "");
+            
+            string customDescription = "";
+
+            if (totalShieldGiven.TryGetValue(masterRef.netId, out float barrierGiven))
+                customDescription += "<br><br>Barrier given: " + String.Format("{0:#}", barrierGiven);
+            else
+                customDescription += "<br><br>Barrier given: 0";
+
+            return (Language.GetString(myItemDef.descriptionToken), customDescription);
         }
 
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
@@ -169,6 +177,11 @@ namespace LoLItems
 
             // ENABLE for buff
             LanguageAPI.Add("ImmortalShieldbowBuff", "ImmortalShieldbow is recharging.");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(totalShieldGivenToken, totalShieldGiven);
         }
     }
 }

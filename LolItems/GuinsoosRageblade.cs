@@ -22,6 +22,7 @@ namespace LoLItems
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> totalProcCoef = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string totalProcCoefToken = "GuinsoosRageblade.totalProcCoef";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
@@ -39,6 +40,7 @@ namespace LoLItems
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "GuinsoosRageblade");
+            SetupNetworkMappings();
         }
 
         private static void LoadConfig()
@@ -107,7 +109,7 @@ namespace LoLItems
                         if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
                         {
                             float extraTotal = procCoef.Value * inventoryCount;
-                            Utilities.SetValueInDictionary(ref totalProcCoef, attackerCharacterBody.master, extraTotal);
+                            Utilities.SetValueInDictionary(ref totalProcCoef, attackerCharacterBody.master, extraTotal, totalProcCoefToken);
                             damageInfo.procCoefficient += extraTotal;
                         }
                     }
@@ -116,13 +118,19 @@ namespace LoLItems
             };
         }
 
-        private static string GetDisplayInformation(CharacterMaster masterRef)
+        private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
         {
-            // Update the description for an item in the HUD
-            if (masterRef != null && totalProcCoef.TryGetValue(masterRef.netId, out float value)){
-                return Language.GetString(myItemDef.descriptionToken) + "<br><br>Extra procCoef: " + String.Format("{0:F1}", value);
-            }
-            return Language.GetString(myItemDef.descriptionToken);
+            if (masterRef == null)
+                return (Language.GetString(myItemDef.descriptionToken), "");
+            
+            string customDescription = "";
+
+            if (totalProcCoef.TryGetValue(masterRef.netId, out float value))
+                customDescription += "<br><br>Extra procCoef: " + String.Format("{0:F1}", value);
+            else
+                customDescription += "<br><br>Extra procCoef: 0";
+
+            return (Language.GetString(myItemDef.descriptionToken), customDescription);
         }
 
         private static void AddTokens()
@@ -138,6 +146,11 @@ namespace LoLItems
 
             // Lore
             LanguageAPI.Add("GuinsoosRagebladeLore", "Procs go brrrrrrr.");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(totalProcCoefToken, totalProcCoef);
         }
     }
 }

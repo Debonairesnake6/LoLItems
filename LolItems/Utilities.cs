@@ -13,14 +13,16 @@ using System;
 using System.Linq;
 using System.Collections;
 using BepInEx.Configuration;
+using R2API.Networking.Interfaces;
+using UnityEngine.Networking;
 
 namespace LoLItems
 {
     public class Utilities
     {
-        public static void AddValueInDictionary(ref Dictionary<UnityEngine.Networking.NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value, bool checkMinionOwnership = true)
+        public static void AddValueInDictionary(ref Dictionary<NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value, string dictToken, bool checkMinionOwnership = true)
         {
-            UnityEngine.Networking.NetworkInstanceId id = characterMaster.netId;
+            NetworkInstanceId id = characterMaster.netId;
             if (checkMinionOwnership)
             {
                 id = CheckForMinionOwner(characterMaster);
@@ -34,11 +36,13 @@ namespace LoLItems
             {
                 myDictionary.Add(id, value);
             }
+
+            // NetworkManager.SyncDictionary(id, myDictionary[id], dictToken);
         }
 
-        public static void SetValueInDictionary(ref Dictionary<UnityEngine.Networking.NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value, bool checkMinionOwnership = true)
+        public static void SetValueInDictionary(ref Dictionary<NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value, string dictToken, bool checkMinionOwnership = true)
         {
-            UnityEngine.Networking.NetworkInstanceId id = characterMaster.netId;
+            NetworkInstanceId id = characterMaster.netId;
             if (checkMinionOwnership)
             {
                 id = CheckForMinionOwner(characterMaster);
@@ -52,9 +56,11 @@ namespace LoLItems
             {
                 myDictionary.Add(id, value);
             }
+
+            // NetworkManager.SyncDictionary(id, myDictionary[id], dictToken);
         }
 
-        private static UnityEngine.Networking.NetworkInstanceId CheckForMinionOwner(CharacterMaster characterMaster)
+        private static NetworkInstanceId CheckForMinionOwner(CharacterMaster characterMaster)
         {
             return characterMaster?.minionOwnership?.ownerMaster?.netId != null ? characterMaster.minionOwnership.ownerMaster.netId : characterMaster.netId;
         }
@@ -116,15 +122,20 @@ namespace LoLItems
             return result;
         }
 
+        // for items
         public static void SetupReadOnlyHooks(
             Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef, 
             Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef, 
             ItemDef myItemDef, 
-            Func<CharacterMaster, string> GetDisplayInformation, 
+            Func<CharacterMaster, (string, string)> GetDisplayInformation,
             ConfigEntry<string> rarity, 
             ConfigEntry<string> voidItems,
             string customItemName)
         {
+
+            // Setup the base hooks
+            ReadOnlyHooks(DisplayToMasterRef);
+
             // Called basically every frame to update your HUD info
             On.RoR2.UI.HUD.Update += (orig, self) => 
             {
@@ -137,20 +148,12 @@ namespace LoLItems
                     {
                         // Update the description for an item in the HUD
                         if (item.itemIndex == myItemDef.itemIndex){
-                            item.tooltipProvider.overrideBodyText = GetDisplayInformation(self.targetMaster);
+                            item.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(item.tooltipProvider.overrideBodyText, GetDisplayInformation, self.targetMaster);
                         }
                     });
 #pragma warning restore Publicizer001
                 }
             };
-
-            // Open Scoreboard
-            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
-            {
-                orig(self, characterMaster);
-                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
-            };
-
 
             // Open Scoreboard
             On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
@@ -159,7 +162,7 @@ namespace LoLItems
                 if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
                 {
                     IconToMasterRef.TryGetValue(self, out CharacterMaster master);
-                    self.tooltipProvider.overrideBodyText = GetDisplayInformation(master);
+                    self.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(self.tooltipProvider.overrideBodyText, GetDisplayInformation, master);
                 }
             };
 
@@ -170,20 +173,6 @@ namespace LoLItems
                 List<RoR2.UI.ItemIcon> icons = self.GetFieldValue<List<RoR2.UI.ItemIcon>>("itemIcons");
                 DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
                 icons.ForEach(i => IconToMasterRef[i] = masterRef);
-            };
-
-            // Add to stat dict for end of game screen
-            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
-            {
-                orig(self, playerInfo);
-                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
-                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
-                {
-                    if (entry.Value == playerInfo.master)
-                    {
-                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
-                    }
-                }
             };
 
             // Create void item
@@ -217,5 +206,133 @@ namespace LoLItems
                 orig();
             };
         }
+
+        // for equipments
+        public static void SetupReadOnlyHooks(
+            Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef,
+            EquipmentDef myEquipmentDef,
+            Func<CharacterMaster, (string, string)> GetDisplayInformation)
+        {
+            // Setup the base hooks
+            ReadOnlyHooks(DisplayToMasterRef);
+
+            On.RoR2.UI.EquipmentIcon.Update += (orig, self) => 
+            {
+                orig(self);
+
+#pragma warning disable Publicizer001
+                if (self.currentDisplayData.equipmentDef == myEquipmentDef && self.targetInventory)
+#pragma warning restore Publicizer001
+                {
+                    foreach (RoR2.PlayerCharacterMasterController player in RoR2.PlayerCharacterMasterController.instances)
+                    {
+                        if (self.targetInventory == player.master.inventory)
+                        {
+                            self.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(self.tooltipProvider.overrideBodyText, GetDisplayInformation, player.master);   
+                            return;
+                        }
+                    }
+                }
+                // Clear the override text if it's not overwritten by other mods
+                (string baseDescription, string customDescription) = GetDisplayInformation(RoR2.PlayerCharacterMasterController.instances[0].master);
+                if (self.tooltipProvider.overrideBodyText.Contains(customDescription.Substring(0, 14)))
+                    self.tooltipProvider.overrideBodyText = "";
+            };
+        }
+
+        private static void ReadOnlyHooks(
+            Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef
+        )
+        {
+            // Open Scoreboard
+            On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
+            {
+                orig(self, characterMaster);
+                if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
+            };
+
+            // Add to stat dict for end of game screen
+            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo) => 
+            {
+                orig(self, playerInfo);
+                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
+                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
+                {
+                    if (entry.Value == playerInfo.master)
+                    {
+                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
+                    }
+                }
+            };
+        }
+
+        // Add our custom description while keeping the custom description added by other mods (e.g. equipment cooldown)
+        private static string AddCustomDescriptionRegexReplace(string overrideBodyText, Func<CharacterMaster, (string, string)> GetDisplayInformation, CharacterMaster characterMaster)
+        {
+            (string baseDescription, string customDescription) = GetDisplayInformation(characterMaster);
+
+            // No custom description or text from other mod
+            if (overrideBodyText.Length == 0)
+                overrideBodyText = baseDescription;
+
+            // No custom text
+            if (customDescription.Length == 0)
+                return overrideBodyText;
+
+            // Have custom text but not currently in the string
+            else if (!overrideBodyText.Contains(customDescription.Substring(0, 14)))
+                return overrideBodyText + customDescription;
+            
+            // Replace our old text with the next text, preserving text form other mods
+            return overrideBodyText.Substring(0, overrideBodyText.IndexOf(customDescription.Substring(0, 14))) + customDescription;
+        }
+
+        
+
     }
+
+    // public class SyncDictionary : INetMessage
+    // {
+    //     public NetworkInstanceId netId;
+    //     public float value;
+    //     public string dictToken;
+
+    //     public SyncDictionary()
+    //     {
+
+    //     }
+
+    //     public SyncDictionary(NetworkInstanceId netId, float value, string dictToken)
+    //     {
+    //         this.netId = netId;
+    //         this.value = value;
+    //         this.dictToken = dictToken;
+    //     }
+
+    //     public void Deserialize(NetworkReader reader)
+    //     {
+    //         netId = reader.ReadNetworkId();
+    //         value = reader.ReadSingle();
+    //         dictToken = reader.ReadString();
+    //     }
+
+    //     public void OnReceived()
+    //     {
+    //         if (NetworkServer.active)
+    //             return;
+            
+    //         if (LoLItems.networkMappings.TryGetValue(dictToken, out Dictionary<NetworkInstanceId, float> myDictionary) && Utilities.GetCharacterMasterFromNetId(netId, out CharacterMaster characterMaster))
+    //         {
+    //             Utilities.SetValueInDictionary(ref myDictionary, characterMaster, value, dictToken);
+    //         }
+    //     }
+
+    //     public void Serialize(NetworkWriter writer)
+    //     {
+    //         writer.Write(netId);
+    //         writer.Write(value);
+    //         writer.Write(dictToken);
+    //     }
+    // }
+    
 }

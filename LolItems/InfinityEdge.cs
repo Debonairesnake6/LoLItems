@@ -23,6 +23,7 @@ namespace LoLItems
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> bonusDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string bonusDamageDealtToken = "InfinityEdge.bonusDamageDealt";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
@@ -134,34 +135,37 @@ namespace LoLItems
                         if (inventoryCount > 0)
                         {
                             float damageDealt = damageInfo.damage * attackerCharacterBody.critMultiplier * (inventoryCount * bonusCritDamage.Value * 0.01f / attackerCharacterBody.critMultiplier);
-                            Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, damageDealt);
+                            Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, damageDealt, bonusDamageDealtToken);
                         }
                     }
                 }
             };
         }
 
-        private static string GetDisplayInformation(CharacterMaster masterRef)
+        private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
         {
-            // Update the description for an item in the HUD
-            if (masterRef != null && bonusDamageDealt.TryGetValue(masterRef.netId, out float damageDealt)){
-                string statusText = "";
-                int itemCount = masterRef.inventory.GetItemCount(myItemDef.itemIndex);
-                if (masterRef.inventory.GetItemCount(DLC1Content.Items.ConvertCritChanceToCritDamage) == 0)
-                {
-                    statusText = "<br><br>Bonus crit chance: " + String.Format("{0:#}", itemCount * bonusCritChance.Value)
-                    + "%<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage.Value);
-                }
-                else
-                {
-                    statusText = "<br><br>Bonus crit chance: 0"
-                    + "%<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage.Value + itemCount * bonusCritChance.Value);
-                }
-                return Language.GetString(myItemDef.descriptionToken)
-                + statusText
-                + "%<br>Bonus damage dealt: " + String.Format("{0:#}", damageDealt);
+            if (masterRef == null)
+                return (Language.GetString(myItemDef.descriptionToken), "");
+            
+            string customDescription = "";
+            int itemCount = masterRef.inventory.GetItemCount(myItemDef.itemIndex);
+            if (masterRef.inventory.GetItemCount(DLC1Content.Items.ConvertCritChanceToCritDamage) == 0){
+                customDescription += "<br><br>Bonus crit chance: " + String.Format("{0:#}", itemCount * bonusCritChance.Value) + "%"
+                + "<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage.Value);
             }
-            return Language.GetString(myItemDef.descriptionToken);
+            else
+            {
+                customDescription += "<br><br>Bonus crit chance: 0%"
+                + "<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage.Value + itemCount * bonusCritChance.Value);
+            }
+            
+
+            if (bonusDamageDealt.TryGetValue(masterRef.netId, out float damageDealt))
+                customDescription += "<br>Bonus damage dealt: " + String.Format("{0:#}", damageDealt);
+            else
+                customDescription += "<br>Bonus damage dealt: 0";
+
+            return (Language.GetString(myItemDef.descriptionToken), customDescription);
         }
 
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
@@ -178,6 +182,11 @@ namespace LoLItems
 
             // Lore
             LanguageAPI.Add("InfinityEdgeLore", "For when enemies need to die");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(bonusDamageDealtToken, bonusDamageDealt);
         }
     }
 }

@@ -28,10 +28,14 @@ namespace LoLItems
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> heartsteelHealth = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string heartsteelHealthToken = "Heartsteel.heartsteelHealth";
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> originalBaseMaxHealth = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string originalBaseMaxHealthToken = "Heartsteel.originalBaseMaxHealth";
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> heartsteelBonusDamage = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string heartsteelBonusDamageToken = "Heartsteel.heartsteelBonusDamage";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
+        public static uint triggerSoundEffectID = 3202319100;
 
         internal static void Init()
         {
@@ -49,6 +53,7 @@ namespace LoLItems
             ContentAddition.AddBuffDef(myTimerBuffDef);
             hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "Heartsteel");
+            SetupNetworkMappings();
         }
 
         private static void LoadConfig()
@@ -163,7 +168,7 @@ namespace LoLItems
                         HeartsteelOrb.maxHpValue = 0;
                         OrbManager.instance.AddOrb(HeartsteelOrb);
 
-                        Utilities.AddValueInDictionary(ref heartsteelHealth, damageReport.attackerMaster, bonusHealthAmount.Value * inventoryCount, false);
+                        Utilities.AddValueInDictionary(ref heartsteelHealth, damageReport.attackerMaster, bonusHealthAmount.Value * inventoryCount, heartsteelHealthToken, false);
 					}
                 }
             };
@@ -190,8 +195,8 @@ namespace LoLItems
                             onHitProc.damage = damage;
                             onHitProc.damageColorIndex = DamageColorIndex.Item;
                             victimCharacterBody.healthComponent.TakeDamage(onHitProc);
-                            Utilities.AddValueInDictionary(ref heartsteelBonusDamage, attackerCharacterBody.master, damage, false);
-                            AkSoundEngine.PostEvent(3202319100, damageInfo.attacker.gameObject);
+                            Utilities.AddValueInDictionary(ref heartsteelBonusDamage, attackerCharacterBody.master, damage, heartsteelBonusDamageToken, false);
+                            AkSoundEngine.PostEvent(triggerSoundEffectID, damageInfo.attacker.gameObject);
                         }
                     }
                 }
@@ -203,7 +208,7 @@ namespace LoLItems
                 orig(self);
                 if (self.master != null && !originalBaseMaxHealth.ContainsKey(self.master.netId))
                 {
-                    Utilities.SetValueInDictionary(ref originalBaseMaxHealth, self.master, self.baseMaxHealth, false);
+                    Utilities.SetValueInDictionary(ref originalBaseMaxHealth, self.master, self.baseMaxHealth, originalBaseMaxHealthToken, false);
                 }
             };
             
@@ -217,15 +222,24 @@ namespace LoLItems
             };
         }
 
-        private static string GetDisplayInformation(CharacterMaster masterRef)
+        private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
         {
-            // Update the description for an item in the HUD
-            if (masterRef != null && heartsteelHealth.TryGetValue(masterRef.netId, out float healthGained) && heartsteelBonusDamage.TryGetValue(masterRef.netId, out float damageDealt)){
-                return Language.GetString(myItemDef.descriptionToken) 
-                + "<br><br>Health gained: " + String.Format("{0:#}", healthGained)
-                + "<br>Damage dealt: " + String.Format("{0:#}", damageDealt);
-            }
-            return Language.GetString(myItemDef.descriptionToken);
+            if (masterRef == null)
+                return (Language.GetString(myItemDef.descriptionToken), "");
+            
+            string customDescription = "";
+
+            if (heartsteelHealth.TryGetValue(masterRef.netId, out float healthGained))
+                customDescription += "<br><br>Health gained: " + String.Format("{0:#}", healthGained);
+            else
+                customDescription += "<br><br>Health gained: 0";
+
+            if (heartsteelBonusDamage.TryGetValue(masterRef.netId, out float damageDealt))
+                customDescription += "<br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+            else
+                customDescription += "<br>Damage dealt: 0";
+
+            return (Language.GetString(myItemDef.descriptionToken), customDescription);
         }
 
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
@@ -242,6 +256,13 @@ namespace LoLItems
 
             //The Lore is, well, flavor. You can write pretty much whatever you want here.
             LanguageAPI.Add("HeartsteelLore", "Lore was meant to go here, but Sion trampled it.");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(heartsteelBonusDamageToken, heartsteelBonusDamage);
+            LoLItems.networkMappings.Add(heartsteelHealthToken, heartsteelHealth);
+            LoLItems.networkMappings.Add(originalBaseMaxHealthToken, originalBaseMaxHealth);
         }
     }
 }

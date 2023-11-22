@@ -25,8 +25,11 @@ namespace LoLItems
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> exampleStoredValue = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string exampleStoredValueToken = "MyExampleBaseItem.exampleStoredValue";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
+        // ENABLE if a sound effect int is needed (replace num with proper value)
+        // public static uint soundEffectID = 1234567890;
 
         // This runs when loading the file
         internal static void Init()
@@ -49,6 +52,7 @@ namespace LoLItems
             // ContentAddition.AddBuffDef(myBuffDef);
             hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "MyExampleItem");
+            SetupNetworkMappings();
         }
 
         private static void LoadConfig()
@@ -153,7 +157,7 @@ namespace LoLItems
                         // MyExampleItemOrb.target = Util.FindBodyMainHurtBox(damageReport.attackerBody);
                         // MyExampleItemOrb.maxHpValue = 0;
                         // OrbManager.instance.AddOrb(MyExampleItemOrb);
-                        // Utilities.AddValueInDictionary(ref exampleStoredValue, damageReport.attackerBody.master, exampleValue.Value);
+                        // Utilities.AddValueInDictionary(ref exampleStoredValue, damageReport.attackerBody.master, exampleValue.Value, exampleStoredValueToken);
 					}
                 }
             };
@@ -184,7 +188,7 @@ namespace LoLItems
                             // onHitProc.inflictor = damageInfo.attacker;
 
                             // victimCharacterBody.healthComponent.TakeDamage(onHitProc);  
-                            // Utilities.AddValueToDictionary(ref exampleStoredValue, attackerCharacterBody.master.netId, damage);
+                            // Utilities.AddValueToDictionary(ref exampleStoredValue, attackerCharacterBody.master.netId, damage, exampleStoredValueToken);
                         }
                     }
                 }
@@ -216,7 +220,7 @@ namespace LoLItems
                 if (self?.master && !exampleStoredValue.ContainsKey(self.master.netId))
                 {
                     // Save value
-                    // Utilities.AddValueToDictionary(ref exampleStoredValue, self.master, self.baseMaxHealth);
+                    // Utilities.AddValueToDictionary(ref exampleStoredValue, self.master, self.baseMaxHealth, exampleStoredValueToken);
                 }
             };
             
@@ -232,13 +236,19 @@ namespace LoLItems
             };
         }
 
-        private static string GetDisplayInformation(CharacterMaster masterRef)
+        private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
         {
-            // Update the description for an item in the HUD
-            if (masterRef != null && exampleStoredValue.TryGetValue(masterRef.netId, out float damageDealt)){
-                return Language.GetString(myItemDef.descriptionToken) + "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
-            }
-            return Language.GetString(myItemDef.descriptionToken);
+            if (masterRef == null)
+                return (Language.GetString(myItemDef.descriptionToken), "");
+            
+            string customDescription = "";
+
+            if (exampleStoredValue.TryGetValue(masterRef.netId, out float damageDealt))
+                customDescription += "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+            else
+                customDescription += "<br><br>Damage dealt: 0";
+
+            return (Language.GetString(myItemDef.descriptionToken), customDescription);
         }
 
         // public static ItemDisplayRuleDict SetupItemDisplays()
@@ -455,6 +465,11 @@ namespace LoLItems
 
             // ENABLE for buff
             // LanguageAPI.Add("MyExampleItemBuff", "MyExampleItem buff description");
+        }
+
+        public static void SetupNetworkMappings()
+        {
+            LoLItems.networkMappings.Add(exampleStoredValueToken, exampleStoredValue);
         }
     }
 }

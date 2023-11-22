@@ -333,3 +333,6 @@ LoLItems/bin/
 LoLItems/obj/
 LoLItems/Thunderstore
 LoLItems.zip
+
+LoLItems/LoLItems.code-workspace
+LoLItems/NetworkWeaver/LoLItems.dll.prepatch

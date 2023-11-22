@@ -18,8 +18,19 @@ Icon | Name | Tier | Description
 ![Heartsteel](https://static.wikia.nocookie.net/leagueoflegends/images/8/87/Heartsteel_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221115195510) | Heartsteel | Red | Gain permanent health on kill with no cap. Every few seconds deal a portion of your health as extra damage on hit.
 ![ImperialMandate](https://static.wikia.nocookie.net/leagueoflegends/images/b/bc/Imperial_Mandate_item.png/revision/latest?cb=20201104212814) | ImperialMandate | Void Green | Bonus damage per debuff. Corrupts **Death Mark**.
 ![Bork](https://static.wikia.nocookie.net/leagueoflegends/images/2/2f/Blade_of_the_Ruined_King_item.png/revision/latest?cb=20221210230042) | Bork | Void Green | Attack speed. Every few hits do damage and heal, and has a cooldown. Corrupts **Syringes** and **Leaching Seeds**.
+![GargoyleStoneplate](https://static.wikia.nocookie.net/leagueoflegends/images/6/62/Gargoyle_Stoneplate_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221230182936) | GargoyleStoneplate | Equipment | Temporarily gain a barrier based on your health.
 
 ## Changelog
+
+**1.1.0**
+
+* Buffed GuardiansBlade
+* Buffed Liandrys when stacking the item
+* Added GargoyleStoneplate
+  * Credit to [ggreer91](https://github.com/ggreer91) for implementing
+* Item tooltip stats will now always display when the stat is still 0
+* Item tooltip text will now append to the tooltip, rather than overwrite text from other mods
+* Fixed Rabadons not showing up as an in game model
 
 **1.0.0**
 
