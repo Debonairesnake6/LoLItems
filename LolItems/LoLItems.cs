@@ -70,6 +70,8 @@ namespace LoLItems
             GargoyleStoneplate.Init();
             // Cull.Init();
 
+            // Load the networking stuff
+            NetworkManager.Init();
 
             // This line of log will appear in the bepinex console when the Awake method is done.
             Log.LogInfo("LoLItems successfully loaded.");
