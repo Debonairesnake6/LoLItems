@@ -28,6 +28,7 @@ namespace LoLItems
         public static string totalShieldGivenToken = "ImmortalShieldbow.totalShieldGiven";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
+        public static uint procSoundEffect = 2060112413;
 
         // This runs when loading the file
         internal static void Init()
@@ -142,6 +143,7 @@ namespace LoLItems
                 if (barrierAmount > characterBody.healthComponent.fullHealth)
                     barrierAmount = characterBody.healthComponent.fullHealth;
                 characterBody.healthComponent.AddBarrier(barrierAmount);
+                AkSoundEngine.PostEvent(procSoundEffect, characterBody.gameObject);
                 Utilities.AddTimedBuff(characterBody, myBuffDefCooldown, buffCooldown.Value);
                 Utilities.AddValueInDictionary(ref totalShieldGiven, characterBody.master, barrierAmount, totalShieldGivenToken, false);
             }

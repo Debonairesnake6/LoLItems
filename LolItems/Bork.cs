@@ -36,6 +36,7 @@ namespace LoLItems
         public static string borkBonusHealToken = "Bork.borkBonusHeal";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
+        public static uint procSoundEffect = 3722891417;
 
         internal static void Init()
         {
@@ -237,8 +238,9 @@ namespace LoLItems
                                     float healAmount = damage * (onHitHealPercent.Value / 100);
                                     attackerCharacterBody.healthComponent.Heal(healAmount, onHitProc.procChainMask);
                                     Utilities.AddValueInDictionary(ref borkBonusHeal, attackerCharacterBody.master, healAmount, borkBonusHealToken);
+                                    AkSoundEngine.PostEvent(procSoundEffect, attackerCharacterBody.gameObject);
                                 }
-                            }                            
+                            }
                         }
                     }
                 }
