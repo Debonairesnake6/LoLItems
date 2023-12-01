@@ -34,8 +34,6 @@ namespace LoLItems
         public static string borkBonusDamageToken = "Bork.borkBonusDamage";
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> borkBonusHeal = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static string borkBonusHealToken = "Bork.borkBonusHeal";
-        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> originalAtkSpd = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
-        public static string originalAtkSpdToken = "Bork.originalAtkSpd";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
 
@@ -251,23 +249,12 @@ namespace LoLItems
                 }
             };
 
-            On.RoR2.CharacterBody.Start += (orig, self) =>
-            {
-                orig(self);
-                if (self.master != null && !originalAtkSpd.ContainsKey(self.master.netId))
-                {
-                    Utilities.SetValueInDictionary(ref originalAtkSpd, self.master, self.baseAttackSpeed, originalAtkSpdToken, false);
-                }
-            };
+            RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
+        }
 
-            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
-            {
-                if (self.inventory != null && self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && originalAtkSpd.TryGetValue(self.master.netId, out float baseAtkSpd))
-                {
-                    self.baseAttackSpeed = baseAtkSpd + self.inventory.GetItemCount(myItemDef) / 100f  * attackSpeed.Value;
-                }
-                orig(self);
-            };
+        private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            args.baseAttackSpeedAdd += characterBody.inventory.GetItemCount(myItemDef) / 100f * attackSpeed.Value;
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
@@ -313,7 +300,6 @@ namespace LoLItems
         {
             LoLItems.networkMappings.Add(borkBonusDamageToken, borkBonusDamage);
             LoLItems.networkMappings.Add(borkBonusHealToken, borkBonusHeal);
-            LoLItems.networkMappings.Add(originalAtkSpdToken, originalAtkSpd);
         }
     }
 }

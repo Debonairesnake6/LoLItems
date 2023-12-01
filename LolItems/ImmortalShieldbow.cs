@@ -130,19 +130,21 @@ namespace LoLItems
 
         private static void hooks()
         {            
-            // Modify character values
-            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
+            RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
+        }
+
+        private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            int count = characterBody.inventory.GetItemCount(myItemDef.itemIndex);
+            if (count > 0 && characterBody.healthComponent?.health < characterBody.healthComponent?.fullHealth * barrierThreshold.Value / 100 && !characterBody.HasBuff(myBuffDefCooldown))
             {
-                if (self?.inventory && self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && self.healthComponent?.health < self.healthComponent?.fullHealth * barrierThreshold.Value / 100 && !self.HasBuff(myBuffDefCooldown))
-                {
-                    float barrierAmount = self.healthComponent.fullHealth * barrierPercent.Value / 100 * self.inventory.GetItemCount(myItemDef.itemIndex);
-                    if (barrierAmount > self.healthComponent.fullHealth) { barrierAmount = self.healthComponent.fullHealth; }
-                    self.healthComponent.AddBarrier(barrierAmount);
-                    Utilities.AddTimedBuff(self, myBuffDefCooldown, buffCooldown.Value);
-                    Utilities.AddValueInDictionary(ref totalShieldGiven, self.master, barrierAmount, totalShieldGivenToken, false);
-                }
-                orig(self);
-            };
+                float barrierAmount = characterBody.healthComponent.fullHealth * barrierPercent.Value / 100 * count;
+                if (barrierAmount > characterBody.healthComponent.fullHealth)
+                    barrierAmount = characterBody.healthComponent.fullHealth;
+                characterBody.healthComponent.AddBarrier(barrierAmount);
+                Utilities.AddTimedBuff(characterBody, myBuffDefCooldown, buffCooldown.Value);
+                Utilities.AddValueInDictionary(ref totalShieldGiven, characterBody.master, barrierAmount, totalShieldGivenToken, false);
+            }
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)

@@ -23,9 +23,12 @@ namespace LoLItems
         public static void AddValueInDictionary(ref Dictionary<NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value, string dictToken, bool checkMinionOwnership = true)
         {
             NetworkInstanceId id = characterMaster.netId;
+            bool? isPlayerControlled = characterMaster.GetBody()?.isPlayerControlled;
             if (checkMinionOwnership)
             {
                 id = CheckForMinionOwner(characterMaster);
+                if (characterMaster?.minionOwnership?.ownerMaster?.netId != null)
+                    isPlayerControlled = characterMaster.minionOwnership.ownerMaster.GetBody()?.isPlayerControlled;
             }
             
             if (myDictionary.ContainsKey(id))
@@ -37,15 +40,19 @@ namespace LoLItems
                 myDictionary.Add(id, value);
             }
 
-            // NetworkManager.SyncDictionary(id, myDictionary[id], dictToken);
+            if (NetworkServer.active && isPlayerControlled == true)
+                NetworkManager.SyncDictionary(id, myDictionary[id], dictToken);
         }
 
         public static void SetValueInDictionary(ref Dictionary<NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value, string dictToken, bool checkMinionOwnership = true)
         {
             NetworkInstanceId id = characterMaster.netId;
+            bool? isPlayerControlled = characterMaster.GetBody()?.isPlayerControlled;
             if (checkMinionOwnership)
             {
                 id = CheckForMinionOwner(characterMaster);
+                if (characterMaster?.minionOwnership?.ownerMaster?.netId != null)
+                    isPlayerControlled = characterMaster.minionOwnership.ownerMaster.GetBody()?.isPlayerControlled;
             }
             
             if (myDictionary.ContainsKey(id))
@@ -57,7 +64,8 @@ namespace LoLItems
                 myDictionary.Add(id, value);
             }
 
-            // NetworkManager.SyncDictionary(id, myDictionary[id], dictToken);
+            if (NetworkServer.active && isPlayerControlled == true)
+                NetworkManager.SyncDictionary(id, myDictionary[id], dictToken);
         }
 
         private static NetworkInstanceId CheckForMinionOwner(CharacterMaster characterMaster)
@@ -290,49 +298,4 @@ namespace LoLItems
         
 
     }
-
-    // public class SyncDictionary : INetMessage
-    // {
-    //     public NetworkInstanceId netId;
-    //     public float value;
-    //     public string dictToken;
-
-    //     public SyncDictionary()
-    //     {
-
-    //     }
-
-    //     public SyncDictionary(NetworkInstanceId netId, float value, string dictToken)
-    //     {
-    //         this.netId = netId;
-    //         this.value = value;
-    //         this.dictToken = dictToken;
-    //     }
-
-    //     public void Deserialize(NetworkReader reader)
-    //     {
-    //         netId = reader.ReadNetworkId();
-    //         value = reader.ReadSingle();
-    //         dictToken = reader.ReadString();
-    //     }
-
-    //     public void OnReceived()
-    //     {
-    //         if (NetworkServer.active)
-    //             return;
-            
-    //         if (LoLItems.networkMappings.TryGetValue(dictToken, out Dictionary<NetworkInstanceId, float> myDictionary) && Utilities.GetCharacterMasterFromNetId(netId, out CharacterMaster characterMaster))
-    //         {
-    //             Utilities.SetValueInDictionary(ref myDictionary, characterMaster, value, dictToken);
-    //         }
-    //     }
-
-    //     public void Serialize(NetworkWriter writer)
-    //     {
-    //         writer.Write(netId);
-    //         writer.Write(value);
-    //         writer.Write(dictToken);
-    //     }
-    // }
-    
 }

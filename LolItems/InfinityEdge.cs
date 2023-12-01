@@ -101,25 +101,7 @@ namespace LoLItems
         }
 
         private static void hooks()
-        {            
-            // Modify character values
-            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
-            {
-                orig(self);
-                if (self?.inventory && self.inventory.GetItemCount(myItemDef.itemIndex) > 0)
-                {
-                    float itemCount = self.inventory.GetItemCount(myItemDef.itemIndex);
-                    self.critMultiplier += itemCount * bonusCritDamage.Value * 0.01f;
-                    if (self.inventory.GetItemCount(DLC1Content.Items.ConvertCritChanceToCritDamage) == 0)
-                    {
-                        self.crit += itemCount * bonusCritChance.Value;
-                    }
-                    else
-                    {
-                        self.critMultiplier += itemCount * bonusCritChance.Value * 0.01f;
-                    }
-                }
-            };
+        {
 
             // When something takes damage
             On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
@@ -140,6 +122,18 @@ namespace LoLItems
                     }
                 }
             };
+
+            RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
+        }
+
+        private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            int count = characterBody.inventory.GetItemCount(myItemDef.itemIndex);
+            if (count > 0)
+            {
+                args.critAdd += count * bonusCritChance.Value;
+                args.critDamageMultAdd += count * bonusCritDamage.Value * 0.01f;
+            }
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
@@ -151,12 +145,12 @@ namespace LoLItems
             int itemCount = masterRef.inventory.GetItemCount(myItemDef.itemIndex);
             if (masterRef.inventory.GetItemCount(DLC1Content.Items.ConvertCritChanceToCritDamage) == 0){
                 customDescription += "<br><br>Bonus crit chance: " + String.Format("{0:#}", itemCount * bonusCritChance.Value) + "%"
-                + "<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage.Value);
+                + "<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage.Value) + "%";
             }
             else
             {
                 customDescription += "<br><br>Bonus crit chance: 0%"
-                + "<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage.Value + itemCount * bonusCritChance.Value);
+                + "<br>Bonus crit damage: " + String.Format("{0:#}", itemCount * bonusCritDamage.Value + itemCount * bonusCritChance.Value) + "%";
             }
             
 

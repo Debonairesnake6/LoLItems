@@ -29,8 +29,6 @@ namespace LoLItems
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> heartsteelHealth = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static string heartsteelHealthToken = "Heartsteel.heartsteelHealth";
-        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> originalBaseMaxHealth = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
-        public static string originalBaseMaxHealthToken = "Heartsteel.originalBaseMaxHealth";
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> heartsteelBonusDamage = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static string heartsteelBonusDamageToken = "Heartsteel.heartsteelBonusDamage";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
@@ -203,23 +201,13 @@ namespace LoLItems
 
             };
 
-            On.RoR2.CharacterBody.Start += (orig, self) =>
-            {
-                orig(self);
-                if (self.master != null && !originalBaseMaxHealth.ContainsKey(self.master.netId))
-                {
-                    Utilities.SetValueInDictionary(ref originalBaseMaxHealth, self.master, self.baseMaxHealth, originalBaseMaxHealthToken, false);
-                }
-            };
-            
-            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
-            {
-                if (self.inventory != null && self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && originalBaseMaxHealth.TryGetValue(self.master.netId, out float baseHealth) && heartsteelHealth.TryGetValue(self.master.netId, out float extraHealth))
-                {
-                    self.baseMaxHealth = baseHealth + extraHealth;
-                }
-                orig(self);
-            };
+            RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
+        }
+
+        private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            if (heartsteelHealth.TryGetValue(characterBody.master.netId, out float extraHealth))
+                args.baseHealthAdd += extraHealth;
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
@@ -262,7 +250,6 @@ namespace LoLItems
         {
             LoLItems.networkMappings.Add(heartsteelBonusDamageToken, heartsteelBonusDamage);
             LoLItems.networkMappings.Add(heartsteelHealthToken, heartsteelHealth);
-            LoLItems.networkMappings.Add(originalBaseMaxHealthToken, originalBaseMaxHealth);
         }
     }
 }

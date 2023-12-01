@@ -135,11 +135,15 @@ namespace LoLItems
                 return orig(self, equipmentDef);
             };
 
-            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
+            RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
+        }
+
+        private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            if (characterBody.HasBuff(gargoyleArmorBuff))
             {
-                orig(self);
-                self.armor += self.HasBuff(gargoyleArmorBuff) ? armorValue.Value : 0f;
-            };
+                args.armorAdd += armorValue.Value;
+            }
         }
 
         private static bool ActivateEquipment(EquipmentSlot slot)

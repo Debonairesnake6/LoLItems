@@ -97,19 +97,28 @@ namespace LoLItems
         }
 
         private static void hooks()
-        {            
-            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
+        {
+            RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
+            
+            On.RoR2.Inventory.HandleInventoryChanged += (orig, self) =>
             {
                 orig(self);
-                if (self.inventory != null && self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && self.skillLocator?.utilityBonusStockSkill?.cooldownScale != null && self.skillLocator?.secondaryBonusStockSkill?.cooldownScale != null)
-                {
-                    float cdr = Math.Abs(Utilities.HyperbolicScale(self.inventory.GetItemCount(myItemDef.itemIndex), cooldownReduction.Value / 100) - 1);
-                    self.skillLocator.utilityBonusStockSkill.cooldownScale *= cdr;
-                    self.skillLocator.secondaryBonusStockSkill.cooldownScale *= cdr;
-                    Utilities.SetValueInDictionary(ref cooldownReductionTracker, self.master, Math.Abs(cdr - 1) * 100, cooldownReductionTrackerToken, false);
-                }
+                int count = self.GetItemCount(myItemDef.itemIndex);
+                float cdr = Math.Abs(Utilities.HyperbolicScale(count, cooldownReduction.Value / 100) - 1);
+                Utilities.SetValueInDictionary(ref cooldownReductionTracker, self.GetComponentInParent<CharacterBody>().master, Math.Abs(cdr - 1) * 100, cooldownReductionTrackerToken, false);
             };
 
+        }
+
+        private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            int count = characterBody.inventory.GetItemCount(myItemDef.itemIndex);
+            if (count > 0)
+            {
+                float cdr = Math.Abs(Utilities.HyperbolicScale(count, cooldownReduction.Value / 100) - 1);
+                args.utilityCooldownMultAdd += cdr;
+                args.secondaryCooldownMultAdd += cdr;
+            }
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)

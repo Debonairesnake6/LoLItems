@@ -24,6 +24,8 @@ namespace LoLItems
     //We will be using 2 modules from R2API: ItemAPI to add our item and LanguageAPI to add our language tokens.
     [R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI))]
 
+    [R2APISubmoduleDependency(nameof(RecalculateStatsAPI))]
+
 
     //This is the main declaration of our plugin class. BepInEx searches for all classes inheriting from BaseUnityPlugin to initialize on startup.
     //BaseUnityPlugin itself inherits from MonoBehaviour, so you can use this as a reference for what you can declare and use in your plugin class: https://docs.unity3d.com/ScriptReference/MonoBehaviour.html
