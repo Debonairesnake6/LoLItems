@@ -24,6 +24,8 @@ Icon | Name | Tier | Description
 
 **1.1.1**
 * Updated GargoyleStoneplate's tooltip to properly reflect its effect
+* Tooltips should now also update in multiplayer
+* Improved the way stats are recalculated
 
 **1.1.0**
 
