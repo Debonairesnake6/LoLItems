@@ -180,10 +180,10 @@ namespace LoLItems
             LanguageAPI.Add("GargoyleStoneplate", "Gargoyle Stoneplate");
 
             // Short description
-            LanguageAPI.Add("GargoyleStoneplateItem", "Temporarily gain a barrier based on your health.");
+            LanguageAPI.Add("GargoyleStoneplateItem", "Temporarily gain armor and a barrier based on your maximum health.");
 
             // Long description
-            LanguageAPI.Add("GargoyleStoneplateDesc", $"Temporarily gain a barrier for <style=cIsHealing>{barrierPercent.Value}%</style> of your health.");
+            LanguageAPI.Add("GargoyleStoneplateDesc", $"Temporarily gain <style=cIsHealing>{armorValue.Value}</style> armor for <style=cIsUtility>{armorDuration.Value}s</style> and a barrier for <style=cIsHealing>{barrierPercent.Value}%</style> of your maximum health.");
 
             // Lore
             LanguageAPI.Add("GargoyleStoneplateLore", "Whoever thought of breaking this off of a gargoyle's body and strapping it onto their own body was a genius.");
