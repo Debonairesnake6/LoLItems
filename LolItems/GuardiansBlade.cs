@@ -104,8 +104,11 @@ namespace LoLItems
             {
                 orig(self);
                 int count = self.GetItemCount(myItemDef.itemIndex);
-                float cdr = Math.Abs(Utilities.HyperbolicScale(count, cooldownReduction.Value / 100) - 1);
-                Utilities.SetValueInDictionary(ref cooldownReductionTracker, self.GetComponentInParent<CharacterBody>().master, Math.Abs(cdr - 1) * 100, cooldownReductionTrackerToken, false);
+                if (count > 0)
+                {
+                    float cdr = Math.Abs(Utilities.HyperbolicScale(count, cooldownReduction.Value / 100) - 1);
+                    Utilities.SetValueInDictionary(ref cooldownReductionTracker, self.GetComponentInParent<RoR2.CharacterMaster>(), Math.Abs(cdr - 1) * 100, cooldownReductionTrackerToken, false);
+                }
             };
 
         }
@@ -116,13 +119,16 @@ namespace LoLItems
             if (count > 0)
             {
                 float cdr = Math.Abs(Utilities.HyperbolicScale(count, cooldownReduction.Value / 100) - 1);
-                args.utilityCooldownMultAdd += cdr;
-                args.secondaryCooldownMultAdd += cdr;
+                args.utilityCooldownMultAdd *= cdr;
+                args.secondaryCooldownMultAdd *= cdr;
             }
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
         {
+            if (masterRef == null)
+                return (Language.GetString(myItemDef.descriptionToken), "");
+                
             string customDescription = "";
 
             if (cooldownReductionTracker.TryGetValue(masterRef.netId, out float cdr))
