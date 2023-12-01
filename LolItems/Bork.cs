@@ -101,7 +101,7 @@ namespace LoLItems
             procForBigHit = LoLItems.MyConfig.Bind<float>(
                 "Bork",
                 "On Hit Proc Requirement",
-                5f,
+                3f,
                 "Amount of hits required to proc the on hit damage."
 
             );
@@ -219,13 +219,8 @@ namespace LoLItems
                                 }
                                 else
                                 {
-                                    victimCharacterBody.healthComponent.body.RemoveBuff(myCounterBuffDef);
-                                    int myTimer = 1;
-                                    while ((float)myTimer <= bigOnHitTimer.Value)
-                                    {
-                                        victimCharacterBody.healthComponent.body.AddTimedBuff(myTimerBuffDef, myTimer);
-                                        myTimer++;
-                                    }
+                                    Utilities.RemoveBuffStacks(victimCharacterBody, myCounterBuffDef.buffIndex);
+                                    Utilities.AddTimedBuff(victimCharacterBody, myTimerBuffDef, bigOnHitTimer.Value);
 
                                     float damage = victimCharacterBody.healthComponent.health * inventoryCount * onHitDamageAmount.Value / 100 * damageInfo.procCoefficient;
                                     damage = Math.Max(procDamageMin.Value * attackerCharacterBody.damage, Math.Min(procDamageMax.Value * attackerCharacterBody.damage, damage));
