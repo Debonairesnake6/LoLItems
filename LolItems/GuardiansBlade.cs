@@ -118,9 +118,9 @@ namespace LoLItems
             int count = characterBody.inventory.GetItemCount(myItemDef.itemIndex);
             if (count > 0)
             {
-                float cdr = Math.Abs(Utilities.HyperbolicScale(count, cooldownReduction.Value / 100) - 1);
-                args.utilityCooldownMultAdd *= cdr;
-                args.secondaryCooldownMultAdd *= cdr;
+                float cdr = Utilities.HyperbolicScale(count, cooldownReduction.Value / 100);
+                args.utilityCooldownMultAdd -= cdr;
+                args.secondaryCooldownMultAdd -= cdr;
             }
         }
 
