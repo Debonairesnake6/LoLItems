@@ -36,6 +36,7 @@ namespace LoLItems
         public static string borkBonusHealToken = "Bork.borkBonusHeal";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
+        public static uint procSoundEffect = 3722891417;
 
         internal static void Init()
         {
@@ -101,7 +102,7 @@ namespace LoLItems
             procForBigHit = LoLItems.MyConfig.Bind<float>(
                 "Bork",
                 "On Hit Proc Requirement",
-                5f,
+                3f,
                 "Amount of hits required to proc the on hit damage."
 
             );
@@ -219,13 +220,8 @@ namespace LoLItems
                                 }
                                 else
                                 {
-                                    victimCharacterBody.healthComponent.body.RemoveBuff(myCounterBuffDef);
-                                    int myTimer = 1;
-                                    while ((float)myTimer <= bigOnHitTimer.Value)
-                                    {
-                                        victimCharacterBody.healthComponent.body.AddTimedBuff(myTimerBuffDef, myTimer);
-                                        myTimer++;
-                                    }
+                                    Utilities.RemoveBuffStacks(victimCharacterBody, myCounterBuffDef.buffIndex);
+                                    Utilities.AddTimedBuff(victimCharacterBody, myTimerBuffDef, bigOnHitTimer.Value);
 
                                     float damage = victimCharacterBody.healthComponent.health * inventoryCount * onHitDamageAmount.Value / 100 * damageInfo.procCoefficient;
                                     damage = Math.Max(procDamageMin.Value * attackerCharacterBody.damage, Math.Min(procDamageMax.Value * attackerCharacterBody.damage, damage));
@@ -242,8 +238,9 @@ namespace LoLItems
                                     float healAmount = damage * (onHitHealPercent.Value / 100);
                                     attackerCharacterBody.healthComponent.Heal(healAmount, onHitProc.procChainMask);
                                     Utilities.AddValueInDictionary(ref borkBonusHeal, attackerCharacterBody.master, healAmount, borkBonusHealToken);
+                                    AkSoundEngine.PostEvent(procSoundEffect, attackerCharacterBody.gameObject);
                                 }
-                            }                            
+                            }
                         }
                     }
                 }

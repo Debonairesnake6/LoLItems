@@ -23,7 +23,10 @@ Icon | Name | Tier | Description
 ## Changelog
 
 **1.1.1**
+* Added sound effects for Bork and ImmortalShieldbow procs
+* Bork's number of hits changed from 5 to 3 to match the tooltip (delete your LoLItems config for this update!)
 * Updated GargoyleStoneplate's tooltip to properly reflect its effect
+* Bork now requires the proper amount of hits before proccing between cooldowns
 * Tooltips should now also update in multiplayer
 * Improved the way stats are recalculated
 
