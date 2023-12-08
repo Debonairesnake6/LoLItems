@@ -89,6 +89,9 @@ namespace LoLItems
 
         public static void RemoveBuffStacks(CharacterBody characterBody, BuffIndex buffIndex)
         {
+            if (!NetworkServer.active)
+                return;
+
             while (characterBody.GetBuffCount(buffIndex) > 0)
             {
                 characterBody.RemoveBuff(buffIndex);
