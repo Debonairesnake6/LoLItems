@@ -139,11 +139,13 @@ namespace LoLItems
             int count = characterBody?.inventory?.GetItemCount(myItemDef.itemIndex) ?? 0;
             if (count > 0 && characterBody.healthComponent?.health < characterBody.healthComponent?.fullHealth * barrierThreshold.Value / 100 && !characterBody.HasBuff(myBuffDefCooldown))
             {
+                AkSoundEngine.PostEvent(procSoundEffect, characterBody.gameObject);
+                if (!UnityEngine.Networking.NetworkServer.active)
+                    return;
                 float barrierAmount = characterBody.healthComponent.fullHealth * barrierPercent.Value / 100 * count;
                 if (barrierAmount > characterBody.healthComponent.fullHealth)
                     barrierAmount = characterBody.healthComponent.fullHealth;
                 characterBody.healthComponent.AddBarrier(barrierAmount);
-                AkSoundEngine.PostEvent(procSoundEffect, characterBody.gameObject);
                 Utilities.AddTimedBuff(characterBody, myBuffDefCooldown, buffCooldown.Value);
                 Utilities.AddValueInDictionary(ref totalShieldGiven, characterBody.master, barrierAmount, totalShieldGivenToken, false);
             }

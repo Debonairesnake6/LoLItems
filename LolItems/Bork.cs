@@ -199,6 +199,8 @@ namespace LoLItems
             {
                 orig(self, damageInfo, victim);
 
+                if (!UnityEngine.Networking.NetworkServer.active)
+                    return;
                 
                 if (damageInfo.attacker)
                 {

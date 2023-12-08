@@ -105,6 +105,9 @@ namespace LoLItems
 
         public static void AddTimedBuff(CharacterBody characterBody, BuffDef buffDef, float duration)
         {
+            if (!NetworkServer.active)
+                return;
+                
             float myTimer = 1;
             while (myTimer <= duration)
             {

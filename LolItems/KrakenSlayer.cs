@@ -129,6 +129,8 @@ namespace LoLItems
             {
                 orig(self, damageInfo, victim);
 
+                if (!UnityEngine.Networking.NetworkServer.active)
+                    return;
                 
                 if (damageInfo.attacker)
                 {
@@ -170,6 +172,9 @@ namespace LoLItems
 
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
         {
+            if (!UnityEngine.Networking.NetworkServer.active)
+                    return;
+                    
             int count = characterBody?.inventory?.GetItemCount(myItemDef.itemIndex) ?? 0;
             if (count > 0 && !characterBody.HasBuff(myCounterBuffDef))
             {

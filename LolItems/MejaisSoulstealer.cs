@@ -142,6 +142,9 @@ namespace LoLItems
             {
                 orig(globalEventManager, damageReport);
 
+                if (!UnityEngine.Networking.NetworkServer.active)
+                    return;
+
                 if (damageReport.attackerMaster?.inventory != null)
                 {
 
