@@ -128,7 +128,7 @@ namespace LoLItems
 
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
         {
-            int count = characterBody.inventory.GetItemCount(myItemDef.itemIndex);
+            int count = characterBody?.inventory?.GetItemCount(myItemDef.itemIndex) ?? 0;
             if (count > 0)
             {
                 args.critAdd += count * bonusCritChance.Value;

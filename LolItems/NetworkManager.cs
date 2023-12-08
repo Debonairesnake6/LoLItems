@@ -54,32 +54,32 @@ namespace LoLItems
             return false;
         }
     }
+}
 
-    //Important to note that these NetworkBehaviour classes must not be nested for UNetWeaver to find them.
-    internal class MyNetworkComponent : NetworkBehaviour
+//Important to note that these NetworkBehaviour classes must not be nested for UNetWeaver to find them.
+internal class MyNetworkComponent : NetworkBehaviour
+{
+    // We only ever have one instance of the networked behaviour here.
+    private static MyNetworkComponent _instance;
+
+    private void Awake()
     {
-        // We only ever have one instance of the networked behaviour here.
-        private static MyNetworkComponent _instance;
+        _instance = this;
+    }
+    public static void Invoke(NetworkUser user, NetworkInstanceId netId, float value, string dictToken)
+    {
+        _instance.TargetSyncDictionary(user.connectionToClient, netId, value, dictToken);
+    }
 
-        private void Awake()
+    [TargetRpc]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Target param is required by UNetWeaver")]
+    private void TargetSyncDictionary(NetworkConnection target, NetworkInstanceId netId, float value, string dictToken)
+    {
+        LoLItems.LoLItems.networkMappings.TryGetValue(dictToken, out Dictionary<NetworkInstanceId, float> myDictionary);
+        LoLItems.NetworkManager.GetCharacterMasterFromNetId(netId, out CharacterMaster characterMaster);
+        if (myDictionary != null && characterMaster != null && !NetworkServer.active)
         {
-            _instance = this;
-        }
-        public static void Invoke(NetworkUser user, NetworkInstanceId netId, float value, string dictToken)
-        {
-            _instance.TargetSyncDictionary(user.connectionToClient, netId, value, dictToken);
-        }
-
-        [TargetRpc]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Target param is required by UNetWeaver")]
-        private void TargetSyncDictionary(NetworkConnection target, NetworkInstanceId netId, float value, string dictToken)
-        {
-            LoLItems.networkMappings.TryGetValue(dictToken, out Dictionary<NetworkInstanceId, float> myDictionary);
-            NetworkManager.GetCharacterMasterFromNetId(netId, out CharacterMaster characterMaster);
-            if (myDictionary != null && characterMaster != null)
-            {
-                Utilities.SetValueInDictionary(ref myDictionary, characterMaster, value, dictToken);
-            }
+            LoLItems.Utilities.SetValueInDictionary(ref myDictionary, characterMaster, value, dictToken);
         }
     }
 }

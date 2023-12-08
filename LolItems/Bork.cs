@@ -251,7 +251,7 @@ namespace LoLItems
 
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
         {
-            args.baseAttackSpeedAdd += characterBody.inventory.GetItemCount(myItemDef) / 100f * attackSpeed.Value;
+            args.baseAttackSpeedAdd += characterBody?.inventory?.GetItemCount(myItemDef) / 100f * attackSpeed.Value ?? 0;
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)

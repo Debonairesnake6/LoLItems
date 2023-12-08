@@ -23,12 +23,9 @@ namespace LoLItems
         public static void AddValueInDictionary(ref Dictionary<NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value, string dictToken, bool checkMinionOwnership = true)
         {
             NetworkInstanceId id = characterMaster.netId;
-            bool? isPlayerControlled = characterMaster.GetBody()?.isPlayerControlled;
             if (checkMinionOwnership)
             {
                 id = CheckForMinionOwner(characterMaster);
-                if (characterMaster?.minionOwnership?.ownerMaster?.netId != null)
-                    isPlayerControlled = characterMaster.minionOwnership.ownerMaster.GetBody()?.isPlayerControlled;
             }
             
             if (myDictionary.ContainsKey(id))
@@ -40,19 +37,16 @@ namespace LoLItems
                 myDictionary.Add(id, value);
             }
 
-            if (NetworkServer.active && isPlayerControlled == true)
+            if (NetworkServer.active && characterMaster?.playerCharacterMasterController?.networkUser || characterMaster?.minionOwnership?.ownerMaster?.playerCharacterMasterController?.networkUser)
                 NetworkManager.SyncDictionary(id, myDictionary[id], dictToken);
         }
 
         public static void SetValueInDictionary(ref Dictionary<NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value, string dictToken, bool checkMinionOwnership = true)
         {
             NetworkInstanceId id = characterMaster.netId;
-            bool? isPlayerControlled = characterMaster.GetBody()?.isPlayerControlled;
             if (checkMinionOwnership)
             {
                 id = CheckForMinionOwner(characterMaster);
-                if (characterMaster?.minionOwnership?.ownerMaster?.netId != null)
-                    isPlayerControlled = characterMaster.minionOwnership.ownerMaster.GetBody()?.isPlayerControlled;
             }
             
             if (myDictionary.ContainsKey(id))
@@ -64,7 +58,7 @@ namespace LoLItems
                 myDictionary.Add(id, value);
             }
 
-            if (NetworkServer.active && isPlayerControlled == true)
+            if (NetworkServer.active && characterMaster?.playerCharacterMasterController?.networkUser || characterMaster?.minionOwnership?.ownerMaster?.playerCharacterMasterController?.networkUser)
                 NetworkManager.SyncDictionary(id, myDictionary[id], dictToken);
         }
 

@@ -206,7 +206,7 @@ namespace LoLItems
 
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
         {
-            if (heartsteelHealth.TryGetValue(characterBody.master.netId, out float extraHealth))
+            if (characterBody.master?.netId != null && heartsteelHealth.TryGetValue(characterBody.master.netId, out float extraHealth))
                 args.baseHealthAdd += extraHealth;
         }
 
