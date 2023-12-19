@@ -142,6 +142,9 @@ namespace LoLItems
             {
                 orig(globalEventManager, damageReport);
 
+                if (!UnityEngine.Networking.NetworkServer.active)
+                    return;
+
                 if (damageReport.attackerMaster?.inventory != null)
                 {
 
@@ -178,18 +181,15 @@ namespace LoLItems
                 orig(self, damageInfo);
             };
 
-            // Modify character values
-            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
+            RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
+        }
+
+        private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            if (characterBody.GetBuffCount(currentStacks) > 0 && characterBody.GetBuffCount(currentDuration) == 0)
             {
-                if (self?.inventory && self.GetBuffCount(currentStacks) > 0 && self.GetBuffCount(currentDuration) == 0)
-                {
-                    while (self.GetBuffCount(currentStacks.buffIndex) > 0)
-                    {
-                        self.RemoveBuff(currentStacks);
-                    }
-                }
-                orig(self);
-            };
+                Utilities.RemoveBuffStacks(characterBody, currentStacks.buffIndex);
+            }
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)

@@ -1,11 +1,15 @@
 Event	ID	Name			Wwise Object Path	Notes
+	2060112413	Play_Immortal_Shieldbox_Proc			\Default Work Unit\Play_Immortal_Shieldbox_Proc	
 	2213188569	Play_Gargoyle_Stoneplate_Active			\Default Work Unit\Play_Gargoyle_Stoneplate_Active	
 	3202319100	Heartsteel			\Default Work Unit\Heartsteel	
+	3722891417	Play_Bork_Proc			\Default Work Unit\Play_Bork_Proc	
 
 Game Parameter	ID	Name			Wwise Object Path	Notes
 	3673881719	Volume_SFX			\Default Work Unit\Volume_SFX	
 
 In Memory Audio	ID	Name	Audio source file		Wwise Object Path	Notes	Data Size
 	479608490	Heartsteel_trigger	C:\Users\Admin\Documents\WwiseProjects\LoLItems\.cache\Windows\SFX\Heartsteel_trigger_05842A19.wem		\Actor-Mixer Hierarchy\Default Work Unit\SFX_Mixxer\Heartsteel_trigger		19286
+	522538716	Immortal_Shieldbox_Proc	C:\Users\Admin\Documents\WwiseProjects\LoLItems\.cache\Windows\SFX\Immortal_Shieldbox_Proc_05842A19.wem		\Actor-Mixer Hierarchy\Default Work Unit\SFX_Mixxer\Immortal_Shieldbox_Proc		39745
 	953446696	Gargoyle_Stoneplate_Active	C:\Users\Admin\Documents\WwiseProjects\LoLItems\.cache\Windows\SFX\Gargoyle_Stoneplate_Active_05842A19.wem		\Actor-Mixer Hierarchy\Default Work Unit\SFX_Mixxer\Gargoyle_Stoneplate_Active		30612
+	1037772819	Bork_Proc	C:\Users\Admin\Documents\WwiseProjects\LoLItems\.cache\Windows\SFX\Bork_Proc_05842A19.wem		\Actor-Mixer Hierarchy\Default Work Unit\SFX_Mixxer\Bork_Proc		50903
 

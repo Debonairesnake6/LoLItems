@@ -213,27 +213,16 @@ namespace LoLItems
                 orig(self, damageInfo);
             };
 
-            // Save base character value
-            On.RoR2.CharacterBody.Start += (orig, self) =>
+            RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
+        }
+
+        private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            int count = characterBody?.inventory?.GetItemCount(myItemDef.itemIndex) ?? 0;
+            if (count > 0)
             {
-                orig(self);
-                if (self?.master && !exampleStoredValue.ContainsKey(self.master.netId))
-                {
-                    // Save value
-                    // Utilities.AddValueToDictionary(ref exampleStoredValue, self.master, self.baseMaxHealth, exampleStoredValueToken);
-                }
-            };
-            
-            // Modify character values
-            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
-            {
-                if (self?.inventory && self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && exampleStoredValue.TryGetValue(self.master.netId, out float exampleValue))
-                {
-                    // Set stats
-                    // self.baseMaxHealth = exampleValue;
-                }
-                orig(self);
-            };
+                // args.secondaryCooldownMultAdd += count;
+            }
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)

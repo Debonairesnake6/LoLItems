@@ -97,23 +97,38 @@ namespace LoLItems
         }
 
         private static void hooks()
-        {            
-            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
+        {
+            RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
+            
+            On.RoR2.Inventory.HandleInventoryChanged += (orig, self) =>
             {
                 orig(self);
-                if (self.inventory != null && self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && self.skillLocator?.utilityBonusStockSkill?.cooldownScale != null && self.skillLocator?.secondaryBonusStockSkill?.cooldownScale != null)
+                int count = self.GetItemCount(myItemDef.itemIndex);
+                if (count > 0)
                 {
-                    float cdr = Math.Abs(Utilities.HyperbolicScale(self.inventory.GetItemCount(myItemDef.itemIndex), cooldownReduction.Value / 100) - 1);
-                    self.skillLocator.utilityBonusStockSkill.cooldownScale *= cdr;
-                    self.skillLocator.secondaryBonusStockSkill.cooldownScale *= cdr;
-                    Utilities.SetValueInDictionary(ref cooldownReductionTracker, self.master, Math.Abs(cdr - 1) * 100, cooldownReductionTrackerToken, false);
+                    float cdr = Math.Abs(Utilities.HyperbolicScale(count, cooldownReduction.Value / 100) - 1);
+                    Utilities.SetValueInDictionary(ref cooldownReductionTracker, self.GetComponentInParent<RoR2.CharacterMaster>(), Math.Abs(cdr - 1) * 100, cooldownReductionTrackerToken, false);
                 }
             };
 
         }
 
+        private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            int count = characterBody?.inventory?.GetItemCount(myItemDef.itemIndex) ?? 0;
+            if (count > 0)
+            {
+                float cdr = Utilities.HyperbolicScale(count, cooldownReduction.Value / 100);
+                args.utilityCooldownMultAdd -= cdr;
+                args.secondaryCooldownMultAdd -= cdr;
+            }
+        }
+
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
         {
+            if (masterRef == null)
+                return (Language.GetString(myItemDef.descriptionToken), "");
+                
             string customDescription = "";
 
             if (cooldownReductionTracker.TryGetValue(masterRef.netId, out float cdr))

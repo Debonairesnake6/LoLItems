@@ -22,6 +22,9 @@ namespace LoLItems
     {
         public static void AddValueInDictionary(ref Dictionary<NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value, string dictToken, bool checkMinionOwnership = true)
         {
+            if (characterMaster == null)
+                return;
+                
             NetworkInstanceId id = characterMaster.netId;
             if (checkMinionOwnership)
             {
@@ -37,11 +40,15 @@ namespace LoLItems
                 myDictionary.Add(id, value);
             }
 
-            // NetworkManager.SyncDictionary(id, myDictionary[id], dictToken);
+            if (NetworkServer.active && characterMaster?.playerCharacterMasterController?.networkUser || characterMaster?.minionOwnership?.ownerMaster?.playerCharacterMasterController?.networkUser)
+                NetworkManager.SyncDictionary(id, myDictionary[id], dictToken);
         }
 
         public static void SetValueInDictionary(ref Dictionary<NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value, string dictToken, bool checkMinionOwnership = true)
         {
+            if (characterMaster == null)
+                return;
+
             NetworkInstanceId id = characterMaster.netId;
             if (checkMinionOwnership)
             {
@@ -57,7 +64,8 @@ namespace LoLItems
                 myDictionary.Add(id, value);
             }
 
-            // NetworkManager.SyncDictionary(id, myDictionary[id], dictToken);
+            if (NetworkServer.active && characterMaster?.playerCharacterMasterController?.networkUser || characterMaster?.minionOwnership?.ownerMaster?.playerCharacterMasterController?.networkUser)
+                NetworkManager.SyncDictionary(id, myDictionary[id], dictToken);
         }
 
         private static NetworkInstanceId CheckForMinionOwner(CharacterMaster characterMaster)
@@ -87,6 +95,9 @@ namespace LoLItems
 
         public static void RemoveBuffStacks(CharacterBody characterBody, BuffIndex buffIndex)
         {
+            if (!NetworkServer.active)
+                return;
+
             while (characterBody.GetBuffCount(buffIndex) > 0)
             {
                 characterBody.RemoveBuff(buffIndex);
@@ -100,6 +111,9 @@ namespace LoLItems
 
         public static void AddTimedBuff(CharacterBody characterBody, BuffDef buffDef, float duration)
         {
+            if (!NetworkServer.active)
+                return;
+                
             float myTimer = 1;
             while (myTimer <= duration)
             {
@@ -234,7 +248,7 @@ namespace LoLItems
                     }
                 }
                 // Clear the override text if it's not overwritten by other mods
-                (string baseDescription, string customDescription) = GetDisplayInformation(RoR2.PlayerCharacterMasterController.instances[0].master);
+                (string baseDescription, string customDescription) = GetDisplayInformation(RoR2.PlayerCharacterMasterController.instances?[0].master);
                 if (self.tooltipProvider.overrideBodyText.Contains(customDescription.Substring(0, 14)))
                     self.tooltipProvider.overrideBodyText = "";
             };
@@ -290,49 +304,4 @@ namespace LoLItems
         
 
     }
-
-    // public class SyncDictionary : INetMessage
-    // {
-    //     public NetworkInstanceId netId;
-    //     public float value;
-    //     public string dictToken;
-
-    //     public SyncDictionary()
-    //     {
-
-    //     }
-
-    //     public SyncDictionary(NetworkInstanceId netId, float value, string dictToken)
-    //     {
-    //         this.netId = netId;
-    //         this.value = value;
-    //         this.dictToken = dictToken;
-    //     }
-
-    //     public void Deserialize(NetworkReader reader)
-    //     {
-    //         netId = reader.ReadNetworkId();
-    //         value = reader.ReadSingle();
-    //         dictToken = reader.ReadString();
-    //     }
-
-    //     public void OnReceived()
-    //     {
-    //         if (NetworkServer.active)
-    //             return;
-            
-    //         if (LoLItems.networkMappings.TryGetValue(dictToken, out Dictionary<NetworkInstanceId, float> myDictionary) && Utilities.GetCharacterMasterFromNetId(netId, out CharacterMaster characterMaster))
-    //         {
-    //             Utilities.SetValueInDictionary(ref myDictionary, characterMaster, value, dictToken);
-    //         }
-    //     }
-
-    //     public void Serialize(NetworkWriter writer)
-    //     {
-    //         writer.Write(netId);
-    //         writer.Write(value);
-    //         writer.Write(dictToken);
-    //     }
-    // }
-    
 }

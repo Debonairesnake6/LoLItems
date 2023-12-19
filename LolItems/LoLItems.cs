@@ -24,6 +24,8 @@ namespace LoLItems
     //We will be using 2 modules from R2API: ItemAPI to add our item and LanguageAPI to add our language tokens.
     [R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI))]
 
+    [R2APISubmoduleDependency(nameof(RecalculateStatsAPI))]
+
 
     //This is the main declaration of our plugin class. BepInEx searches for all classes inheriting from BaseUnityPlugin to initialize on startup.
     //BaseUnityPlugin itself inherits from MonoBehaviour, so you can use this as a reference for what you can declare and use in your plugin class: https://docs.unity3d.com/ScriptReference/MonoBehaviour.html
@@ -34,7 +36,7 @@ namespace LoLItems
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Debo";
         public const string PluginName = "LoLItems";
-        public const string PluginVersion = "1.1.0";
+        public const string PluginVersion = "1.1.1";
 
         public static BepInEx.Logging.ManualLogSource Log;
         public static ConfigFile MyConfig { get; set; }
@@ -80,19 +82,40 @@ namespace LoLItems
         //The Update() method is run on every frame of the game.
         private void Update()
         {
-            // ONLY FOR TESTING
+            // // ONLY FOR TESTING
             // if (Input.GetKeyDown(KeyCode.F2))
             // {
-            // //     //Get the player body to use a position:
+            //     //Get the player body to use a position:
             //     var transform = PlayerCharacterMasterController.instances[0].master.GetBodyObject().transform;
 
-            // //     //And then drop our defined item in front of the player.
-
+            //     //And then drop our defined item in front of the player.
             //     Log.LogInfo($"Player pressed F2. Spawning our custom item at coordinates {transform.position}");
-            //     List<ItemDef> myItems = new() { Heartsteel.myItemDef, Bork.myItemDef, Rabadons.myItemDef, Liandrys.myItemDef, BannerOfCommand.myItemDef, GuinsoosRageblade.myItemDef, ImperialMandate.myItemDef, InfinityEdge.myItemDef, MejaisSoulstealer.myItemDef };
+
+            //     List<ItemDef> myItems = [ 
+            //         BannerOfCommand.myItemDef, 
+            //         Bork.myItemDef, 
+            //         GuardiansBlade.myItemDef,
+            //         GuinsoosRageblade.myItemDef, 
+            //         Heartsteel.myItemDef, 
+            //         ImmortalShieldbow.myItemDef,
+            //         ImperialMandate.myItemDef, 
+            //         InfinityEdge.myItemDef, 
+            //         KrakenSlayer.myItemDef,
+            //         Liandrys.myItemDef, 
+            //         MejaisSoulstealer.myItemDef,
+            //         Rabadons.myItemDef, 
+            //         ];
             //     foreach (ItemDef myItem in myItems)
             //     {
-            //         PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(myItem.itemIndex), transform.position, transform.forward * 20f);
+            //         PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(myItem.itemIndex), transform.position, transform.forward * 30f);
+            //     }
+
+            //     List<EquipmentDef> myEquipments = [
+            //         GargoyleStoneplate.myEquipmentDef,
+            //         ];
+            //     foreach (EquipmentDef myEquipment in myEquipments)
+            //     {
+            //         PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(myEquipment.equipmentIndex), transform.position, transform.forward * 30f);
             //     }
             // }
         }

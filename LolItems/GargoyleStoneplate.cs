@@ -128,18 +128,22 @@ namespace LoLItems
         {
             On.RoR2.EquipmentSlot.PerformEquipmentAction += (orig, self, equipmentDef) =>
             {
-                if (equipmentDef == myEquipmentDef)
+                if (NetworkServer.active && equipmentDef == myEquipmentDef)
                 {
                     return ActivateEquipment(self);
                 }
                 return orig(self, equipmentDef);
             };
 
-            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
+            RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
+        }
+
+        private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            if (NetworkServer.active && characterBody.HasBuff(gargoyleArmorBuff))
             {
-                orig(self);
-                self.armor += self.HasBuff(gargoyleArmorBuff) ? armorValue.Value : 0f;
-            };
+                args.armorAdd += armorValue.Value;
+            }
         }
 
         private static bool ActivateEquipment(EquipmentSlot slot)
@@ -176,10 +180,10 @@ namespace LoLItems
             LanguageAPI.Add("GargoyleStoneplate", "Gargoyle Stoneplate");
 
             // Short description
-            LanguageAPI.Add("GargoyleStoneplateItem", "Temporarily gain a barrier based on your health.");
+            LanguageAPI.Add("GargoyleStoneplateItem", "Temporarily gain armor and a barrier based on your maximum health.");
 
             // Long description
-            LanguageAPI.Add("GargoyleStoneplateDesc", $"Temporarily gain a barrier for <style=cIsHealing>{barrierPercent.Value}%</style> of your health.");
+            LanguageAPI.Add("GargoyleStoneplateDesc", $"Temporarily gain <style=cIsHealing>{armorValue.Value}</style> armor for <style=cIsUtility>{armorDuration.Value}s</style> and a barrier for <style=cIsHealing>{barrierPercent.Value}%</style> of your maximum health.");
 
             // Lore
             LanguageAPI.Add("GargoyleStoneplateLore", "Whoever thought of breaking this off of a gargoyle's body and strapping it onto their own body was a genius.");

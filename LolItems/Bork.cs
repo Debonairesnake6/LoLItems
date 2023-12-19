@@ -34,10 +34,9 @@ namespace LoLItems
         public static string borkBonusDamageToken = "Bork.borkBonusDamage";
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> borkBonusHeal = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
         public static string borkBonusHealToken = "Bork.borkBonusHeal";
-        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> originalAtkSpd = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
-        public static string originalAtkSpdToken = "Bork.originalAtkSpd";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
+        public static uint procSoundEffect = 3722891417;
 
         internal static void Init()
         {
@@ -103,7 +102,7 @@ namespace LoLItems
             procForBigHit = LoLItems.MyConfig.Bind<float>(
                 "Bork",
                 "On Hit Proc Requirement",
-                5f,
+                3f,
                 "Amount of hits required to proc the on hit damage."
 
             );
@@ -200,6 +199,8 @@ namespace LoLItems
             {
                 orig(self, damageInfo, victim);
 
+                if (!UnityEngine.Networking.NetworkServer.active)
+                    return;
                 
                 if (damageInfo.attacker)
                 {
@@ -221,13 +222,8 @@ namespace LoLItems
                                 }
                                 else
                                 {
-                                    victimCharacterBody.healthComponent.body.RemoveBuff(myCounterBuffDef);
-                                    int myTimer = 1;
-                                    while ((float)myTimer <= bigOnHitTimer.Value)
-                                    {
-                                        victimCharacterBody.healthComponent.body.AddTimedBuff(myTimerBuffDef, myTimer);
-                                        myTimer++;
-                                    }
+                                    Utilities.RemoveBuffStacks(victimCharacterBody, myCounterBuffDef.buffIndex);
+                                    Utilities.AddTimedBuff(victimCharacterBody, myTimerBuffDef, bigOnHitTimer.Value);
 
                                     float damage = victimCharacterBody.healthComponent.health * inventoryCount * onHitDamageAmount.Value / 100 * damageInfo.procCoefficient;
                                     damage = Math.Max(procDamageMin.Value * attackerCharacterBody.damage, Math.Min(procDamageMax.Value * attackerCharacterBody.damage, damage));
@@ -244,30 +240,20 @@ namespace LoLItems
                                     float healAmount = damage * (onHitHealPercent.Value / 100);
                                     attackerCharacterBody.healthComponent.Heal(healAmount, onHitProc.procChainMask);
                                     Utilities.AddValueInDictionary(ref borkBonusHeal, attackerCharacterBody.master, healAmount, borkBonusHealToken);
+                                    AkSoundEngine.PostEvent(procSoundEffect, attackerCharacterBody.gameObject);
                                 }
-                            }                            
+                            }
                         }
                     }
                 }
             };
 
-            On.RoR2.CharacterBody.Start += (orig, self) =>
-            {
-                orig(self);
-                if (self.master != null && !originalAtkSpd.ContainsKey(self.master.netId))
-                {
-                    Utilities.SetValueInDictionary(ref originalAtkSpd, self.master, self.baseAttackSpeed, originalAtkSpdToken, false);
-                }
-            };
+            RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
+        }
 
-            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
-            {
-                if (self.inventory != null && self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && originalAtkSpd.TryGetValue(self.master.netId, out float baseAtkSpd))
-                {
-                    self.baseAttackSpeed = baseAtkSpd + self.inventory.GetItemCount(myItemDef) / 100f  * attackSpeed.Value;
-                }
-                orig(self);
-            };
+        private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            args.baseAttackSpeedAdd += characterBody?.inventory?.GetItemCount(myItemDef) / 100f * attackSpeed.Value ?? 0;
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
@@ -313,7 +299,6 @@ namespace LoLItems
         {
             LoLItems.networkMappings.Add(borkBonusDamageToken, borkBonusDamage);
             LoLItems.networkMappings.Add(borkBonusHealToken, borkBonusHeal);
-            LoLItems.networkMappings.Add(originalAtkSpdToken, originalAtkSpd);
         }
     }
 }

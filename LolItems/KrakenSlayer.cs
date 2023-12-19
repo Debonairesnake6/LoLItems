@@ -129,6 +129,8 @@ namespace LoLItems
             {
                 orig(self, damageInfo, victim);
 
+                if (!UnityEngine.Networking.NetworkServer.active)
+                    return;
                 
                 if (damageInfo.attacker)
                 {
@@ -165,19 +167,23 @@ namespace LoLItems
                 }
             };
 
-            // Modify character values
-            On.RoR2.CharacterBody.RecalculateStats += (orig, self) =>
+            RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
+        }
+
+        private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            if (!UnityEngine.Networking.NetworkServer.active)
+                    return;
+                    
+            int count = characterBody?.inventory?.GetItemCount(myItemDef.itemIndex) ?? 0;
+            if (count > 0 && !characterBody.HasBuff(myCounterBuffDef))
             {
-                orig(self);
-                if (self?.inventory && self.inventory.GetItemCount(myItemDef.itemIndex) > 0 && !self.HasBuff(myCounterBuffDef))
-                {
-                    self.AddBuff(myCounterBuffDef);
-                }
-                else if (self?.inventory && self.inventory.GetItemCount(myItemDef.itemIndex) == 0 && self.HasBuff(myCounterBuffDef))
-                {
-                    Utilities.RemoveBuffStacks(self, myCounterBuffDef.buffIndex);
-                }
-            };
+                characterBody.AddBuff(myCounterBuffDef);
+            }
+            else if (count == 0 && characterBody.HasBuff(myCounterBuffDef))
+            {
+                Utilities.RemoveBuffStacks(characterBody, myCounterBuffDef.buffIndex);
+            }
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
