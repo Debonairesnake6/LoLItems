@@ -128,7 +128,7 @@ namespace LoLItems
         {
             On.RoR2.EquipmentSlot.PerformEquipmentAction += (orig, self, equipmentDef) =>
             {
-                if (equipmentDef == myEquipmentDef)
+                if (NetworkServer.active && equipmentDef == myEquipmentDef)
                 {
                     return ActivateEquipment(self);
                 }
@@ -140,7 +140,7 @@ namespace LoLItems
 
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
         {
-            if (characterBody.HasBuff(gargoyleArmorBuff))
+            if (NetworkServer.active && characterBody.HasBuff(gargoyleArmorBuff))
             {
                 args.armorAdd += armorValue.Value;
             }
