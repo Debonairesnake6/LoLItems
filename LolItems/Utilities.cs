@@ -22,6 +22,9 @@ namespace LoLItems
     {
         public static void AddValueInDictionary(ref Dictionary<NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value, string dictToken, bool checkMinionOwnership = true)
         {
+            if (characterMaster == null)
+                return;
+                
             NetworkInstanceId id = characterMaster.netId;
             if (checkMinionOwnership)
             {
@@ -43,6 +46,9 @@ namespace LoLItems
 
         public static void SetValueInDictionary(ref Dictionary<NetworkInstanceId, float> myDictionary, CharacterMaster characterMaster, float value, string dictToken, bool checkMinionOwnership = true)
         {
+            if (characterMaster == null)
+                return;
+
             NetworkInstanceId id = characterMaster.netId;
             if (checkMinionOwnership)
             {
