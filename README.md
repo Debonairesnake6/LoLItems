@@ -9,6 +9,7 @@ Icon | Name | Tier | Description
 ![BannerOfCommand](https://static.wikia.nocookie.net/leagueoflegends/images/a/a4/Banner_of_Command_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201104170517) | BannerOfCommand | White | Your minions do bonus damage.
 ![MejaisSoulstealer](https://static.wikia.nocookie.net/leagueoflegends/images/8/88/Mejai%27s_Soulstealer_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221103165010) | MejaisSoulstealer | White | Killing enemies grants more damage for a short time.
 ![GuardiansBlade](https://static.wikia.nocookie.net/leagueoflegends/images/f/f2/Guardian%27s_Blade_item.png/revision/latest?cb=20221019163250) | GuardiansBlade | White | Reduce cooldown on secondary and utility skills.
+![Cull](https://static.wikia.nocookie.net/leagueoflegends/images/1/11/Cull_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201116174218) | Cull | White | Gives gold on kills, then turns into **White Scrap**.
 ![GuinsoosRageblade](https://static.wikia.nocookie.net/leagueoflegends/images/6/64/Guinsoo%27s_Rageblade_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201110230134) | GuinsoosRageblade | Green | Gain extra proc coefficient on everything.
 ![InfinityEdge](https://static.wikia.nocookie.net/leagueoflegends/images/a/aa/Infinity_Edge_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221230173431) | InfinityEdge | Green | Crit chance and crit damage.
 ![Liandrys](https://static.wikia.nocookie.net/leagueoflegends/images/f/fd/Liandry%27s_Torment_item.png/revision/latest?cb=20201118211533) | Liandrys | Green | Burn enemies for % max health damage on hit.
@@ -22,8 +23,9 @@ Icon | Name | Tier | Description
 
 ## Changelog
 
-**1.1.2**
-* 
+**1.2.0**
+* Added cull
+  * https://github.com/Debonairesnake6/LoLItems/issues/24
 
 **1.1.1**
 * Added sound effects for Bork and ImmortalShieldbow procs

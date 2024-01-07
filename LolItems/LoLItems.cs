@@ -36,7 +36,7 @@ namespace LoLItems
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "Debo";
         public const string PluginName = "LoLItems";
-        public const string PluginVersion = "1.1.2";
+        public const string PluginVersion = "1.2.0";
 
         public static BepInEx.Logging.ManualLogSource Log;
         public static ConfigFile MyConfig { get; set; }
@@ -70,7 +70,7 @@ namespace LoLItems
             GuardiansBlade.Init();
             ImmortalShieldbow.Init();
             GargoyleStoneplate.Init();
-            // Cull.Init();
+            Cull.Init();
 
             // Load the networking stuff
             NetworkManager.Init();
@@ -104,6 +104,7 @@ namespace LoLItems
             //         Liandrys.myItemDef, 
             //         MejaisSoulstealer.myItemDef,
             //         Rabadons.myItemDef, 
+            //         Cull.myItemDef,
             //         ];
             //     foreach (ItemDef myItem in myItems)
             //     {
