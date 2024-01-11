@@ -27,6 +27,8 @@ namespace LoLItems
         public static ConfigEntry<string> voidItems { get; set; }
         public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> goldGained = new();
         public static string goldGainedToken = "Cull.goldGained";
+        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> buffStacks = new();
+        public static string buffStacksToken = "Cull.buffStacks";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new();
 
@@ -171,11 +173,29 @@ namespace LoLItems
                                 for (int cnt = 0; cnt < 100; cnt++)
                                     damageReport.attackerBody.RemoveBuff(myBuffDef);
                         }
+                        Utilities.SetValueInDictionary(ref buffStacks, damageReport.attackerBody.master, damageReport.attackerBody.GetBuffCount(myBuffDef.buffIndex), buffStacksToken);
                         Utilities.AddValueInDictionary(ref goldGained, damageReport.attackerBody.master, bonusGold, goldGainedToken);
 					}
                 }
             };
 
+            On.RoR2.CharacterBody.OnInventoryChanged += (orig, self) => {
+                orig(self);
+
+                if (NetworkServer.active && self.inventory.GetItemCount(myItemDef.itemIndex) == 0 && self.GetBuffCount(myBuffDef.buffIndex) > 0) {
+                    Utilities.RemoveBuffStacks(self, myBuffDef.buffIndex);
+                }
+            };
+
+            On.RoR2.CharacterBody.Start += (orig, self) => {
+                orig(self);
+
+                if (NetworkServer.active && self.master && buffStacks.TryGetValue(self.master.netId, out float stacks)) {
+                    for (int cnt = 0 ; cnt < stacks ; cnt++) {
+                        self.AddBuff(myBuffDef.buffIndex);
+                    }
+                }
+            };
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
@@ -216,6 +236,7 @@ namespace LoLItems
         public static void SetupNetworkMappings()
         {
             LoLItems.networkMappings.Add(goldGainedToken, goldGained);
+            LoLItems.networkMappings.Add(buffStacksToken, buffStacks);
         }
     }
 }
