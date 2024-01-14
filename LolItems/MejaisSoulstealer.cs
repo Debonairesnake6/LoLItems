@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System;
 using BepInEx.Configuration;
+using UnityEngine.Networking;
 
 namespace LoLItems
 {
@@ -142,7 +143,7 @@ namespace LoLItems
             {
                 orig(globalEventManager, damageReport);
 
-                if (!UnityEngine.Networking.NetworkServer.active)
+                if (!NetworkServer.active)
                     return;
 
                 if (damageReport.attackerMaster?.inventory != null)

@@ -159,19 +159,25 @@ namespace LoLItems
                         };
                         OrbManager.instance.AddOrb(goldOrb);
 
-                        for (int cnt = 0; cnt < inventoryCount; cnt ++)
-                            damageReport.attackerBody.AddBuff(myBuffDef);
-
+                        if (NetworkServer.active) {
+                            for (int cnt = 0; cnt < inventoryCount; cnt ++)
+                                damageReport.attackerBody.AddBuff(myBuffDef);
+                        }
+                        
                         if (damageReport.attackerBody.GetBuffCount(myBuffDef) >= killsToBreak.Value)
                         {   
-                            damageReport.attackerBody.inventory.RemoveItem(myItemDef);
-                            damageReport.attackerBody.inventory.GiveItem(RoR2Content.Items.ScrapWhite);
+                            if (NetworkServer.active) {
+                                damageReport.attackerBody.inventory.RemoveItem(myItemDef);
+                                damageReport.attackerBody.inventory.GiveItem(RoR2Content.Items.ScrapWhite);
+                            }
                             CharacterMasterNotificationQueue.SendTransformNotification(damageReport.attackerMaster, myItemDef.itemIndex, RoR2Content.Items.ScrapWhite.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                             if (inventoryCount == 1)
                                 Utilities.RemoveBuffStacks(damageReport.attackerBody, myBuffDef.buffIndex);
-                            else
-                                for (int cnt = 0; cnt < 100; cnt++)
+                            else if (NetworkServer.active) {
+                                    for (int cnt = 0; cnt < 100; cnt++)
                                     damageReport.attackerBody.RemoveBuff(myBuffDef);
+                            
+                            }
                         }
                         Utilities.SetValueInDictionary(ref buffStacks, damageReport.attackerBody.master, damageReport.attackerBody.GetBuffCount(myBuffDef.buffIndex), buffStacksToken);
                         Utilities.AddValueInDictionary(ref goldGained, damageReport.attackerBody.master, bonusGold, goldGainedToken);

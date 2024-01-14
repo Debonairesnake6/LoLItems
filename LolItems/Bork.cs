@@ -5,6 +5,7 @@ using R2API.Utils;
 using RoR2.Orbs;
 using RoR2;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.AddressableAssets;
 using System;
 using System.Linq;
@@ -199,7 +200,7 @@ namespace LoLItems
             {
                 orig(self, damageInfo, victim);
 
-                if (!UnityEngine.Networking.NetworkServer.active)
+                if (!NetworkServer.active)
                     return;
                 
                 if (damageInfo.attacker)
@@ -216,7 +217,7 @@ namespace LoLItems
                             if (!victimCharacterBody.HasBuff(myTimerBuffDef))
                             {
                                 int currentBuffCount = victimCharacterBody.healthComponent.body.GetBuffCount(myCounterBuffDef);
-                                if (currentBuffCount < procForBigHit.Value - 1)
+                                if (currentBuffCount < procForBigHit.Value - 1 && NetworkServer.active)
                                 {
                                     victimCharacterBody.healthComponent.body.AddBuff(myCounterBuffDef);
                                 }

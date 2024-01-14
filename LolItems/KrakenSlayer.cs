@@ -9,6 +9,7 @@ using UnityEngine.AddressableAssets;
 using System;
 using System.Linq;
 using BepInEx.Configuration;
+using UnityEngine.Networking;
 
 namespace LoLItems
 {
@@ -129,7 +130,7 @@ namespace LoLItems
             {
                 orig(self, damageInfo, victim);
 
-                if (!UnityEngine.Networking.NetworkServer.active)
+                if (!NetworkServer.active)
                     return;
                 
                 if (damageInfo.attacker)
@@ -142,13 +143,15 @@ namespace LoLItems
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
                         {
-                            attackerCharacterBody.AddBuff(myCounterBuffDef);
+                            if (NetworkServer.active)
+                                attackerCharacterBody.AddBuff(myCounterBuffDef);
 
                             if (attackerCharacterBody.healthComponent.body.GetBuffCount(myCounterBuffDef) > procRequirement.Value)
                             {
-                                foreach (int value in Enumerable.Range(2, procRequirement.Value))
+                                if (NetworkServer.active)
                                 {
-                                    attackerCharacterBody.RemoveBuff(myCounterBuffDef);
+                                    foreach (int value in Enumerable.Range(2, procRequirement.Value))
+                                        attackerCharacterBody.RemoveBuff(myCounterBuffDef);
                                 }
 
                                 float damage = attackerCharacterBody.damage * procDamage.Value / 100f * inventoryCount;
@@ -172,7 +175,7 @@ namespace LoLItems
 
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
         {
-            if (!UnityEngine.Networking.NetworkServer.active)
+            if (!NetworkServer.active)
                     return;
                     
             int count = characterBody?.inventory?.GetItemCount(myItemDef.itemIndex) ?? 0;
