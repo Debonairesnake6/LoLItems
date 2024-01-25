@@ -71,6 +71,7 @@ namespace LoLItems
             ImmortalShieldbow.Init();
             GargoyleStoneplate.Init();
             Cull.Init();
+            ExperimentalHexplate.Init();
 
             // Load the networking stuff
             NetworkManager.Init();
@@ -105,6 +106,7 @@ namespace LoLItems
             //         MejaisSoulstealer.myItemDef,
             //         Rabadons.myItemDef, 
             //         Cull.myItemDef,
+            //         ExperimentalHexplate.myItemDef
             //         ];
             //     foreach (ItemDef myItem in myItems)
             //     {
