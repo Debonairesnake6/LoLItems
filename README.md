@@ -10,6 +10,7 @@ Icon | Name | Tier | Description
 ![MejaisSoulstealer](https://static.wikia.nocookie.net/leagueoflegends/images/8/88/Mejai%27s_Soulstealer_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221103165010) | MejaisSoulstealer | White | Killing enemies grants more damage for a short time.
 ![GuardiansBlade](https://static.wikia.nocookie.net/leagueoflegends/images/f/f2/Guardian%27s_Blade_item.png/revision/latest?cb=20221019163250) | GuardiansBlade | White | Reduce cooldown on secondary and utility skills.
 ![Cull](https://static.wikia.nocookie.net/leagueoflegends/images/1/11/Cull_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201116174218) | Cull | White | Gives gold on kills, then turns into **White Scrap**.
+![ExperimentalHexplate](https://static.wikia.nocookie.net/leagueoflegends/images/f/fc/Experimental_Hexplate_item_HD.png/revision/latest/scale-to-width-down/64?cb=20231204214844) | ExperimentalHexplate | Green | Using your Special skill temporarily increases your attack speed and movespeed.
 ![GuinsoosRageblade](https://static.wikia.nocookie.net/leagueoflegends/images/6/64/Guinsoo%27s_Rageblade_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201110230134) | GuinsoosRageblade | Green | Gain extra proc coefficient on everything.
 ![InfinityEdge](https://static.wikia.nocookie.net/leagueoflegends/images/a/aa/Infinity_Edge_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221230173431) | InfinityEdge | Green | Crit chance and crit damage.
 ![Liandrys](https://static.wikia.nocookie.net/leagueoflegends/images/f/fd/Liandry%27s_Torment_item.png/revision/latest?cb=20201118211533) | Liandrys | Green | Burn enemies for % max health damage on hit.
@@ -22,6 +23,10 @@ Icon | Name | Tier | Description
 ![GargoyleStoneplate](https://static.wikia.nocookie.net/leagueoflegends/images/6/62/Gargoyle_Stoneplate_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221230182936) | GargoyleStoneplate | Equipment | Temporarily gain armor and a barrier based on your maximum health.
 
 ## Changelog
+
+**1.3.0**
+* Added ExperimentalHexplate
+  * Credit to [ggreer91](https://github.com/ggreer91) for implementing
 
 **1.2.0**
 * Added cull
