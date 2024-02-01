@@ -11,6 +11,7 @@ using UnityEngine.AddressableAssets;
 using System;
 using System.Linq;
 using BepInEx.Configuration;
+using UnityEngine.Networking;
 
 namespace LoLItems
 {
