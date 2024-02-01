@@ -11,26 +11,31 @@ using UnityEngine.AddressableAssets;
 using System;
 using System.Linq;
 using BepInEx.Configuration;
+using System.IO;
+using EntityStates.AffixVoid;
+using System.Runtime.CompilerServices;
+using UnityEngine.Networking;
 
 namespace LoLItems
 {
     internal class ExperimentalHexplate
     {
         public static ItemDef myItemDef;
-        // public static BuffDef myBuffDef;
+        public static BuffDef myBuffDef;
 
-        public static ConfigEntry<float> exampleValue { get; set; }
+        public static ConfigEntry<float> duration { get; set; }
+        public static ConfigEntry<float> attackSpeed { get; set; }
+        public static ConfigEntry<float> moveSpeed { get; set; }
         public static ConfigEntry<bool> enabled { get; set; }
         public static ConfigEntry<string> rarity { get; set; }
         public static ConfigEntry<string> voidItems { get; set; }
-        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> exampleStoredValue = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
-        public static string exampleStoredValueToken = "ExperimentalHexplate.exampleStoredValue";
+        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> totalTimesActivated = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static string totalTimesActivatedToken = "ExperimentalHexplate.totalTimesActivated";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
         public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
         // ENABLE if a sound effect int is needed (replace num with proper value)
         // public static uint soundEffectID = 1234567890;
 
-        // This runs when loading the file
         internal static void Init()
         {
             LoadConfig();
@@ -40,15 +45,11 @@ namespace LoLItems
             }
 
             CreateItem();
-            // ENABLE for buff
-            // CreateBuff();
+            CreateBuff();
             AddTokens();
             ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
-            // Enable for custom display rules
-            // ItemDisplayRuleDict itemDisplayRuleDict = CreateDisplayRules();
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
-            // ENABLE for buff
-            // ContentAddition.AddBuffDef(myBuffDef);
+            ContentAddition.AddBuffDef(myBuffDef);
             hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "ExperimentalHexplate");
             SetupNetworkMappings();
@@ -66,7 +67,7 @@ namespace LoLItems
             rarity = LoLItems.MyConfig.Bind<string>(
                 "ExperimentalHexplate",
                 "Rarity",
-                "Tier1Def",
+                "Tier2Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
@@ -77,11 +78,27 @@ namespace LoLItems
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
-            exampleValue = LoLItems.MyConfig.Bind<float>(
+            duration = LoLItems.MyConfig.Bind<float>(
                 "ExperimentalHexplate",
-                "Item Value",
-                1f,
-                "Amount of value each item will grant."
+                "Duration",
+                5f,
+                "The duration of the item buff."
+
+            );
+
+            attackSpeed = LoLItems.MyConfig.Bind<float>(
+                "ExperimentalHexplate",
+                "Attack Speed",
+                40f,
+                "The amount of attack speed the item proc grants."
+
+            );
+
+            moveSpeed = LoLItems.MyConfig.Bind<float>(
+                "ExperimentalHexplate",
+                "Movespeed",
+                32f,
+                "The amount of movespeed the item proc grants."
 
             );
         }
@@ -104,108 +121,32 @@ namespace LoLItems
             myItemDef.tags = new ItemTag[2] { ItemTag.Damage, ItemTag.Utility };
         }
 
-        // ENABLE for buff
-        // private static void CreateBuff()
-        // {
-        //     myBuffDef = ScriptableObject.CreateInstance<BuffDef>();
-
-        //     myBuffDef.iconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
-        //     //  ENABLE for custom assets
-        //     // myBuffDef.iconSprite = Assets.icons.LoadAsset<Sprite>("ExperimentalHexplateIcon");
-        //     myBuffDef.name = "ExperimentalHexplateBuff";
-        //     myBuffDef.buffColor = Color.red;
-        //     myBuffDef.canStack = true;
-        //     myBuffDef.isDebuff = false;
-        //     myBuffDef.isCooldown = false;
-        //     myBuffDef.isHidden = false;
-        // }
-
+        private static void CreateBuff()
+        {
+            myBuffDef = ScriptableObject.CreateInstance<BuffDef>();
+            myBuffDef.iconSprite = Assets.icons.LoadAsset<Sprite>("ExperimentalHexplateIcon");
+            myBuffDef.name = "ExperimentalHexplateBuff";
+            myBuffDef.canStack = false;
+            myBuffDef.isDebuff = false;
+            myBuffDef.isCooldown = false;
+            myBuffDef.isHidden = false;
+        }
 
         private static void hooks()
         {
-            // Do something on character death
-            On.RoR2.GlobalEventManager.OnCharacterDeath += (orig, globalEventManager, damageReport) =>
-            {
-                orig(globalEventManager, damageReport);
-
-                // ENABLE for infusion orb
-                // GameObject gameObject = null;
-                // Transform transform = null;
-                // Vector3 vector = Vector3.zero;
-
-                // if (damageReport.victim)
-                // {
-                //     gameObject = damageReport.victim.gameObject;
-                //     transform = gameObject.transform;
-                //     vector = transform.position;
-                // }
-
-                if (damageReport.attackerMaster?.inventory != null)
-                {
-
-                    int inventoryCount = damageReport.attackerMaster.inventory.GetItemCount(myItemDef.itemIndex);
-					if (inventoryCount > 0)
-					{
-                        // ENABLE for infusion orb
-                        // InfusionOrb ExperimentalHexplateOrb = new InfusionOrb();
-                        // ExperimentalHexplateOrb.origin = vector;
-                        // ExperimentalHexplateOrb.target = Util.FindBodyMainHurtBox(damageReport.attackerBody);
-                        // ExperimentalHexplateOrb.maxHpValue = 0;
-                        // OrbManager.instance.AddOrb(ExperimentalHexplateOrb);
-                        // Utilities.AddValueInDictionary(ref exampleStoredValue, damageReport.attackerBody.master, exampleValue.Value, exampleStoredValueToken);
-					}
-                }
-            };
-
-            // When you hit an enemy
-            On.RoR2.GlobalEventManager.OnHitEnemy += (orig, self, damageInfo, victim) =>
-            {
-                orig(self, damageInfo, victim);
-
-                if (damageInfo.attacker)
-                {
-                    CharacterBody attackerCharacterBody = damageInfo.attacker.GetComponent<CharacterBody>();
-                    CharacterBody victimCharacterBody = victim.GetComponent<CharacterBody>();
+            On.RoR2.GenericSkill.OnExecute += (orig, self) => {
+                if (!NetworkServer.active)
+                    return;
                     
-                    if (attackerCharacterBody?.inventory)
-                    {
-                        int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
-                        if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
-                        {
-                            // ENABLE for damage
-                            // float damage = inventoryCount * exampleValue.Value;
-                            // DamageInfo onHitProc = damageInfo;
-                            // onHitProc.damage = damage;
-                            // onHitProc.crit = false;
-                            // onHitProc.procCoefficient = 0f;
-                            // onHitProc.damageType = DamageType.Generic;
-                            // onHitProc.damageColorIndex = DamageColorIndex.SuperBleed;
-                            // onHitProc.inflictor = damageInfo.attacker;
+                GenericSkill specialSkill = self.characterBody?.skillLocator?.special;
 
-                            // victimCharacterBody.healthComponent.TakeDamage(onHitProc);  
-                            // Utilities.AddValueToDictionary(ref exampleStoredValue, attackerCharacterBody.master.netId, damage, exampleStoredValueToken);
-                        }
-                    }
-                }
-            };
-
-            // When something takes damage
-            On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
-            {
-                if (damageInfo.attacker)
+                if (self.characterBody?.inventory?.GetItemCount(myItemDef) > 0 && specialSkill == self)
                 {
-                    CharacterBody attackerCharacterBody = damageInfo.attacker.GetComponent<CharacterBody>();
-                    
-                    if (attackerCharacterBody?.inventory)
-                    {
-                        int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
-                        if (inventoryCount > 0)
-                        {
-                            // Do something   
-                        }
-                    }
+                    Utilities.AddTimedBuff(self.characterBody, myBuffDef, duration.Value);
+                    Utilities.AddValueInDictionary(ref totalTimesActivated, self.characterBody.master, 1, totalTimesActivatedToken, false);
                 }
-                orig(self, damageInfo);
+
+                orig(self);
             };
 
             RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
@@ -214,9 +155,10 @@ namespace LoLItems
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
         {
             int count = characterBody?.inventory?.GetItemCount(myItemDef.itemIndex) ?? 0;
-            if (count > 0)
+            if (count > 0 && characterBody.HasBuff(myBuffDef))
             {
-                // args.secondaryCooldownMultAdd += count;
+                args.baseAttackSpeedAdd += count == 1 ? count * attackSpeed.Value / 100f : (count - 1) * attackSpeed.Value / 100f / 2f + attackSpeed.Value / 100f;
+                args.baseMoveSpeedAdd += count == 1 ? count * moveSpeed.Value / 10f : (count - 1) * moveSpeed.Value / 10f / 2f + moveSpeed.Value / 10f;
             }
         }
 
@@ -227,53 +169,35 @@ namespace LoLItems
             
             string customDescription = "";
 
-            if (exampleStoredValue.TryGetValue(masterRef.netId, out float damageDealt))
-                customDescription += "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+            if (totalTimesActivated.TryGetValue(masterRef.netId, out float timesActivated))
+                customDescription += "<br><br>Times activated: " + String.Format("{0:#}", timesActivated);
             else
-                customDescription += "<br><br>Damage dealt: 0";
+                customDescription += "<br><br>Times activated: 0";
 
             return (Language.GetString(myItemDef.descriptionToken), customDescription);
         }
 
         private static void AddTokens()
         {
-            // Styles
-            // <style=cIsHealth>" + exampleValue.Value + "</style>
-            // <style=cIsDamage>" + exampleValue.Value + "</style>
-            // <style=cIsHealing>" + exampleValue.Value + "</style>
-            // <style=cIsUtility>" + exampleValue.Value + "</style>
-            // <style=cIsVoid>" + exampleValue.Value + "</style>
-            // <style=cHumanObjective>" + exampleValue.Value + "</style>
-            // <style=cLunarObjective>" + exampleValue.Value + "</style>
-            // <style=cStack>" + exampleValue.Value + "</style>
-            // <style=cWorldEvent>" + exampleValue.Value + "</style>
-            // <style=cArtifact>" + exampleValue.Value + "</style>
-            // <style=cUserSetting>" + exampleValue.Value + "</style>
-            // <style=cDeath>" + exampleValue.Value + "</style>
-            // <style=cSub>" + exampleValue.Value + "</style>
-            // <style=cMono>" + exampleValue.Value + "</style>
-            // <style=cShrine>" + exampleValue.Value + "</style>
-            // <style=cEvent>" + exampleValue.Value + "</style>
-
             // Name of the item
             LanguageAPI.Add("ExperimentalHexplate", "ExperimentalHexplate");
 
             // Short description
-            LanguageAPI.Add("ExperimentalHexplateItem", "ExperimentalHexplate pickup text");
+            LanguageAPI.Add("ExperimentalHexplateItem", "Using your Special skill temporarily increases your attack speed and movespeed.");
 
             // Long description
-            LanguageAPI.Add("ExperimentalHexplateDesc", "ExperimentalHexplate Description");
+            LanguageAPI.Add("ExperimentalHexplateDesc", "Using your Special skill increases your attack speed by <style=cIsDamage>" + attackSpeed.Value + "%</style> <style=cStack>(+ " + attackSpeed.Value / 2f + "%)</style> and your movespeed by <style=cIsUtility>" + moveSpeed.Value + "%</style> <style=cStack>(+ " + moveSpeed.Value / 2f + "%)</style> for " + duration.Value + " seconds.");
 
             // Lore
             LanguageAPI.Add("ExperimentalHexplateLore", "Was it wise to put on something this experimental? <br><br>Probably.");
 
             // ENABLE for buff
-            // LanguageAPI.Add("ExperimentalHexplateBuff", "ExperimentalHexplate buff description");
+            LanguageAPI.Add("ExperimentalHexplateBuff", "ExperimentalHexplate");
         }
 
         public static void SetupNetworkMappings()
         {
-            LoLItems.networkMappings.Add(exampleStoredValueToken, exampleStoredValue);
+            LoLItems.networkMappings.Add(totalTimesActivatedToken, totalTimesActivated);
         }
     }
 }
