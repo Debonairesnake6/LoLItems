@@ -174,7 +174,7 @@ namespace LoLItems
                             if (inventoryCount == 1)
                                 Utilities.RemoveBuffStacks(damageReport.attackerBody, myBuffDef.buffIndex);
                             else if (NetworkServer.active) {
-                                    for (int cnt = 0; cnt < 100; cnt++)
+                                    for (int cnt = 0; cnt < killsToBreak.Value; cnt++)
                                     damageReport.attackerBody.RemoveBuff(myBuffDef);
                             
                             }
