@@ -1,15 +1,9 @@
-using System.Threading;
-using System.Globalization;
 using System.Collections.Generic;
-using BepInEx;
 using R2API;
-using R2API.Utils;
-using RoR2.Orbs;
 using RoR2;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.AddressableAssets;
-using System;
-using System.Linq;
 using BepInEx.Configuration;
 
 namespace LoLItems
@@ -17,20 +11,20 @@ namespace LoLItems
     internal class ImperialMandate
     {
         public static ItemDef myItemDef;
-        public static ConfigEntry<float> damageAmpPerStack { get; set; }
-        public static ConfigEntry<bool> enabled { get; set; }
-        public static ConfigEntry<string> rarity { get; set; }
-        public static ConfigEntry<string> voidItems { get; set; }
-        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> bonusDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static ConfigEntry<float> DamageAmpPerStack { get; set; }
+        public static ConfigEntry<bool> Enabled { get; set; }
+        public static ConfigEntry<string> Rarity { get; set; }
+        public static ConfigEntry<string> VoidItems { get; set; }
+        public static Dictionary<NetworkInstanceId, float> bonusDamageDealt = [];
         public static string bonusDamageDealtToken = "ImperialMandate.bonusDamageDealt";
-        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
-        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
+        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = [];
+        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = [];
 
         // This runs when loading the file
         internal static void Init()
         {
             LoadConfig();
-            if (!enabled.Value)
+            if (!Enabled.Value)
             {
                 return;
             }
@@ -39,40 +33,39 @@ namespace LoLItems
             AddTokens();
             var displayRules = new ItemDisplayRuleDict(null);
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
-            hooks();
-            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "ImperialMandate");
+            Hooks();
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, Rarity, VoidItems, "ImperialMandate");
             SetupNetworkMappings();
         }
 
         private static void LoadConfig()
         {
-            enabled = LoLItems.MyConfig.Bind<bool>(
+            Enabled = LoLItems.MyConfig.Bind(
                 "Imperial Mandate",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
-            rarity = LoLItems.MyConfig.Bind<string>(
+            Rarity = LoLItems.MyConfig.Bind(
                 "Imperial Mandate",
                 "Rarity",
                 "VoidTier2Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
-            voidItems = LoLItems.MyConfig.Bind<string>(
+            VoidItems = LoLItems.MyConfig.Bind(
                 "Imperial Mandate",
                 "Void Items",
                 "DeathMark",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
-            damageAmpPerStack = LoLItems.MyConfig.Bind<float>(
+            DamageAmpPerStack = LoLItems.MyConfig.Bind(
                 "Imperial Mandate",
                 "Damage Amp",
                 8f,
                 "Amount of bonus damage each item will grant."
-
             );
         }
 
@@ -85,16 +78,16 @@ namespace LoLItems
             myItemDef.descriptionToken = "ImperialMandateDesc";
             myItemDef.loreToken = "ImperialMandateLore";
 #pragma warning disable Publicizer001
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("ImperialMandateIcon");
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("ImperialMandatePrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
-            myItemDef.tags = new ItemTag[1] { ItemTag.Damage };
+            myItemDef.tags = [ ItemTag.Damage ];
         }
 
-        private static void hooks()
+        private static void Hooks()
         {
             // When something takes damage
             On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
@@ -122,7 +115,7 @@ namespace LoLItems
                                     if (dotController.HasDotActive(dotIndex)) debuffsActive += 1;
                                 }
                             }
-                            float extraDamage = damageInfo.damage * damageAmpPerStack.Value / 100 * inventoryCount * debuffsActive;
+                            float extraDamage = damageInfo.damage * DamageAmpPerStack.Value / 100 * inventoryCount * debuffsActive;
                             damageInfo.damage += extraDamage;
                             Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, extraDamage, bonusDamageDealtToken);
                         }
@@ -140,7 +133,7 @@ namespace LoLItems
             string customDescription = "";
 
             if (bonusDamageDealt.TryGetValue(masterRef.netId, out float damageDealt))
-                customDescription += "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+                customDescription += "<br><br>Damage dealt: " + string.Format("{0:#}", damageDealt);
             else
                 customDescription += "<br><br>Damage dealt: 0";
 
@@ -157,7 +150,7 @@ namespace LoLItems
             LanguageAPI.Add("ImperialMandateItem", "Do more damage to enemies for each debuff. Corrupts <style=cIsVoid>Death Mark</style>.");
 
             // Long description
-            LanguageAPI.Add("ImperialMandateDesc", "Do <style=cIsDamage>" + damageAmpPerStack.Value + "%</style> <style=cStack>(+" + damageAmpPerStack.Value + "%)</style> more damage to enemies for each debuff. Corrupts <style=cIsVoid>Death Mark</style>.");
+            LanguageAPI.Add("ImperialMandateDesc", "Do <style=cIsDamage>" + DamageAmpPerStack.Value + "%</style> <style=cStack>(+" + DamageAmpPerStack.Value + "%)</style> more damage to enemies for each debuff. Corrupts <style=cIsVoid>Death Mark</style>.");
 
             // Lore
             LanguageAPI.Add("ImperialMandateLore", "Hunt your prey.");

@@ -1,12 +1,8 @@
-using System.Threading;
-using System.Globalization;
 using System.Collections.Generic;
-using BepInEx;
 using R2API;
-using R2API.Utils;
-using RoR2.Orbs;
 using RoR2;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.AddressableAssets;
 using System;
 using BepInEx.Configuration;
@@ -19,25 +15,25 @@ namespace LoLItems
         public static ItemDef myItemDef;
         public static BuffDef myBuffDef;
         public static DotController.DotDef myDotDef;
-        public static RoR2.DotController.DotIndex myDotDefIndex;
+        public static DotController.DotIndex myDotDefIndex;
         public static int damageColourIndex = 0;
 
-        public static ConfigEntry<float> burnDamagePercent { get; set; }
-        public static ConfigEntry<float> burnDamageDuration { get; set; }
-        public static ConfigEntry<float> burnDamageMin { get; set; }
-        public static ConfigEntry<float> burnDamageMax { get; set; }
-        public static ConfigEntry<bool> enabled { get; set; }
-        public static ConfigEntry<string> rarity { get; set; }
-        public static ConfigEntry<string> voidItems { get; set; }
-        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> liandrysDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static ConfigEntry<float> BurnDamagePercent { get; set; }
+        public static ConfigEntry<float> BurnDamageDuration { get; set; }
+        public static ConfigEntry<float> BurnDamageMin { get; set; }
+        public static ConfigEntry<float> BurnDamageMax { get; set; }
+        public static ConfigEntry<bool> Enabled { get; set; }
+        public static ConfigEntry<string> Rarity { get; set; }
+        public static ConfigEntry<string> VoidItems { get; set; }
+        public static Dictionary<NetworkInstanceId, float> liandrysDamageDealt = [];
         public static string liandrysDamageDealtToken = "Liandrys.liandrysDamageDealt";
-        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
-        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
+        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = [];
+        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = [];
 
         internal static void Init()
         {
             LoadConfig();
-            if (!enabled.Value)
+            if (!Enabled.Value)
             {
                 return;
             }
@@ -51,64 +47,60 @@ namespace LoLItems
             ContentAddition.AddBuffDef(myBuffDef);
             DotAPI.CustomDotBehaviour myDotCustomBehaviour = AddCustomDotBehaviour;
             myDotDefIndex = DotAPI.RegisterDotDef(myDotDef, myDotCustomBehaviour);
-            hooks();
-            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "Liandrys");
+            Hooks();
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, Rarity, VoidItems, "Liandrys");
             SetupNetworkMappings();
         }
 
         private static void LoadConfig()
         {
-            enabled = LoLItems.MyConfig.Bind<bool>(
+            Enabled = LoLItems.MyConfig.Bind(
                 "Liandrys Anguish",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
-            rarity = LoLItems.MyConfig.Bind<string>(
+            Rarity = LoLItems.MyConfig.Bind(
                 "Liandrys Anguish",
                 "Rarity",
                 "Tier2Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
-            voidItems = LoLItems.MyConfig.Bind<string>(
+            VoidItems = LoLItems.MyConfig.Bind(
                 "Liandrys Anguish",
                 "Void Items",
                 "",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
-            burnDamagePercent = LoLItems.MyConfig.Bind<float>(
+            BurnDamagePercent = LoLItems.MyConfig.Bind(
                 "Liandrys Anguish",
                 "Max Health Burn Percent",
                 2.5f,
                 "Amount of max health percent burn each item will grant."
-
             );
 
-            burnDamageDuration = LoLItems.MyConfig.Bind<float>(
+            BurnDamageDuration = LoLItems.MyConfig.Bind(
                 "Liandrys Anguish",
                 "Burn Duration",
                 5f,
                 "Duration of the burn."
-
             );
 
-            burnDamageMin = LoLItems.MyConfig.Bind<float>(
+            BurnDamageMin = LoLItems.MyConfig.Bind(
                 "Liandrys Anguish",
                 "Minimum Burn Damage",
-                0.5f * burnDamageDuration.Value,
+                0.5f * BurnDamageDuration.Value,
                 "Minimum burn damage. This will be multiplied by your base damage."
-
             );
 
-            burnDamageMax = LoLItems.MyConfig.Bind<float>(
+            BurnDamageMax = LoLItems.MyConfig.Bind(
                 "Liandrys Anguish",
                 "Maximum Burn Damage",
-                25f * burnDamageDuration.Value,
+                25f * BurnDamageDuration.Value,
                 "Maximum burn damage. This will be multiplied by your base damage."
-
             );
         }
 
@@ -121,12 +113,13 @@ namespace LoLItems
             myItemDef.descriptionToken = "LiandrysDesc";
             myItemDef.loreToken = "LiandrysLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("LiandrysIcon");
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("LiandrysPrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
+            myItemDef.tags = [ ItemTag.Damage ];
         }
 
         private static void CreateBuff()
@@ -144,16 +137,16 @@ namespace LoLItems
         
         private static void CreateDot()
         {
-            damageColourIndex = (int)RoR2.DamageColorIndex.Count + 1;
+            damageColourIndex = (int)DamageColorIndex.Count + 1;
             myDotDef = new DotController.DotDef
             {
-                damageColorIndex = (RoR2.DamageColorIndex)damageColourIndex,
+                damageColorIndex = (DamageColorIndex)damageColourIndex,
                 associatedBuff = myBuffDef,
                 terminalTimedBuff = myBuffDef,
-                terminalTimedBuffDuration = burnDamageDuration.Value,
+                terminalTimedBuffDuration = BurnDamageDuration.Value,
                 resetTimerOnAdd = true,
                 interval = 1f,
-                damageCoefficient = 1f / burnDamageDuration.Value,
+                damageCoefficient = 1f / BurnDamageDuration.Value,
             };
         }
 
@@ -164,19 +157,17 @@ namespace LoLItems
                 CharacterBody attackerCharacterBody = dotStack.attackerObject.GetComponent<CharacterBody>();
                 int inventoryCount = 1;
                 if (attackerCharacterBody?.inventory)
-                {
                     inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
-                }
 #pragma warning disable Publicizer001
-                float baseDotDamage = self.victimBody.maxHealth * burnDamagePercent.Value / 100f / burnDamageDuration.Value * myDotDef.interval;
+                float baseDotDamage = self.victimBody.maxHealth * BurnDamagePercent.Value / 100f / BurnDamageDuration.Value * myDotDef.interval;
 #pragma warning restore Publicizer001
-                float dotDamage = Math.Max(burnDamageMin.Value * attackerCharacterBody.damage, Math.Min(burnDamageMax.Value * attackerCharacterBody.damage, baseDotDamage)) / burnDamageDuration.Value * inventoryCount;
+                float dotDamage = Math.Max(BurnDamageMin.Value * attackerCharacterBody.damage, Math.Min(BurnDamageMax.Value * attackerCharacterBody.damage, baseDotDamage)) / BurnDamageDuration.Value * inventoryCount;
                 dotStack.damage = dotDamage;
             }
         }
 
 
-        private static void hooks()
+        private static void Hooks()
         {
             // When you hit an enemy
             On.RoR2.GlobalEventManager.OnHitEnemy += (orig, self, damageInfo, victim) =>
@@ -193,17 +184,17 @@ namespace LoLItems
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0)
                         {
-                            victimCharacterBody.AddTimedBuff(myBuffDef, burnDamageDuration.Value);
+                            victimCharacterBody.AddTimedBuff(myBuffDef, BurnDamageDuration.Value);
 
-                            float baseDotDamage = victimCharacterBody.maxHealth * burnDamagePercent.Value / 100f * inventoryCount;
-                            float dotDamage = Math.Max(burnDamageMin.Value * attackerCharacterBody.damage, Math.Min(burnDamageMax.Value * attackerCharacterBody.damage, baseDotDamage));
-                            InflictDotInfo inflictDotInfo = new InflictDotInfo
+                            float baseDotDamage = victimCharacterBody.maxHealth * BurnDamagePercent.Value / 100f * inventoryCount;
+                            float dotDamage = Math.Max(BurnDamageMin.Value * attackerCharacterBody.damage, Math.Min(BurnDamageMax.Value * attackerCharacterBody.damage, baseDotDamage));
+                            InflictDotInfo inflictDotInfo = new()
                             {
                                 victimObject = victimCharacterBody.healthComponent.gameObject,
                                 attackerObject = attackerCharacterBody.gameObject,
                                 totalDamage = dotDamage,
                                 dotIndex = myDotDefIndex,
-                                duration = burnDamageDuration.Value,
+                                duration = BurnDamageDuration.Value,
                                 maxStacksFromAttacker = 1,
                             };
                             DotController.InflictDot(ref inflictDotInfo);
@@ -247,7 +238,7 @@ namespace LoLItems
             string customDescription = "";
 
             if (liandrysDamageDealt.TryGetValue(masterRef.netId, out float damageDealt))
-                customDescription += "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+                customDescription += "<br><br>Damage dealt: " + string.Format("{0:#}", damageDealt);
             else
                 customDescription += "<br><br>Damage dealt: 0";
 
@@ -264,7 +255,7 @@ namespace LoLItems
             LanguageAPI.Add("LiandrysItem", "Burn enemies on hit for a % of their max health.");
 
             // Long description
-            LanguageAPI.Add("LiandrysDesc", "On hit burn enemies for <style=cIsDamage>" + burnDamagePercent.Value + "%</style> <style=cStack>(+" + burnDamagePercent.Value + "%)</style> max health over " + burnDamageDuration.Value + " seconds.");
+            LanguageAPI.Add("LiandrysDesc", "On hit burn enemies for <style=cIsDamage>" + BurnDamagePercent.Value + "%</style> <style=cStack>(+" + BurnDamagePercent.Value + "%)</style> max health over " + BurnDamageDuration.Value + " seconds.");
 
             // Lore
             LanguageAPI.Add("LiandrysLore", "A crying mask is a great halloween costume.");

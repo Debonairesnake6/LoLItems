@@ -1,17 +1,10 @@
-using System.IO;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Globalization;
 using System.Collections.Generic;
-using BepInEx;
 using R2API;
-using R2API.Utils;
-using RoR2.Orbs;
 using RoR2;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.AddressableAssets;
 using System;
-using System.Linq;
 using BepInEx.Configuration;
 
 namespace LoLItems
@@ -19,20 +12,20 @@ namespace LoLItems
     internal class GuardiansBlade
     {
         public static ItemDef myItemDef;
-        public static ConfigEntry<float> cooldownReduction { get; set; }
-        public static ConfigEntry<bool> enabled { get; set; }
-        public static ConfigEntry<string> rarity { get; set; }
-        public static ConfigEntry<string> voidItems { get; set; }
-        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> cooldownReductionTracker = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static ConfigEntry<float> CooldownReduction { get; set; }
+        public static ConfigEntry<bool> Enabled { get; set; }
+        public static ConfigEntry<string> Rarity { get; set; }
+        public static ConfigEntry<string> VoidItems { get; set; }
+        public static Dictionary<NetworkInstanceId, float> cooldownReductionTracker = [];
         public static string cooldownReductionTrackerToken = "GuardiansBlade.cooldownReductionTracker";
-        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
-        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
+        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = [];
+        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = [];
 
         // This runs when loading the file
         internal static void Init()
         {
             LoadConfig();
-            if (!enabled.Value)
+            if (!Enabled.Value)
             {
                 return;
             }
@@ -41,35 +34,35 @@ namespace LoLItems
             AddTokens();
             ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
-            hooks();
-            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "GuardiansBlade");
+            Hooks();
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, Rarity, VoidItems, "GuardiansBlade");
             SetupNetworkMappings();
         }
 
         private static void LoadConfig()
         {
-            enabled = LoLItems.MyConfig.Bind<bool>(
+            Enabled = LoLItems.MyConfig.Bind(
                 "Guardians Blade",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
-            rarity = LoLItems.MyConfig.Bind<string>(
+            Rarity = LoLItems.MyConfig.Bind(
                 "Guardians Blade",
                 "Rarity",
                 "Tier1Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
-            voidItems = LoLItems.MyConfig.Bind<string>(
+            VoidItems = LoLItems.MyConfig.Bind(
                 "Guardians Blade",
                 "Void Items",
                 "",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
-            cooldownReduction = LoLItems.MyConfig.Bind<float>(
+            CooldownReduction = LoLItems.MyConfig.Bind(
                 "Guardians Blade",
                 "Cooldown Reduction",
                 10f,
@@ -87,16 +80,16 @@ namespace LoLItems
             myItemDef.descriptionToken = "GuardiansBladeDesc";
             myItemDef.loreToken = "GuardiansBladeLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("GuardiansBladeIcon");
             myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("GuardiansBladePrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
-            myItemDef.tags = new ItemTag[1] { ItemTag.Utility };
+            myItemDef.tags = [ ItemTag.Utility ];
         }
 
-        private static void hooks()
+        private static void Hooks()
         {
             RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
             
@@ -106,11 +99,10 @@ namespace LoLItems
                 int count = self.GetItemCount(myItemDef.itemIndex);
                 if (count > 0)
                 {
-                    float cdr = Math.Abs(Utilities.HyperbolicScale(count, cooldownReduction.Value / 100) - 1);
+                    float cdr = Math.Abs(Utilities.HyperbolicScale(count, CooldownReduction.Value / 100) - 1);
                     Utilities.SetValueInDictionary(ref cooldownReductionTracker, self.GetComponentInParent<RoR2.CharacterMaster>(), Math.Abs(cdr - 1) * 100, cooldownReductionTrackerToken, false);
                 }
             };
-
         }
 
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
@@ -118,7 +110,7 @@ namespace LoLItems
             int count = characterBody?.inventory?.GetItemCount(myItemDef.itemIndex) ?? 0;
             if (count > 0)
             {
-                float cdr = Utilities.HyperbolicScale(count, cooldownReduction.Value / 100);
+                float cdr = Utilities.HyperbolicScale(count, CooldownReduction.Value / 100);
                 args.utilityCooldownMultAdd -= cdr;
                 args.secondaryCooldownMultAdd -= cdr;
             }
@@ -132,7 +124,7 @@ namespace LoLItems
             string customDescription = "";
 
             if (cooldownReductionTracker.TryGetValue(masterRef.netId, out float cdr))
-                customDescription += "<br><br>Cooldown reduction: " + String.Format("{0:F1}", cdr);
+                customDescription += "<br><br>Cooldown reduction: " + string.Format("{0:F1}", cdr);
             else
                 customDescription += "<br><br>Cooldown reduction: 0";
 
@@ -149,7 +141,7 @@ namespace LoLItems
             LanguageAPI.Add("GuardiansBladeItem", "Reduce the cooldown on secondary and utility skills.");
 
             // Long description
-            LanguageAPI.Add("GuardiansBladeDesc", "Reduce the cooldown on your secondary and utility skills by <style=cIsUtility>" + cooldownReduction.Value + "%</style> <style=cStack>(+" + cooldownReduction.Value + ")</style>. Scales hyperbolically, just like tougher times.");
+            LanguageAPI.Add("GuardiansBladeDesc", "Reduce the cooldown on your secondary and utility skills by <style=cIsUtility>" + CooldownReduction.Value + "%</style> <style=cStack>(+" + CooldownReduction.Value + ")</style>. Scales hyperbolically, just like tougher times.");
 
             // Lore
             LanguageAPI.Add("GuardiansBladeLore", "Awesome refund And movement.");
