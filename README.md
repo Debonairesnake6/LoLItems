@@ -27,6 +27,7 @@ Icon | Name | Tier | Description
 **1.3.0**
 * Added ExperimentalHexplate
   * Credit to [ggreer91](https://github.com/ggreer91) for implementing
+* Updated most item names and descriptions (delete your LoLItems config for this update!)
 
 **1.2.0**
 * Added cull
