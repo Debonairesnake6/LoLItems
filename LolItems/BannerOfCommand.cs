@@ -48,28 +48,28 @@ namespace LoLItems
         private static void LoadConfig()
         {
             enabled = LoLItems.MyConfig.Bind<bool>(
-                "BannerOfCommand",
+                "Banner of Command",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
             rarity = LoLItems.MyConfig.Bind<string>(
-                "BannerOfCommand",
+                "Banner of Command",
                 "Rarity",
                 "Tier1Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
             voidItems = LoLItems.MyConfig.Bind<string>(
-                "BannerOfCommand",
+                "Banner of Command",
                 "Void Items",
                 "",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
             damagePercentAmp = LoLItems.MyConfig.Bind<float>(
-                "BannerOfCommand",
+                "Banner of Command",
                 "Damage Amp",
                 10f,
                 "Amount of damage amp each stack will grant."
@@ -140,13 +140,13 @@ namespace LoLItems
         private static void AddTokens()
         {
             // Name of the item
-            LanguageAPI.Add("BannerOfCommand", "BannerOfCommand");
+            LanguageAPI.Add("BannerOfCommand", "Banner of Command");
 
             // Short description
-            LanguageAPI.Add("BannerOfCommandItem", "Increase allied minion damage");
+            LanguageAPI.Add("BannerOfCommandItem", "Increase allied minion damage.");
 
             // Long description
-            LanguageAPI.Add("BannerOfCommandDesc", "Increase the damage of allied minions by <style=cIsUtility>" + damagePercentAmp.Value + "%</style> <style=cStack>(+" + damagePercentAmp.Value + "%)</style>");
+            LanguageAPI.Add("BannerOfCommandDesc", "Increase the damage of allied minions by <style=cIsUtility>" + damagePercentAmp.Value + "%</style> <style=cStack>(+" + damagePercentAmp.Value + "%)</style>.");
 
             // Lore
             LanguageAPI.Add("BannerOfCommandLore", "Split pushing is boring.");

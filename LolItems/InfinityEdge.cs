@@ -46,28 +46,28 @@ namespace LoLItems
         private static void LoadConfig()
         {
             enabled = LoLItems.MyConfig.Bind<bool>(
-                "InfinityEdge",
+                "Infinity Edge",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
             rarity = LoLItems.MyConfig.Bind<string>(
-                "InfinityEdge",
+                "Infinity Edge",
                 "Rarity",
                 "Tier2Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
             voidItems = LoLItems.MyConfig.Bind<string>(
-                "InfinityEdge",
+                "Infinity Edge",
                 "Void Items",
                 "",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
             bonusCritChance = LoLItems.MyConfig.Bind<float>(
-                "InfinityEdge",
+                "Infinity Edge",
                 "Crit Chance",
                 5f,
                 "Amount of crit chance each item will grant."
@@ -75,7 +75,7 @@ namespace LoLItems
             );
 
             bonusCritDamage = LoLItems.MyConfig.Bind<float>(
-                "InfinityEdge",
+                "Infinity Edge",
                 "Crit Damage",
                 15f,
                 "Amount of crit damage each item will grant."
@@ -166,16 +166,16 @@ namespace LoLItems
         private static void AddTokens()
         {
             // Name of the item
-            LanguageAPI.Add("InfinityEdge", "InfinityEdge");
+            LanguageAPI.Add("InfinityEdge", "Infinity Edge");
 
             // Short description
-            LanguageAPI.Add("InfinityEdgeItem", "Gain crit chance and crit damage");
+            LanguageAPI.Add("InfinityEdgeItem", "Gain crit chance and crit damage.");
 
             // Long description
-            LanguageAPI.Add("InfinityEdgeDesc", "Gain <style=cIsUtility>" + bonusCritChance.Value + "%</style> <style=cStack>(+" + bonusCritChance.Value + ")</style> crit chance and <style=cIsDamage>" + bonusCritDamage.Value + "%</style> <style=cStack>(+" + bonusCritDamage.Value + ")</style> crit damage");
+            LanguageAPI.Add("InfinityEdgeDesc", "Gain <style=cIsUtility>" + bonusCritChance.Value + "%</style> <style=cStack>(+" + bonusCritChance.Value + ")</style> crit chance and <style=cIsDamage>" + bonusCritDamage.Value + "%</style> <style=cStack>(+" + bonusCritDamage.Value + ")</style> crit damage.");
 
             // Lore
-            LanguageAPI.Add("InfinityEdgeLore", "For when enemies need to die");
+            LanguageAPI.Add("InfinityEdgeLore", "For when enemies need to die.");
         }
 
         public static void SetupNetworkMappings()

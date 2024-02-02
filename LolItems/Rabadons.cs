@@ -47,28 +47,28 @@ namespace LoLItems
         private static void LoadConfig()
         {
             enabled = LoLItems.MyConfig.Bind<bool>(
-                "Rabadons",
+                "Rabadons Deathcap",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
             rarity = LoLItems.MyConfig.Bind<string>(
-                "Rabadons",
+                "Rabadons Deathcap",
                 "Rarity",
                 "Tier3Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
             voidItems = LoLItems.MyConfig.Bind<string>(
-                "Rabadons",
+                "Rabadons Deathcap",
                 "Void Items",
                 "",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
             damageAmp = LoLItems.MyConfig.Bind<float>(
-                "Rabadons",
+                "Rabadons Deathcap",
                 "Damage Amp",
                 30f,
                 "Amount of bonus percentage damage each item will grant."
@@ -80,10 +80,10 @@ namespace LoLItems
         {
             myItemDef = ScriptableObject.CreateInstance<ItemDef>();
             myItemDef.name = "Rabadons";
-            myItemDef.nameToken = "RabadonsItem";
-            myItemDef.pickupToken = "RabadonsItemItem";
-            myItemDef.descriptionToken = "RabadonsItemDesc";
-            myItemDef.loreToken = "RabadonsItemLore";
+            myItemDef.nameToken = "RabadonsDeathcap";
+            myItemDef.pickupToken = "RabadonsDeathcapItem";
+            myItemDef.descriptionToken = "RabadonsDeathcapDesc";
+            myItemDef.loreToken = "RabadonsDeathcapLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
             myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
@@ -313,17 +313,17 @@ namespace LoLItems
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
         private static void AddTokens()
         {
-            //The Name should be self explanatory
-            LanguageAPI.Add("RabadonsItem", "RabadonsItem");
+            // Name of the item
+            LanguageAPI.Add("RabadonsDeathcap", "Rabadon\'s Deathcap");
 
-            //The Pickup is the short text that appears when you first pick this up. This text should be short and to the point, numbers are generally ommited.
-            LanguageAPI.Add("RabadonsItemItem", "Hat makes them go splat");
+            // Short description
+            LanguageAPI.Add("RabadonsDeathcapItem", "Hat makes them go splat.");
 
-            //The Description is where you put the actual numbers and give an advanced description.
-            LanguageAPI.Add("RabadonsItemDesc", "Do <style=cIsUtility>" + damageAmp.Value + "%</style> <style=cStack>(+" + damageAmp.Value + "%)</style> more damage");
+            // Long description
+            LanguageAPI.Add("RabadonsDeathcapDesc", "Do <style=cIsUtility>" + damageAmp.Value + "%</style> <style=cStack>(+" + damageAmp.Value + "%)</style> more damage.");
 
-            //The Lore is, well, flavor. You can write pretty much whatever you want here.
-            LanguageAPI.Add("RabadonsItemLore", "Makes you feel like a wizard.");
+            // Lore
+            LanguageAPI.Add("RabadonsDeathcapLore", "Makes you feel like a wizard.");
         }
 
         public static void SetupNetworkMappings()

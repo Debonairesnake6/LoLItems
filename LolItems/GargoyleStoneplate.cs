@@ -56,14 +56,14 @@ namespace LoLItems
         private static void LoadConfig()
         {
             enabled = LoLItems.MyConfig.Bind<bool>(
-                "GargoyleStoneplate",
+                "Gargoyle Stoneplate",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
             barrierPercent = LoLItems.MyConfig.Bind<float>(
-                "GargoyleStoneplate",
+                "Gargoyle Stoneplate",
                 "Barrier Percentage",
                 60f,
                 "Percent of barrier Gargoyle Stoneplate will grant you."
@@ -71,7 +71,7 @@ namespace LoLItems
             );
 
             barrierCooldown = LoLItems.MyConfig.Bind<float>(
-                "GargoyleStoneplate",
+                "Gargoyle Stoneplate",
                 "Barrier Cooldown",
                 60f,
                 "Cooldown of the item."
@@ -79,14 +79,14 @@ namespace LoLItems
             );
 
             armorDuration = LoLItems.MyConfig.Bind<float>(
-                "GargoyleStoneplate",
+                "Gargoyle Stoneplate",
                 "Armor Duration",
                 2f,
                 "Duration of the armor buff."
             );
 
             armorValue = LoLItems.MyConfig.Bind<float>(
-                "GargoyleStoneplate",
+                "Gargoyle Stoneplate",
                 "Armor Value",
                 100f,
                 "Armor value given during the buff."
@@ -96,7 +96,7 @@ namespace LoLItems
         private static void CreateItem()
         {
             myEquipmentDef = ScriptableObject.CreateInstance<EquipmentDef>();
-            myEquipmentDef.name = "GargoyleStoneplate";  // Replace this string throughout the entire file with your new item name
+            myEquipmentDef.name = "GargoyleStoneplate";
             myEquipmentDef.nameToken = "GargoyleStoneplate";
             myEquipmentDef.pickupToken = "GargoyleStoneplateItem";
             myEquipmentDef.descriptionToken = "GargoyleStoneplateDesc";
@@ -116,7 +116,7 @@ namespace LoLItems
             gargoyleArmorBuff = ScriptableObject.CreateInstance<BuffDef>();
 
             gargoyleArmorBuff.iconSprite = Assets.icons.LoadAsset<Sprite>("GargoyleStoneplateIcon");
-            gargoyleArmorBuff.name = "gargoyleArmorBuff";
+            gargoyleArmorBuff.name = "Gargoyle Stoneplate Armor Buff";
             gargoyleArmorBuff.canStack = false;
             gargoyleArmorBuff.isDebuff = false;
             gargoyleArmorBuff.isCooldown = true;

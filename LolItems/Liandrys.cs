@@ -59,28 +59,28 @@ namespace LoLItems
         private static void LoadConfig()
         {
             enabled = LoLItems.MyConfig.Bind<bool>(
-                "Liandrys",
+                "Liandrys Anguish",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
             rarity = LoLItems.MyConfig.Bind<string>(
-                "Liandrys",
+                "Liandrys Anguish",
                 "Rarity",
                 "Tier2Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
             voidItems = LoLItems.MyConfig.Bind<string>(
-                "Liandrys",
+                "Liandrys Anguish",
                 "Void Items",
                 "",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
             burnDamagePercent = LoLItems.MyConfig.Bind<float>(
-                "Liandrys",
+                "Liandrys Anguish",
                 "Max Health Burn Percent",
                 2.5f,
                 "Amount of max health percent burn each item will grant."
@@ -88,7 +88,7 @@ namespace LoLItems
             );
 
             burnDamageDuration = LoLItems.MyConfig.Bind<float>(
-                "Liandrys",
+                "Liandrys Anguish",
                 "Burn Duration",
                 5f,
                 "Duration of the burn."
@@ -96,7 +96,7 @@ namespace LoLItems
             );
 
             burnDamageMin = LoLItems.MyConfig.Bind<float>(
-                "Liandrys",
+                "Liandrys Anguish",
                 "Minimum Burn Damage",
                 0.5f * burnDamageDuration.Value,
                 "Minimum burn damage. This will be multiplied by your base damage."
@@ -104,7 +104,7 @@ namespace LoLItems
             );
 
             burnDamageMax = LoLItems.MyConfig.Bind<float>(
-                "Liandrys",
+                "Liandrys Anguish",
                 "Maximum Burn Damage",
                 25f * burnDamageDuration.Value,
                 "Maximum burn damage. This will be multiplied by your base damage."
@@ -115,7 +115,7 @@ namespace LoLItems
         private static void CreateItem()
         {
             myItemDef = ScriptableObject.CreateInstance<ItemDef>();
-            myItemDef.name = "Liandrys";
+            myItemDef.name = "LiandrysAnguish";
             myItemDef.nameToken = "Liandrys";
             myItemDef.pickupToken = "LiandrysItem";
             myItemDef.descriptionToken = "LiandrysDesc";
@@ -134,7 +134,7 @@ namespace LoLItems
             myBuffDef = ScriptableObject.CreateInstance<BuffDef>();
 
             myBuffDef.iconSprite = Assets.icons.LoadAsset<Sprite>("LiandrysIcon");
-            myBuffDef.name = "LiandrysBuff";
+            myBuffDef.name = "Liandry\'s Anguish Buff";
             myBuffDef.canStack = false;
             myBuffDef.isDebuff = true;
             myBuffDef.isCooldown = true;
@@ -257,20 +257,20 @@ namespace LoLItems
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
         private static void AddTokens()
         {
-            //The Name should be self explanatory
-            LanguageAPI.Add("Liandrys", "Liandrys");
+            // Name of the item
+            LanguageAPI.Add("Liandrys", "Liandry\'s Anguish");
 
-            //The Pickup is the short text that appears when you first pick this up. This text should be short and to the point, numbers are generally ommited.
-            LanguageAPI.Add("LiandrysItem", "Burn enemies on hit for a % of their max health");
+            // Short description
+            LanguageAPI.Add("LiandrysItem", "Burn enemies on hit for a % of their max health.");
 
-            //The Description is where you put the actual numbers and give an advanced description.
-            LanguageAPI.Add("LiandrysDesc", "On hit burn enemies for <style=cIsDamage>" + burnDamagePercent.Value + "%</style> <style=cStack>(+" + burnDamagePercent.Value + "%)</style> max health over " + burnDamageDuration.Value + " seconds");
+            // Long description
+            LanguageAPI.Add("LiandrysDesc", "On hit burn enemies for <style=cIsDamage>" + burnDamagePercent.Value + "%</style> <style=cStack>(+" + burnDamagePercent.Value + "%)</style> max health over " + burnDamageDuration.Value + " seconds.");
 
-            //The Lore is, well, flavor. You can write pretty much whatever you want here.
+            // Lore
             LanguageAPI.Add("LiandrysLore", "A crying mask is a great halloween costume.");
 
             // ENABLE for buff
-            LanguageAPI.Add("LiandrysBuff", "Liandrys is burning this unit");
+            LanguageAPI.Add("LiandrysBuff", "Liandry\'s Anguish is burning this unit.");
         }
 
         public static void SetupNetworkMappings()

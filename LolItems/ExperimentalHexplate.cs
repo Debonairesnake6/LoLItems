@@ -58,28 +58,28 @@ namespace LoLItems
         private static void LoadConfig()
         {
             enabled = LoLItems.MyConfig.Bind<bool>(
-                "ExperimentalHexplate",
+                "Experimental Hexplate",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
             rarity = LoLItems.MyConfig.Bind<string>(
-                "ExperimentalHexplate",
+                "Experimental Hexplate",
                 "Rarity",
                 "Tier2Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
             voidItems = LoLItems.MyConfig.Bind<string>(
-                "ExperimentalHexplate",
+                "Experimental Hexplate",
                 "Void Items",
                 "",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
             duration = LoLItems.MyConfig.Bind<float>(
-                "ExperimentalHexplate",
+                "Experimental Hexplate",
                 "Duration",
                 5f,
                 "The duration of the item buff."
@@ -87,7 +87,7 @@ namespace LoLItems
             );
 
             attackSpeed = LoLItems.MyConfig.Bind<float>(
-                "ExperimentalHexplate",
+                "Experimental Hexplate",
                 "Attack Speed",
                 40f,
                 "The amount of attack speed the item proc grants."
@@ -95,7 +95,7 @@ namespace LoLItems
             );
 
             moveSpeed = LoLItems.MyConfig.Bind<float>(
-                "ExperimentalHexplate",
+                "Experimental Hexplate",
                 "Movespeed",
                 32f,
                 "The amount of movespeed the item proc grants."
@@ -180,7 +180,7 @@ namespace LoLItems
         private static void AddTokens()
         {
             // Name of the item
-            LanguageAPI.Add("ExperimentalHexplate", "ExperimentalHexplate");
+            LanguageAPI.Add("ExperimentalHexplate", "Experimental Hexplate");
 
             // Short description
             LanguageAPI.Add("ExperimentalHexplateItem", "Using your Special skill temporarily increases your attack speed and movespeed.");
@@ -192,7 +192,7 @@ namespace LoLItems
             LanguageAPI.Add("ExperimentalHexplateLore", "Was it wise to put on something this experimental? <br><br>Probably.");
 
             // ENABLE for buff
-            LanguageAPI.Add("ExperimentalHexplateBuff", "ExperimentalHexplate");
+            LanguageAPI.Add("ExperimentalHexplateBuff", "Experimental Hexplate");
         }
 
         public static void SetupNetworkMappings()

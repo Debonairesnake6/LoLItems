@@ -129,7 +129,7 @@ namespace LoLItems
             myTimerBuffDef = ScriptableObject.CreateInstance<BuffDef>();
 
             myTimerBuffDef.iconSprite = Assets.icons.LoadAsset<Sprite>("HeartsteelIcon");
-            myTimerBuffDef.name = "HeartsteelTimerBuff";
+            myTimerBuffDef.name = "Heartsteel Timer Debuff";
             myTimerBuffDef.canStack = false;
             myTimerBuffDef.isDebuff = true;
             myTimerBuffDef.isCooldown = true;
@@ -233,16 +233,16 @@ namespace LoLItems
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
         private static void AddTokens()
         {
-            //The Name should be self explanatory
+            // Name of the item
             LanguageAPI.Add("Heartsteel", "Heartsteel");
 
-            //The Pickup is the short text that appears when you first pick this up. This text should be short and to the point, numbers are generally ommited.
+            // Short description
             LanguageAPI.Add("HeartsteelItem", "Gain permanent health on kill with no cap. Every few seconds deal a portion of your health as extra damage on hit.");
 
-            //The Description is where you put the actual numbers and give an advanced description.
+            // Long description
             LanguageAPI.Add("HeartsteelDesc", "Adds <style=cIsHealth>" + bonusHealthAmount.Value + "</style> <style=cStack>(+" + bonusHealthAmount.Value + ")</style> base health per kill with no cap. Every <style=cIsUtility>" + damageCooldown.Value + "</style> seconds deal <style=cIsDamage>" + damageBonus.Value + "%</style> of your max health as damage on hit.");
 
-            //The Lore is, well, flavor. You can write pretty much whatever you want here.
+            // Lore
             LanguageAPI.Add("HeartsteelLore", "Lore was meant to go here, but Sion trampled it.");
         }
 

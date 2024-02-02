@@ -47,28 +47,28 @@ namespace LoLItems
         private static void LoadConfig()
         {
             enabled = LoLItems.MyConfig.Bind<bool>(
-                "ImperialMandate",
+                "Imperial Mandate",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
             rarity = LoLItems.MyConfig.Bind<string>(
-                "ImperialMandate",
+                "Imperial Mandate",
                 "Rarity",
                 "VoidTier2Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
             voidItems = LoLItems.MyConfig.Bind<string>(
-                "ImperialMandate",
+                "Imperial Mandate",
                 "Void Items",
                 "DeathMark",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
             damageAmpPerStack = LoLItems.MyConfig.Bind<float>(
-                "ImperialMandate",
+                "Imperial Mandate",
                 "Damage Amp",
                 8f,
                 "Amount of bonus damage each item will grant."
@@ -150,26 +150,8 @@ namespace LoLItems
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
         private static void AddTokens()
         {
-            // Styles
-            // <style=cIsHealth>" + exampleValue + "</style>
-            // <style=cIsDamage>" + exampleValue + "</style>
-            // <style=cIsHealing>" + exampleValue + "</style>
-            // <style=cIsUtility>" + exampleValue + "</style>
-            // <style=cIsVoid>" + exampleValue + "</style>
-            // <style=cHumanObjective>" + exampleValue + "</style>
-            // <style=cLunarObjective>" + exampleValue + "</style>
-            // <style=cStack>" + exampleValue + "</style>
-            // <style=cWorldEvent>" + exampleValue + "</style>
-            // <style=cArtifact>" + exampleValue + "</style>
-            // <style=cUserSetting>" + exampleValue + "</style>
-            // <style=cDeath>" + exampleValue + "</style>
-            // <style=cSub>" + exampleValue + "</style>
-            // <style=cMono>" + exampleValue + "</style>
-            // <style=cShrine>" + exampleValue + "</style>
-            // <style=cEvent>" + exampleValue + "</style>
-
             // Name of the item
-            LanguageAPI.Add("ImperialMandate", "ImperialMandate");
+            LanguageAPI.Add("ImperialMandate", "Imperial Mandate");
 
             // Short description
             LanguageAPI.Add("ImperialMandateItem", "Do more damage to enemies for each debuff. Corrupts <style=cIsVoid>Death Mark</style>.");

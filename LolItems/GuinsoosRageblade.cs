@@ -46,28 +46,28 @@ namespace LoLItems
         private static void LoadConfig()
         {
             enabled = LoLItems.MyConfig.Bind<bool>(
-                "GuinsoosRageblade",
+                "Guinsoos Rageblade",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
             rarity = LoLItems.MyConfig.Bind<string>(
-                "GuinsoosRageblade",
+                "Guinsoos Rageblade",
                 "Rarity",
                 "Tier2Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
             voidItems = LoLItems.MyConfig.Bind<string>(
-                "GuinsoosRageblade",
+                "Guinsoos Rageblade",
                 "Void Items",
                 "",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
             procCoef = LoLItems.MyConfig.Bind<float>(
-                "GuinsoosRageblade",
+                "Guinsoos Rageblade",
                 "ProcCoef",
                 0.1f,
                 "Amount of profCoef each item will grant"
@@ -136,13 +136,13 @@ namespace LoLItems
         private static void AddTokens()
         {
             // Name of the item
-            LanguageAPI.Add("GuinsoosRageblade", "GuinsoosRageblade");
+            LanguageAPI.Add("GuinsoosRageblade", "Guinsoo\'s Rageblade");
 
             // Short description
-            LanguageAPI.Add("GuinsoosRagebladeItem", "Increase proc coefficient of everything");
+            LanguageAPI.Add("GuinsoosRagebladeItem", "Increase proc coefficient of everything.");
 
             // Long description
-            LanguageAPI.Add("GuinsoosRagebladeDesc", "Gives <style=cIsUtility>" + procCoef.Value + "</style> <style=cStack>(+" + procCoef.Value + ")</style> proc coefficient to everything");
+            LanguageAPI.Add("GuinsoosRagebladeDesc", "Gives <style=cIsUtility>" + procCoef.Value + "</style> <style=cStack>(+" + procCoef.Value + ")</style> proc coefficient to everything.");
 
             // Lore
             LanguageAPI.Add("GuinsoosRagebladeLore", "Procs go brrrrrrr.");

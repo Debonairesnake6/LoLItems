@@ -115,7 +115,7 @@ namespace LoLItems
             myBuffDef = ScriptableObject.CreateInstance<BuffDef>();
 
             myBuffDef.iconSprite = Assets.icons.LoadAsset<Sprite>("CullIcon");
-            myBuffDef.name = "CullBuff";
+            myBuffDef.name = "Cull Stacks";
             myBuffDef.canStack = true;
             myBuffDef.isDebuff = false;
             myBuffDef.isCooldown = false;
@@ -226,14 +226,13 @@ namespace LoLItems
             LanguageAPI.Add("Cull", "Cull");
 
             // Short description
-            // Update this to include kills to break
-            LanguageAPI.Add("CullItem", "Cull gives gold when killing enemies. Turns into scrap when enough gold collected."); 
+            LanguageAPI.Add("CullItem", "Gives gold when killing enemies. Turns into White Scrap when <style=cIsUtility>" + killsToBreak.Value + "</style> enemies are killed.");
 
             // Long description
-            LanguageAPI.Add("CullDesc", "Cull gives <style=cIsUtility>" + goldOnKill.Value + "</style> <style=cStack>(+" + goldOnKill.Value + ")</style> gold when killing an enemy. Upon hitting <style=cIsUtility>" + killsToBreak.Value + "</style> gold turns into White Scrap.");
+            LanguageAPI.Add("CullDesc", "Gives <style=cIsUtility>" + goldOnKill.Value + "</style> <style=cStack>(+" + goldOnKill.Value + ")</style> gold when killing an enemy. Upon killing <style=cIsUtility>" + killsToBreak.Value + "</style> enemies, turns into White Scrap.");
 
             // Lore
-            LanguageAPI.Add("CullLore", "I personally like Doran's Blade more");
+            LanguageAPI.Add("CullLore", "I personally like Doran's Blade more.");
 
             // ENABLE for buff
             LanguageAPI.Add("CullBuff", "Gold gained");

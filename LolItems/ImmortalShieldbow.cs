@@ -53,28 +53,28 @@ namespace LoLItems
         private static void LoadConfig()
         {
             enabled = LoLItems.MyConfig.Bind<bool>(
-                "ImmortalShieldbow",
+                "Immortal Shieldbow",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
             rarity = LoLItems.MyConfig.Bind<string>(
-                "ImmortalShieldbow",
+                "Immortal Shieldbow",
                 "Rarity",
                 "Tier2Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
             voidItems = LoLItems.MyConfig.Bind<string>(
-                "ImmortalShieldbow",
+                "Immortal Shieldbow",
                 "Void Items",
                 "",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
             barrierPercent = LoLItems.MyConfig.Bind<float>(
-                "ImmortalShieldbow",
+                "Immortal Shieldbow",
                 "Barrier Percent",
                 40f,
                 "Amount of percent max health barrier each item will grant."
@@ -82,7 +82,7 @@ namespace LoLItems
             );
 
             buffCooldown = LoLItems.MyConfig.Bind<float>(
-                "ImmortalShieldbow",
+                "Immortal Shieldbow",
                 "Cooldown",
                 40f,
                 "Cooldown of the barrier."
@@ -90,7 +90,7 @@ namespace LoLItems
             );
 
             barrierThreshold = LoLItems.MyConfig.Bind<float>(
-                "ImmortalShieldbow",
+                "Immortal Shieldbow",
                 "Health Threshold",
                 30f,
                 "Health threshold to trigger the barrier."
@@ -120,7 +120,7 @@ namespace LoLItems
         {
             myBuffDefCooldown = ScriptableObject.CreateInstance<BuffDef>();
             myBuffDefCooldown.iconSprite = Assets.icons.LoadAsset<Sprite>("ImmortalShieldbowIcon");
-            myBuffDefCooldown.name = "ImmortalShieldbowBuffCooldown";
+            myBuffDefCooldown.name = "Immortal Shieldbow Cooldown";
             myBuffDefCooldown.buffColor = Color.gray;
             myBuffDefCooldown.canStack = false;
             myBuffDefCooldown.isDebuff = true;
@@ -170,7 +170,7 @@ namespace LoLItems
         private static void AddTokens()
         {
             // Name of the item
-            LanguageAPI.Add("ImmortalShieldbow", "ImmortalShieldbow");
+            LanguageAPI.Add("ImmortalShieldbow", "Immortal Shieldbow");
 
             // Short description
             LanguageAPI.Add("ImmortalShieldbowItem", "Gives a barrier when low on health.");
@@ -182,7 +182,7 @@ namespace LoLItems
             LanguageAPI.Add("ImmortalShieldbowLore", "Here to save you for when you mess up.");
 
             // ENABLE for buff
-            LanguageAPI.Add("ImmortalShieldbowBuff", "ImmortalShieldbow is recharging.");
+            LanguageAPI.Add("ImmortalShieldbowBuff", "Immortal Shieldbow is recharging.");
         }
 
         public static void SetupNetworkMappings()

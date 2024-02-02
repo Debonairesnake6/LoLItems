@@ -55,28 +55,28 @@ namespace LoLItems
         private static void LoadConfig()
         {
             enabled = LoLItems.MyConfig.Bind<bool>(
-                "MejaisSoulstealer",
+                "Mejais Soulstealer",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
             rarity = LoLItems.MyConfig.Bind<string>(
-                "MejaisSoulstealer",
+                "Mejais Soulstealer",
                 "Rarity",
                 "Tier1Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
             voidItems = LoLItems.MyConfig.Bind<string>(
-                "MejaisSoulstealer",
+                "Mejais Soulstealer",
                 "Void Items",
                 "",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
             bonusDamagePercent = LoLItems.MyConfig.Bind<float>(
-                "MejaisSoulstealer",
+                "Mejais Soulstealer",
                 "Bonus Damage Per Stack",
                 0.5f,
                 "Amount of bonus damage each stack will grant."
@@ -84,7 +84,7 @@ namespace LoLItems
             );
 
             maxStacks = LoLItems.MyConfig.Bind<int>(
-                "MejaisSoulstealer",
+                "Mejais Soulstealer",
                 "Max Stacks",
                 25,
                 "Maximum amount of stacks for the buff."
@@ -92,7 +92,7 @@ namespace LoLItems
             );
 
             duration = LoLItems.MyConfig.Bind<float>(
-                "MejaisSoulstealer",
+                "Mejais Soulstealer",
                 "Duration",
                 10f,
                 "Duration of the buff."
@@ -121,14 +121,14 @@ namespace LoLItems
         {
             currentStacks = ScriptableObject.CreateInstance<BuffDef>();
             currentStacks.iconSprite = Assets.icons.LoadAsset<Sprite>("MejaisSoulstealerIcon");
-            currentStacks.name = "MejaisSoulstealerBuff";
+            currentStacks.name = "Mejai\'s Soulstealer Buff";
             currentStacks.canStack = true;
             currentStacks.isDebuff = false;
             currentStacks.isCooldown = false;
             currentStacks.isHidden = false;
 
             currentDuration = ScriptableObject.CreateInstance<BuffDef>();
-            currentDuration.name = "MejaisSoulstealerBuffDuration";
+            currentDuration.name = "Mejai\'s Soulstealer Buff Duration";
             currentDuration.canStack = false;
             currentDuration.isDebuff = false;
             currentDuration.isCooldown = true;
@@ -212,10 +212,10 @@ namespace LoLItems
         private static void AddTokens()
         {
             // Name of the item
-            LanguageAPI.Add("MejaisSoulstealer", "MejaisSoulstealer");
+            LanguageAPI.Add("MejaisSoulstealer", "Mejai\'s Soulstealer");
 
             // Short description
-            LanguageAPI.Add("MejaisSoulstealerItem", "Killing enemies grants more damage for a short time");
+            LanguageAPI.Add("MejaisSoulstealerItem", "Killing enemies grants more damage for a short time.");
 
             // Long description
             LanguageAPI.Add("MejaisSoulstealerDesc", "Killing an enemy grants a stack which gives <style=cIsDamage>" + bonusDamagePercent.Value + 
@@ -225,8 +225,8 @@ namespace LoLItems
             // Lore
             LanguageAPI.Add("MejaisSoulstealerLore", "Your death note.");
 
-            LanguageAPI.Add("MejaisSoulstealerBuff", "Mejais stacks");
-            LanguageAPI.Add("MejaisSoulstealerBuffDuration", "Mejais duration remaining");
+            LanguageAPI.Add("MejaisSoulstealerBuff", "Mejai\'s Soulstealer stacks.");
+            LanguageAPI.Add("MejaisSoulstealerBuffDuration", "Mejai\'s Soulstealer duration remaining.");
         }
 
         public static void SetupNetworkMappings()

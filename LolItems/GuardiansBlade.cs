@@ -49,28 +49,28 @@ namespace LoLItems
         private static void LoadConfig()
         {
             enabled = LoLItems.MyConfig.Bind<bool>(
-                "GuardiansBlade",
+                "Guardians Blade",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
             rarity = LoLItems.MyConfig.Bind<string>(
-                "GuardiansBlade",
+                "Guardians Blade",
                 "Rarity",
                 "Tier1Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
             voidItems = LoLItems.MyConfig.Bind<string>(
-                "GuardiansBlade",
+                "Guardians Blade",
                 "Void Items",
                 "",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
             cooldownReduction = LoLItems.MyConfig.Bind<float>(
-                "GuardiansBlade",
+                "Guardians Blade",
                 "Cooldown Reduction",
                 10f,
                 "Amount of cooldown reduction each item will grant."
@@ -143,16 +143,16 @@ namespace LoLItems
         private static void AddTokens()
         {
             // Name of the item
-            LanguageAPI.Add("GuardiansBlade", "GuardiansBlade");
+            LanguageAPI.Add("GuardiansBlade", "Guardian\'s Blade");
 
             // Short description
-            LanguageAPI.Add("GuardiansBladeItem", "Reduce the cooldown on secondary and utility skills");
+            LanguageAPI.Add("GuardiansBladeItem", "Reduce the cooldown on secondary and utility skills.");
 
             // Long description
             LanguageAPI.Add("GuardiansBladeDesc", "Reduce the cooldown on your secondary and utility skills by <style=cIsUtility>" + cooldownReduction.Value + "%</style> <style=cStack>(+" + cooldownReduction.Value + ")</style>. Scales hyperbolically, just like tougher times.");
 
             // Lore
-            LanguageAPI.Add("GuardiansBladeLore", "Awesome Refund And Movement.");
+            LanguageAPI.Add("GuardiansBladeLore", "Awesome refund And movement.");
         }
 
         public static void SetupNetworkMappings()

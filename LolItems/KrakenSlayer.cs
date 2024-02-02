@@ -52,28 +52,28 @@ namespace LoLItems
         private static void LoadConfig()
         {
             enabled = LoLItems.MyConfig.Bind<bool>(
-                "KrakenSlayer",
+                "Kraken Slayer",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
             rarity = LoLItems.MyConfig.Bind<string>(
-                "KrakenSlayer",
+                "Kraken Slayer",
                 "Rarity",
                 "Tier2Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
             voidItems = LoLItems.MyConfig.Bind<string>(
-                "KrakenSlayer",
+                "Kraken Slayer",
                 "Void Items",
                 "",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
             procRequirement = LoLItems.MyConfig.Bind<int>(
-                "KrakenSlayer",
+                "Kraken Slayer",
                 "On Hit Proc Requirement",
                 3,
                 "Amount of hits required to proc the on hit damage."
@@ -81,7 +81,7 @@ namespace LoLItems
             );
 
             procDamage = LoLItems.MyConfig.Bind<float>(
-                "KrakenSlayer",
+                "Kraken Slayer",
                 "Base Damage Percent",
                 20f,
                 "Amount of additional percent base damage each item will grant."
@@ -116,7 +116,7 @@ namespace LoLItems
             myCounterBuffDef = ScriptableObject.CreateInstance<BuffDef>();
 
             myCounterBuffDef.iconSprite = Assets.icons.LoadAsset<Sprite>("KrakenSlayerIcon");
-            myCounterBuffDef.name = "KrakenSlayerCounterBuff";
+            myCounterBuffDef.name = "Kraken Slayer Counter";
             myCounterBuffDef.canStack = true;
             myCounterBuffDef.isDebuff = false;
             myCounterBuffDef.isCooldown = false;
@@ -207,16 +207,16 @@ namespace LoLItems
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
         private static void AddTokens()
         {
-            //The Name should be self explanatory
-            LanguageAPI.Add("KrakenSlayer", "KrakenSlayer");
+            // Name of the item
+            LanguageAPI.Add("KrakenSlayer", "Kraken Slayer");
 
-            //The Pickup is the short text that appears when you first pick this up. This text should be short and to the point, numbers are generally ommited.
+            // Short description
             LanguageAPI.Add("KrakenSlayerItem", "Every " + procRequirement.Value + " hits do bonus damage.");
 
-            //The Description is where you put the actual numbers and give an advanced description.
+            // Long description
             LanguageAPI.Add("KrakenSlayerDesc", "Every " + procRequirement.Value + " hits do an extra <style=cIsDamage>" + procDamage.Value + "%</style> <style=cStack>(+" + procDamage.Value + "%)</style> base damage.");
 
-            //The Lore is, well, flavor. You can write pretty much whatever you want here.
+            // Lore
             LanguageAPI.Add("KrakenSlayerLore", "Legend has it that this item is no longer mythical.");
         }
 

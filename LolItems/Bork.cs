@@ -72,28 +72,28 @@ namespace LoLItems
         private static void LoadConfig()
         {
             enabled = LoLItems.MyConfig.Bind<bool>(
-                "Bork",
+                "Blade of the Ruined King",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
             rarity = LoLItems.MyConfig.Bind<string>(
-                "Bork",
+                "Blade of the Ruined King",
                 "Rarity",
                 "VoidTier2Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
             voidItems = LoLItems.MyConfig.Bind<string>(
-                "Bork",
+                "Blade of the Ruined King",
                 "Void Items",
                 "Syringe,Seed",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
             onHitDamageAmount = LoLItems.MyConfig.Bind<float>(
-                "Bork",
+                "Blade of the Ruined King",
                 "On Hit Damage Percent",
                 5f,
                 "Amount of on hit max health damage percent each item will grant."
@@ -101,7 +101,7 @@ namespace LoLItems
             );
 
             procForBigHit = LoLItems.MyConfig.Bind<float>(
-                "Bork",
+                "Blade of the Ruined King",
                 "On Hit Proc Requirement",
                 3f,
                 "Amount of hits required to proc the on hit damage."
@@ -109,7 +109,7 @@ namespace LoLItems
             );
 
             onHitHealPercent = LoLItems.MyConfig.Bind<float>(
-                "Bork",
+                "Blade of the Ruined King",
                 "Heal Percent",
                 20f,
                 "Percentage of damage dealt to be gained as healing."
@@ -117,7 +117,7 @@ namespace LoLItems
             );
 
             bigOnHitTimer = LoLItems.MyConfig.Bind<float>(
-                "Bork",
+                "Blade of the Ruined King",
                 "Proc Cooldown",
                 10f,
                 "Cooldown per enemy."
@@ -125,7 +125,7 @@ namespace LoLItems
             );
 
             procDamageMin = LoLItems.MyConfig.Bind<float>(
-                "Bork",
+                "Blade of the Ruined King",
                 "Min Proc Damage",
                 2f,
                 "Multiplied by your base damage to determine the minimum proc damage."
@@ -133,7 +133,7 @@ namespace LoLItems
             );
 
             procDamageMax = LoLItems.MyConfig.Bind<float>(
-                "Bork",
+                "Blade of the Ruined King",
                 "Max Proc Damage",
                 25f,
                 "Multiplied by your base damage to determine the maximum proc damage."
@@ -141,7 +141,7 @@ namespace LoLItems
             );
 
             attackSpeed = LoLItems.MyConfig.Bind<float>(
-                "Bork",
+                "Blade of the Ruined King",
                 "Attack Speed",
                 5f,
                 "Amount of attack speed each item will grant."
@@ -280,19 +280,19 @@ namespace LoLItems
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
         private static void AddTokens()
         {
-            //The Name should be self explanatory
-            LanguageAPI.Add("Bork", "Bork");
+            // Name of the item
+            LanguageAPI.Add("Bork", "Blade of the Ruined King");
 
-            //The Pickup is the short text that appears when you first pick this up. This text should be short and to the point, numbers are generally ommited.
+            // Short description
             LanguageAPI.Add("BorkItem", "Attack speed. Every " + procForBigHit.Value + " hits do damage and heal, and has a cooldown. Corrupts <style=cIsVoid>Syringes</style> and <style=cIsVoid>Leaching Seeds</style>.");
 
-            //The Description is where you put the actual numbers and give an advanced description.
+            // Long description
             LanguageAPI.Add("BorkDesc", "Gives <style=cIsDamage>" + attackSpeed.Value + "%</style> <style=cStack>(+" + attackSpeed.Value + 
             "%)</style> attack speed. Deals <style=cIsDamage>" + onHitDamageAmount.Value + "%</style> <style=cStack>(+" + onHitDamageAmount.Value + 
             "%)</style> current enemy hp every third hit, and heal for <style=cIsHealing>" + onHitHealPercent.Value + "%</style> of that damage on a " + bigOnHitTimer.Value + 
             " second cooldown. Corrupts <style=cIsVoid>Syringes</style> and <style=cIsVoid>Leaching Seeds</style>.");
 
-            //The Lore is, well, flavor. You can write pretty much whatever you want here.
+            // Lore
             LanguageAPI.Add("BorkLore", "Viego is a plague to everything he touches.");
         }
 
