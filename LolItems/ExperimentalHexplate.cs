@@ -123,7 +123,10 @@ namespace LoLItems
         {
             On.RoR2.GenericSkill.OnExecute += (orig, self) => {
                 if (!NetworkServer.active)
+                {
+                    orig(self);
                     return;
+                }
                     
                 GenericSkill specialSkill = self.characterBody?.skillLocator?.special;
 
