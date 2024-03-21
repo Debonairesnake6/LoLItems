@@ -121,22 +121,22 @@ namespace LoLItems
 
         private static void Hooks()
         {
-            On.RoR2.GenericSkill.OnExecute += (orig, self) => {
-                if (!NetworkServer.active)
-                {
-                    orig(self);
+
+            On.RoR2.CharacterBody.OnSkillActivated += (orig, self, genericSkill) => {
+                if (!NetworkServer.active) {
+                    orig(self, genericSkill);
                     return;
                 }
-                    
-                GenericSkill specialSkill = self.characterBody?.skillLocator?.special;
 
-                if (self.characterBody?.inventory?.GetItemCount(myItemDef) > 0 && specialSkill == self)
+                GenericSkill specialSkill = self.skillLocator?.special;
+
+                if (self.inventory?.GetItemCount(myItemDef) > 0 && specialSkill == genericSkill)
                 {
-                    Utilities.AddTimedBuff(self.characterBody, myBuffDef, Duration.Value);
-                    Utilities.AddValueInDictionary(ref totalTimesActivated, self.characterBody.master, 1, totalTimesActivatedToken, false);
+                    Utilities.AddTimedBuff(self, myBuffDef, Duration.Value);
+                    Utilities.AddValueInDictionary(ref totalTimesActivated, self.master, 1, totalTimesActivatedToken, false);
                 }
 
-                orig(self);
+                orig(self, genericSkill);
             };
 
             RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
