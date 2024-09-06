@@ -6,22 +6,30 @@ Adding items from League of Legends to Risk of Rain 2.
 These are just the items implemented so far. I am planning to continue to add more items as I develop this mod.
 Icon | Name | Tier | Description
 --- | --- | --- | ---
-![BannerOfCommand](https://static.wikia.nocookie.net/leagueoflegends/images/a/a4/Banner_of_Command_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201104170517) | BannerOfCommand | White | Your minions do bonus damage.
-![MejaisSoulstealer](https://static.wikia.nocookie.net/leagueoflegends/images/8/88/Mejai%27s_Soulstealer_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221103165010) | MejaisSoulstealer | White | Killing enemies grants more damage for a short time.
-![GuardiansBlade](https://static.wikia.nocookie.net/leagueoflegends/images/f/f2/Guardian%27s_Blade_item.png/revision/latest?cb=20221019163250) | GuardiansBlade | White | Reduce cooldown on secondary and utility skills.
+![Banner of Command](https://static.wikia.nocookie.net/leagueoflegends/images/a/a4/Banner_of_Command_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201104170517) | Banner of Command | White | Your minions do bonus damage.
+![Mejai's Soulstealer](https://static.wikia.nocookie.net/leagueoflegends/images/8/88/Mejai%27s_Soulstealer_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221103165010) | Mejai's Soulstealer | White | Killing enemies grants more damage for a short time.
+![Guardian's Blade](https://static.wikia.nocookie.net/leagueoflegends/images/f/f2/Guardian%27s_Blade_item.png/revision/latest?cb=20221019163250) | Guardian's Blade | White | Reduce cooldown on secondary and utility skills.
 ![Cull](https://static.wikia.nocookie.net/leagueoflegends/images/1/11/Cull_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201116174218) | Cull | White | Gives gold on kills, then turns into **White Scrap**.
-![GuinsoosRageblade](https://static.wikia.nocookie.net/leagueoflegends/images/6/64/Guinsoo%27s_Rageblade_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201110230134) | GuinsoosRageblade | Green | Gain extra proc coefficient on everything.
-![InfinityEdge](https://static.wikia.nocookie.net/leagueoflegends/images/a/aa/Infinity_Edge_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221230173431) | InfinityEdge | Green | Crit chance and crit damage.
-![Liandrys](https://static.wikia.nocookie.net/leagueoflegends/images/f/fd/Liandry%27s_Torment_item.png/revision/latest?cb=20201118211533) | Liandrys | Green | Burn enemies for % max health damage on hit.
-![KrakenSlayer](https://static.wikia.nocookie.net/leagueoflegends/images/e/e9/Kraken_Slayer_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201110232124) | KrakenSlayer | Green | Bonus damage every few hits.
-![ImmortalShieldbow](https://static.wikia.nocookie.net/leagueoflegends/images/2/2b/Immortal_Shieldbow_item.png/revision/latest?cb=20201118205028) | ImmortalShieldbow | Green | Gives a barrier based on your max health when low.
-![Rabadons](https://static.wikia.nocookie.net/leagueoflegends/images/c/c5/Rabadon%27s_Deathcap_item.png/revision/latest?cb=20201118205704) | Rabadons | Red | Do more damage.
+![Experimental Hexplate](https://static.wikia.nocookie.net/leagueoflegends/images/f/fc/Experimental_Hexplate_item_HD.png/revision/latest/scale-to-width-down/64?cb=20231204214844) | Experimental Hexplate | Green | Using your Special skill temporarily increases your attack speed and movespeed.
+![Guinsoo's Rageblade](https://static.wikia.nocookie.net/leagueoflegends/images/6/64/Guinsoo%27s_Rageblade_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201110230134) | Guinsoo's Rageblade | Green | Gain extra proc coefficient on everything.
+![Infinity Edge](https://static.wikia.nocookie.net/leagueoflegends/images/a/aa/Infinity_Edge_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221230173431) | Infinity Edge | Green | Crit chance and crit damage.
+![Liandry's Anguish](https://static.wikia.nocookie.net/leagueoflegends/images/f/fd/Liandry%27s_Torment_item.png/revision/latest?cb=20201118211533) | Liandry's Anguish | Green | Burn enemies for % max health damage on hit.
+![Kraken Slayer](https://static.wikia.nocookie.net/leagueoflegends/images/e/e9/Kraken_Slayer_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201110232124) | Kraken Slayer | Green | Bonus damage every few hits.
+![Immortal Shieldbow](https://static.wikia.nocookie.net/leagueoflegends/images/2/2b/Immortal_Shieldbow_item.png/revision/latest?cb=20201118205028) | Immortal Shieldbow | Green | Gives a barrier based on your max health when low.
+![Rabadon's Deathcap](https://static.wikia.nocookie.net/leagueoflegends/images/c/c5/Rabadon%27s_Deathcap_item.png/revision/latest?cb=20201118205704) | Rabadon's Deathcap | Red | Do more damage.
 ![Heartsteel](https://static.wikia.nocookie.net/leagueoflegends/images/8/87/Heartsteel_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221115195510) | Heartsteel | Red | Gain permanent health on kill with no cap. Every few seconds deal a portion of your health as extra damage on hit.
-![ImperialMandate](https://static.wikia.nocookie.net/leagueoflegends/images/b/bc/Imperial_Mandate_item.png/revision/latest?cb=20201104212814) | ImperialMandate | Void Green | Bonus damage per debuff. Corrupts **Death Mark**.
-![Bork](https://static.wikia.nocookie.net/leagueoflegends/images/2/2f/Blade_of_the_Ruined_King_item.png/revision/latest?cb=20221210230042) | Bork | Void Green | Attack speed. Every few hits do damage and heal, and has a cooldown. Corrupts **Syringes** and **Leaching Seeds**.
-![GargoyleStoneplate](https://static.wikia.nocookie.net/leagueoflegends/images/6/62/Gargoyle_Stoneplate_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221230182936) | GargoyleStoneplate | Equipment | Temporarily gain armor and a barrier based on your maximum health.
+![Imperial Mandate](https://static.wikia.nocookie.net/leagueoflegends/images/b/bc/Imperial_Mandate_item.png/revision/latest?cb=20201104212814) | Imperial Mandate | Void Green | Bonus damage per debuff. Corrupts **Death Mark**.
+![Blade of the Ruined King](https://static.wikia.nocookie.net/leagueoflegends/images/2/2f/Blade_of_the_Ruined_King_item.png/revision/latest?cb=20221210230042) | Blade of the Ruined King | Void Green | Attack speed. Every few hits do damage and heal, and has a cooldown. Corrupts **Syringes** and **Leaching Seeds**.
+![Gargoyle Stoneplate](https://static.wikia.nocookie.net/leagueoflegends/images/6/62/Gargoyle_Stoneplate_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221230182936) | Gargoyle Stoneplate | Equipment | Temporarily gain armor and a barrier based on your maximum health.
 
 ## Changelog
+
+**1.3.0**
+* Updated to the Seekers of the Storm patch
+* Added ExperimentalHexplate
+  * Credit to [ggreer91](https://github.com/ggreer91) for implementing
+* Updated most item names and descriptions (delete your LoLItems config for this update!)
+* Added configuration option to allow for Kraken Slayer to scale off of base or total damage
 
 **1.2.0**
 * Added cull

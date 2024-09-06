@@ -1,14 +1,10 @@
+using System;
 using System.Collections.Generic;
-using BepInEx;
 using R2API;
-using R2API.Utils;
-using RoR2.Orbs;
 using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.AddressableAssets;
-using System;
-using System.Linq;
 using BepInEx.Configuration;
 
 namespace LoLItems
@@ -16,142 +12,135 @@ namespace LoLItems
     internal class Bork
     {
 
-        //We need our item definition to persist through our functions, and therefore make it a class field.
+        // We need our item definition to persist through our functions, and therefore make it a class field.
         public static ItemDef myItemDef;
 
         public static BuffDef myCounterBuffDef;
         public static BuffDef myTimerBuffDef;
-        public static ConfigEntry<float> onHitDamageAmount { get; set; }
-        public static ConfigEntry<float> procForBigHit { get; set; }
-        public static ConfigEntry<float> onHitHealPercent { get; set; }
-        public static ConfigEntry<float> bigOnHitTimer { get; set; }
-        public static ConfigEntry<float> procDamageMin { get; set; }
-        public static ConfigEntry<float> procDamageMax { get; set; }
-        public static ConfigEntry<float> attackSpeed { get; set; }
-        public static ConfigEntry<bool> enabled { get; set; }
-        public static ConfigEntry<string> rarity { get; set; }
-        public static ConfigEntry<string> voidItems { get; set; }
-        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> borkBonusDamage = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static ConfigEntry<float> OnHitDamageAmount { get; set; }
+        public static ConfigEntry<float> ProcForBigHit { get; set; }
+        public static ConfigEntry<float> OnHitHealPercent { get; set; }
+        public static ConfigEntry<float> BigOnHitTimer { get; set; }
+        public static ConfigEntry<float> ProcDamageMin { get; set; }
+        public static ConfigEntry<float> ProcDamageMax { get; set; }
+        public static ConfigEntry<float> AttackSpeed { get; set; }
+        public static ConfigEntry<bool> Enabled { get; set; }
+        public static ConfigEntry<string> Rarity { get; set; }
+        public static ConfigEntry<string> VoidItems { get; set; }
+        public static Dictionary<NetworkInstanceId, float> borkBonusDamage = [];
         public static string borkBonusDamageToken = "Bork.borkBonusDamage";
-        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> borkBonusHeal = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static Dictionary<NetworkInstanceId, float> borkBonusHeal = [];
         public static string borkBonusHealToken = "Bork.borkBonusHeal";
-        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
-        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
+        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = [];
+        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = [];
         public static uint procSoundEffect = 3722891417;
 
         internal static void Init()
         {
             LoadConfig();
-            if (!enabled.Value)
+            if (!Enabled.Value)
             {
                 return;
             }
 
-            //Generate the basic information for the item
+            // Generate the basic information for the item
             CreateItem();
             CreateBuff();
 
-            //Now let's turn the tokens we made into actual strings for the game:
+            // Now let's turn the tokens we made into actual strings for the game:
             AddTokens();
 
-            //You can add your own display rules here, where the first argument passed are the default display rules: the ones used when no specific display rules for a character are found.
-            //For this example, we are omitting them, as they are quite a pain to set up without tools like ItemDisplayPlacementHelper
-            var displayRules = new ItemDisplayRuleDict(null);
+            // You can add your own display rules here, where the first argument passed are the default display rules: the ones used when no specific display rules for a character are found.
+            // For this example, we are omitting them, as they are quite a pain to set up without tools like ItemDisplayPlacementHelper
+            ItemDisplayRuleDict displayRules = new(null);
 
-            //Then finally add it to R2API
+            // Then finally add it to R2API
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             ContentAddition.AddBuffDef(myCounterBuffDef);
             ContentAddition.AddBuffDef(myTimerBuffDef);
 
             // Initialize the hooks
-            hooks();
-            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "Bork");
+            Hooks();
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, Rarity, VoidItems, "Bork");
             SetupNetworkMappings();
         }
 
         private static void LoadConfig()
         {
-            enabled = LoLItems.MyConfig.Bind<bool>(
-                "Bork",
+            Enabled = LoLItems.MyConfig.Bind(
+                "Blade of the Ruined King",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
-            rarity = LoLItems.MyConfig.Bind<string>(
-                "Bork",
+            Rarity = LoLItems.MyConfig.Bind(
+                "Blade of the Ruined King",
                 "Rarity",
                 "VoidTier2Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
-            voidItems = LoLItems.MyConfig.Bind<string>(
-                "Bork",
+            VoidItems = LoLItems.MyConfig.Bind(
+                "Blade of the Ruined King",
                 "Void Items",
                 "Syringe,Seed",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
-            onHitDamageAmount = LoLItems.MyConfig.Bind<float>(
-                "Bork",
+            OnHitDamageAmount = LoLItems.MyConfig.Bind(
+                "Blade of the Ruined King",
                 "On Hit Damage Percent",
                 5f,
-                "Amount of on hit max health damage percent each item will grant."
-
+                "Amount of on hit current health damage percent each item will grant."
             );
 
-            procForBigHit = LoLItems.MyConfig.Bind<float>(
-                "Bork",
+            ProcForBigHit = LoLItems.MyConfig.Bind(
+                "Blade of the Ruined King",
                 "On Hit Proc Requirement",
                 3f,
                 "Amount of hits required to proc the on hit damage."
-
             );
 
-            onHitHealPercent = LoLItems.MyConfig.Bind<float>(
-                "Bork",
+            OnHitHealPercent = LoLItems.MyConfig.Bind(
+                "Blade of the Ruined King",
                 "Heal Percent",
                 20f,
                 "Percentage of damage dealt to be gained as healing."
-
             );
 
-            bigOnHitTimer = LoLItems.MyConfig.Bind<float>(
-                "Bork",
+            BigOnHitTimer = LoLItems.MyConfig.Bind(
+                "Blade of the Ruined King",
                 "Proc Cooldown",
                 10f,
                 "Cooldown per enemy."
-
             );
 
-            procDamageMin = LoLItems.MyConfig.Bind<float>(
-                "Bork",
+            ProcDamageMin = LoLItems.MyConfig.Bind(
+                "Blade of the Ruined King",
                 "Min Proc Damage",
                 2f,
                 "Multiplied by your base damage to determine the minimum proc damage."
-
             );
 
-            procDamageMax = LoLItems.MyConfig.Bind<float>(
-                "Bork",
+            ProcDamageMax = LoLItems.MyConfig.Bind(
+                "Blade of the Ruined King",
                 "Max Proc Damage",
                 25f,
                 "Multiplied by your base damage to determine the maximum proc damage."
-
             );
 
-            attackSpeed = LoLItems.MyConfig.Bind<float>(
-                "Bork",
+            AttackSpeed = LoLItems.MyConfig.Bind(
+                "Blade of the Ruined King",
                 "Attack Speed",
                 5f,
                 "Amount of attack speed each item will grant."
-
             );
         }
 
         private static void CreateItem()
         {
-            //First let's define our item
+            // First let's define our item
             myItemDef = ScriptableObject.CreateInstance<ItemDef>();
 
             // Language Tokens, check AddTokens() below.
@@ -161,13 +150,13 @@ namespace LoLItems
             myItemDef.descriptionToken = "BorkDesc";
             myItemDef.loreToken = "BorkLore";
 #pragma warning disable Publicizer001
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
-            myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("BorkIcon");
-            myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("BorkPrefab");
+            myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("BorkIcon");
+            myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("BorkPrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
-            myItemDef.tags = new ItemTag[2] { ItemTag.Damage, ItemTag.Healing };
+            myItemDef.tags = [ ItemTag.Damage, ItemTag.Healing ];
         }
 
         private static void CreateBuff()
@@ -194,7 +183,7 @@ namespace LoLItems
         }
 
 
-        private static void hooks()
+        private static void Hooks()
         {
             On.RoR2.GlobalEventManager.OnHitEnemy += (orig, self, damageInfo, victim) =>
             {
@@ -217,17 +206,17 @@ namespace LoLItems
                             if (!victimCharacterBody.HasBuff(myTimerBuffDef))
                             {
                                 int currentBuffCount = victimCharacterBody.healthComponent.body.GetBuffCount(myCounterBuffDef);
-                                if (currentBuffCount < procForBigHit.Value - 1 && NetworkServer.active)
+                                if (currentBuffCount < ProcForBigHit.Value - 1 && NetworkServer.active)
                                 {
                                     victimCharacterBody.healthComponent.body.AddBuff(myCounterBuffDef);
                                 }
                                 else
                                 {
                                     Utilities.RemoveBuffStacks(victimCharacterBody, myCounterBuffDef.buffIndex);
-                                    Utilities.AddTimedBuff(victimCharacterBody, myTimerBuffDef, bigOnHitTimer.Value);
+                                    Utilities.AddTimedBuff(victimCharacterBody, myTimerBuffDef, BigOnHitTimer.Value);
 
-                                    float damage = victimCharacterBody.healthComponent.health * inventoryCount * onHitDamageAmount.Value / 100 * damageInfo.procCoefficient;
-                                    damage = Math.Max(procDamageMin.Value * attackerCharacterBody.damage, Math.Min(procDamageMax.Value * attackerCharacterBody.damage, damage));
+                                    float damage = victimCharacterBody.healthComponent.health * inventoryCount * OnHitDamageAmount.Value / 100 * damageInfo.procCoefficient;
+                                    damage = Math.Max(ProcDamageMin.Value * attackerCharacterBody.damage, Math.Min(ProcDamageMax.Value * attackerCharacterBody.damage, damage));
                                     DamageInfo onHitProc = damageInfo;
                                     onHitProc.crit = false;
                                     onHitProc.procCoefficient = 0f;
@@ -238,7 +227,7 @@ namespace LoLItems
                                     victimCharacterBody.healthComponent.TakeDamage(onHitProc);
                                     Utilities.AddValueInDictionary(ref borkBonusDamage, attackerCharacterBody.master, damage, borkBonusDamageToken);
 
-                                    float healAmount = damage * (onHitHealPercent.Value / 100);
+                                    float healAmount = damage * (OnHitHealPercent.Value / 100);
                                     attackerCharacterBody.healthComponent.Heal(healAmount, onHitProc.procChainMask);
                                     Utilities.AddValueInDictionary(ref borkBonusHeal, attackerCharacterBody.master, healAmount, borkBonusHealToken);
                                     AkSoundEngine.PostEvent(procSoundEffect, attackerCharacterBody.gameObject);
@@ -254,7 +243,7 @@ namespace LoLItems
 
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
         {
-            args.baseAttackSpeedAdd += characterBody?.inventory?.GetItemCount(myItemDef) / 100f * attackSpeed.Value ?? 0;
+            args.baseAttackSpeedAdd += characterBody?.inventory?.GetItemCount(myItemDef) / 100f * AttackSpeed.Value ?? 0;
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
@@ -265,34 +254,34 @@ namespace LoLItems
             string customDescription = "";
 
             if (borkBonusDamage.TryGetValue(masterRef.netId, out float damageDealt))
-                customDescription += "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+                customDescription += "<br><br>Damage dealt: " + string.Format("{0:#}", damageDealt);
             else
                 customDescription += "<br><br>Damage dealt: 0";
 
             if (borkBonusHeal.TryGetValue(masterRef.netId, out float healingDone))
-                customDescription += "<br>Healing: " + String.Format("{0:#}", healingDone);
+                customDescription += "<br>Healing: " + string.Format("{0:#}", healingDone);
             else
                 customDescription += "<br>Healing: 0";
 
             return (Language.GetString(myItemDef.descriptionToken), customDescription);
         }
 
-        //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
+        // This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
         private static void AddTokens()
         {
-            //The Name should be self explanatory
-            LanguageAPI.Add("Bork", "Bork");
+            // Name of the item
+            LanguageAPI.Add("Bork", "Blade of the Ruined King");
 
-            //The Pickup is the short text that appears when you first pick this up. This text should be short and to the point, numbers are generally ommited.
-            LanguageAPI.Add("BorkItem", "Attack speed. Every " + procForBigHit.Value + " hits do damage and heal, and has a cooldown. Corrupts <style=cIsVoid>Syringes</style> and <style=cIsVoid>Leaching Seeds</style>.");
+            // Short description
+            LanguageAPI.Add("BorkItem", "Increases attack speed. Every " + ProcForBigHit.Value + " hits do damage and heal, and has a cooldown. Corrupts <style=cIsVoid>Syringes</style> and <style=cIsVoid>Leaching Seeds</style>.");
 
-            //The Description is where you put the actual numbers and give an advanced description.
-            LanguageAPI.Add("BorkDesc", "Gives <style=cIsDamage>" + attackSpeed.Value + "%</style> <style=cStack>(+" + attackSpeed.Value + 
-            "%)</style> attack speed. Deals <style=cIsDamage>" + onHitDamageAmount.Value + "%</style> <style=cStack>(+" + onHitDamageAmount.Value + 
-            "%)</style> current enemy hp every third hit, and heal for <style=cIsHealing>" + onHitHealPercent.Value + "%</style> of that damage on a " + bigOnHitTimer.Value + 
+            // Long description
+            LanguageAPI.Add("BorkDesc", "Gives <style=cIsDamage>" + AttackSpeed.Value + "%</style> <style=cStack>(+" + AttackSpeed.Value + 
+            "%)</style> attack speed. Deals <style=cIsDamage>" + OnHitDamageAmount.Value + "%</style> <style=cStack>(+" + OnHitDamageAmount.Value + 
+            "%)</style> current enemy hp every third hit, and heal for <style=cIsHealing>" + OnHitHealPercent.Value + "%</style> of that damage on a " + BigOnHitTimer.Value + 
             " second cooldown. Corrupts <style=cIsVoid>Syringes</style> and <style=cIsVoid>Leaching Seeds</style>.");
 
-            //The Lore is, well, flavor. You can write pretty much whatever you want here.
+            // Lore
             LanguageAPI.Add("BorkLore", "Viego is a plague to everything he touches.");
         }
 

@@ -1,14 +1,9 @@
-using System.Threading;
-using System.Globalization;
 using System.Collections.Generic;
-using BepInEx;
 using R2API;
-using R2API.Utils;
-using RoR2.Orbs;
 using RoR2;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.AddressableAssets;
-using System;
 using BepInEx.Configuration;
 
 
@@ -18,62 +13,61 @@ namespace LoLItems
     {
         public static ItemDef myItemDef;
 
-        public static ConfigEntry<float> damagePercentAmp { get; set; }
-        public static ConfigEntry<bool> enabled { get; set; }
-        public static ConfigEntry<string> rarity { get; set; }
-        public static ConfigEntry<string> voidItems { get; set; }
-        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> bonusDamageDealt = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static ConfigEntry<float> DamagePercentAmp { get; set; }
+        public static ConfigEntry<bool> Enabled { get; set; }
+        public static ConfigEntry<string> Rarity { get; set; }
+        public static ConfigEntry<string> VoidItems { get; set; }
+        public static Dictionary<NetworkInstanceId, float> bonusDamageDealt = [];
         public static string bonusDamageDealtToken = "BannerOfCommand.bonusDamageDealt";
-        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
-        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
+        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = [];
+        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = [];
 
         // This runs when loading the file
         internal static void Init()
         {
             LoadConfig();
-            if (!enabled.Value)
+            if (!Enabled.Value)
             {
                 return;
             }
 
             CreateItem();
             AddTokens();
-            var displayRules = new ItemDisplayRuleDict(null);
+            ItemDisplayRuleDict displayRules = new(null);
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
-            hooks();
-            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "BannerOfCommand");
+            Hooks();
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, Rarity, VoidItems, "BannerOfCommand");
             SetupNetworkMappings();
         }
 
         private static void LoadConfig()
         {
-            enabled = LoLItems.MyConfig.Bind<bool>(
-                "BannerOfCommand",
+            Enabled = LoLItems.MyConfig.Bind(
+                "Banner of Command",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
-            rarity = LoLItems.MyConfig.Bind<string>(
-                "BannerOfCommand",
+            Rarity = LoLItems.MyConfig.Bind(
+                "Banner of Command",
                 "Rarity",
                 "Tier1Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
-            voidItems = LoLItems.MyConfig.Bind<string>(
-                "BannerOfCommand",
+            VoidItems = LoLItems.MyConfig.Bind(
+                "Banner of Command",
                 "Void Items",
                 "",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
-            damagePercentAmp = LoLItems.MyConfig.Bind<float>(
-                "BannerOfCommand",
+            DamagePercentAmp = LoLItems.MyConfig.Bind(
+                "Banner of Command",
                 "Damage Amp",
                 10f,
                 "Amount of damage amp each stack will grant."
-
             );
         }
 
@@ -86,17 +80,17 @@ namespace LoLItems
             myItemDef.descriptionToken = "BannerOfCommandDesc";
             myItemDef.loreToken = "BannerOfCommandLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
-            myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("BannerOfCommandIcon");
-            myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("BannerOfCommandPrefab");
+            myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("BannerOfCommandIcon");
+            myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("BannerOfCommandPrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
-            myItemDef.tags = new ItemTag[1] { ItemTag.Damage };
+            myItemDef.tags = [ ItemTag.Damage ];
         }
 
 
-        private static void hooks()
+        private static void Hooks()
         {
             // When something takes damage
             On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
@@ -111,7 +105,7 @@ namespace LoLItems
                         int inventoryCount = ownerMaster.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0)
                         {
-                            float extraDamage = 1 + (inventoryCount * damagePercentAmp.Value / 100);
+                            float extraDamage = 1 + (inventoryCount * DamagePercentAmp.Value / 100);
                             Utilities.AddValueInDictionary(ref bonusDamageDealt, ownerMaster, extraDamage * damageInfo.damage, bonusDamageDealtToken);
                             damageInfo.damage *= extraDamage;
                         }
@@ -129,24 +123,24 @@ namespace LoLItems
             string customDescription = "";
 
             if (bonusDamageDealt.TryGetValue(masterRef.netId, out float damageDealt))
-                customDescription += "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+                customDescription += "<br><br>Damage dealt: " + string.Format("{0:#}", damageDealt);
             else
                 customDescription += "<br><br>Damage dealt: 0";
 
             return (Language.GetString(myItemDef.descriptionToken), customDescription);
         }
 
-        //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opinionated. Make your own judgments!
+        // This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opinionated. Make your own judgments!
         private static void AddTokens()
         {
             // Name of the item
-            LanguageAPI.Add("BannerOfCommand", "BannerOfCommand");
+            LanguageAPI.Add("BannerOfCommand", "Banner of Command");
 
             // Short description
-            LanguageAPI.Add("BannerOfCommandItem", "Increase allied minion damage");
+            LanguageAPI.Add("BannerOfCommandItem", "Increase allied minion damage.");
 
             // Long description
-            LanguageAPI.Add("BannerOfCommandDesc", "Increase the damage of allied minions by <style=cIsUtility>" + damagePercentAmp.Value + "%</style> <style=cStack>(+" + damagePercentAmp.Value + "%)</style>");
+            LanguageAPI.Add("BannerOfCommandDesc", "Increase the damage of allied minions by <style=cIsUtility>" + DamagePercentAmp.Value + "%</style> <style=cStack>(+" + DamagePercentAmp.Value + "%)</style>.");
 
             // Lore
             LanguageAPI.Add("BannerOfCommandLore", "Split pushing is boring.");

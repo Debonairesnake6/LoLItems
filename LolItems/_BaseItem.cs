@@ -11,6 +11,7 @@ using UnityEngine.AddressableAssets;
 using System;
 using System.Linq;
 using BepInEx.Configuration;
+using UnityEngine.Networking;
 
 namespace LoLItems
 {
@@ -20,14 +21,14 @@ namespace LoLItems
         // ENABLE for buff
         // public static BuffDef myBuffDef;
 
-        public static ConfigEntry<float> exampleValue { get; set; }
-        public static ConfigEntry<bool> enabled { get; set; }
-        public static ConfigEntry<string> rarity { get; set; }
-        public static ConfigEntry<string> voidItems { get; set; }
-        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> exampleStoredValue = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static ConfigEntry<float> ExampleValue { get; set; }
+        public static ConfigEntry<bool> Enabled { get; set; }
+        public static ConfigEntry<string> Rarity { get; set; }
+        public static ConfigEntry<string> VoidItems { get; set; }
+        public static Dictionary<NetworkInstanceId, float> exampleStoredValue = [];
         public static string exampleStoredValueToken = "MyExampleBaseItem.exampleStoredValue";
-        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
-        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
+        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = [];
+        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = [];
         // ENABLE if a sound effect int is needed (replace num with proper value)
         // public static uint soundEffectID = 1234567890;
 
@@ -35,7 +36,7 @@ namespace LoLItems
         internal static void Init()
         {
             LoadConfig();
-            if (!enabled.Value)
+            if (!Enabled.Value)
             {
                 return;
             }
@@ -44,46 +45,45 @@ namespace LoLItems
             // ENABLE for buff
             // CreateBuff();
             AddTokens();
-            ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
+            ItemDisplayRuleDict displayRules = new(null);
             // Enable for custom display rules
             // ItemDisplayRuleDict itemDisplayRuleDict = CreateDisplayRules();
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             // ENABLE for buff
             // ContentAddition.AddBuffDef(myBuffDef);
             hooks();
-            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "MyExampleItem");
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, Rarity, VoidItems, "MyExampleItem");
             SetupNetworkMappings();
         }
 
         private static void LoadConfig()
         {
-            enabled = LoLItems.MyConfig.Bind<bool>(
+            Enabled = LoLItems.MyConfig.Bind(
                 "MyExampleItem",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
-            rarity = LoLItems.MyConfig.Bind<string>(
+            Rarity = LoLItems.MyConfig.Bind(
                 "MyExampleItem",
                 "Rarity",
                 "Tier1Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
-            voidItems = LoLItems.MyConfig.Bind<string>(
+            VoidItems = LoLItems.MyConfig.Bind(
                 "MyExampleItem",
                 "Void Items",
                 "",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
-            exampleValue = LoLItems.MyConfig.Bind<float>(
+            ExampleValue = LoLItems.MyConfig.Bind(
                 "MyExampleItem",
                 "Item Value",
                 1f,
                 "Amount of value each item will grant."
-
             );
         }
 
@@ -96,17 +96,17 @@ namespace LoLItems
             myItemDef.descriptionToken = "MyExampleItemDesc";
             myItemDef.loreToken = "MyExampleItemLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
             // DEFAULT icons
             myItemDef.pickupIconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
             myItemDef.pickupModelPrefab = Resources.Load<GameObject>("Prefabs/PickupModels/PickupMystery");
             // ENABLE for custom assets
-            // myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("MyExampleItemIcon");
-            // myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("MyExampleItemPrefab");
+            // myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("MyExampleItemIcon");
+            // myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("MyExampleItemPrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
-            myItemDef.tags = new ItemTag[4] { ItemTag.Damage, ItemTag.Healing, ItemTag.Utility, ItemTag.OnKillEffect };
+            myItemDef.tags = [ ItemTag.Damage, ItemTag.Healing, ItemTag.Utility, ItemTag.OnKillEffect ];
         }
 
         // ENABLE for buff
@@ -116,7 +116,7 @@ namespace LoLItems
 
         //     myBuffDef.iconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
         //     //  ENABLE for custom assets
-        //     // myBuffDef.iconSprite = Assets.icons.LoadAsset<Sprite>("MyExampleItemIcon");
+        //     // myBuffDef.iconSprite = MyAssets.icons.LoadAsset<Sprite>("MyExampleItemIcon");
         //     myBuffDef.name = "MyExampleItemBuff";
         //     myBuffDef.buffColor = Color.red;
         //     myBuffDef.canStack = true;
@@ -194,7 +194,6 @@ namespace LoLItems
                 }
             };
 
-            // When something takes damage
             On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
             {
                 if (damageInfo.attacker)
@@ -211,6 +210,20 @@ namespace LoLItems
                     }
                 }
                 orig(self, damageInfo);
+            };
+
+            On.RoR2.GenericSkill.OnExecute += (orig, self) => {
+                if (!NetworkServer.active)
+                    return;
+
+                // GenericSkill exampleSkill = self.characterBody?.skillLocator?.example;
+
+                // if (self.characterBody?.inventory?.GetItemCount(myItemDef) > 0 && exampleSkill == self)
+                // {
+                //     // Do something
+                // }
+
+                orig(self);
             };
 
             RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
@@ -233,7 +246,7 @@ namespace LoLItems
             string customDescription = "";
 
             if (exampleStoredValue.TryGetValue(masterRef.netId, out float damageDealt))
-                customDescription += "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+                customDescription += "<br><br>Damage dealt: " + string.Format("{0:#}", damageDealt);
             else
                 customDescription += "<br><br>Damage dealt: 0";
 
@@ -242,7 +255,7 @@ namespace LoLItems
 
         // public static ItemDisplayRuleDict SetupItemDisplays()
         // {
-        //     GameObject ItemBodyModelPrefab = Assets.prefabs.LoadAsset<GameObject>("RabadonsPrefab");
+        //     GameObject ItemBodyModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("RabadonsPrefab");
         //     RoR2.ItemDisplay itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
         //     itemDisplay.rendererInfos = Utilities.ItemDisplaySetup(ItemBodyModelPrefab);
 

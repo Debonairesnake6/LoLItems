@@ -1,20 +1,9 @@
-using System.Threading;
-using System.Globalization;
 using System.Collections.Generic;
-using BepInEx;
 using R2API;
-using R2API.Utils;
-using RoR2.Orbs;
 using RoR2;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using System;
-using System.Linq;
-using BepInEx.Configuration;
-using R2API.Networking.Interfaces;
 using UnityEngine.Networking;
-using R2API.Networking;
-using EntityStates.AffixVoid;
+using BepInEx.Configuration;
 
 namespace LoLItems
 {
@@ -22,22 +11,22 @@ namespace LoLItems
     {
         public static BuffDef gargoyleArmorBuff;
         public static EquipmentDef myEquipmentDef;
-        public static ConfigEntry<float> barrierPercent { get; set; }
-        public static ConfigEntry<float> barrierCooldown { get; set; }
-        public static ConfigEntry<float> armorDuration { get; set; }
-        public static ConfigEntry<float> armorValue { get; set; }
-        public static ConfigEntry<bool> enabled { get; set; }
-        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> totalBarrierGiven = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static ConfigEntry<float> BarrierPercent { get; set; }
+        public static ConfigEntry<float> BarrierCooldown { get; set; }
+        public static ConfigEntry<float> ArmorDuration { get; set; }
+        public static ConfigEntry<float> ArmorValue { get; set; }
+        public static ConfigEntry<bool> Enabled { get; set; }
+        public static Dictionary<NetworkInstanceId, float> totalBarrierGiven = [];
         public static string totalBarrierGivenToken = "GargoyleStoneplate.totalBarrierGiven";
-        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
-        public static Dictionary<RoR2.UI.EquipmentIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.EquipmentIcon, CharacterMaster>();
+        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = [];
+        public static Dictionary<RoR2.UI.EquipmentIcon, CharacterMaster> IconToMasterRef = [];
         public static uint activateSoundEffectID = 2213188569;
 
         // This runs when loading the file
         internal static void Init()
         {
             LoadConfig();
-            if (!enabled.Value)
+            if (!Enabled.Value)
             {
                 return;
             }
@@ -48,45 +37,43 @@ namespace LoLItems
             AddTokens();
             ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
             ItemAPI.Add(new CustomEquipment(myEquipmentDef, displayRules));
-            hooks();
+            Hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, myEquipmentDef, GetDisplayInformation);
             SetupNetworkMappings();
         }
 
         private static void LoadConfig()
         {
-            enabled = LoLItems.MyConfig.Bind<bool>(
-                "GargoyleStoneplate",
+            Enabled = LoLItems.MyConfig.Bind(
+                "Gargoyle Stoneplate",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
-            barrierPercent = LoLItems.MyConfig.Bind<float>(
-                "GargoyleStoneplate",
+            BarrierPercent = LoLItems.MyConfig.Bind(
+                "Gargoyle Stoneplate",
                 "Barrier Percentage",
                 60f,
                 "Percent of barrier Gargoyle Stoneplate will grant you."
-
             );
 
-            barrierCooldown = LoLItems.MyConfig.Bind<float>(
-                "GargoyleStoneplate",
+            BarrierCooldown = LoLItems.MyConfig.Bind(
+                "Gargoyle Stoneplate",
                 "Barrier Cooldown",
                 60f,
                 "Cooldown of the item."
-
             );
 
-            armorDuration = LoLItems.MyConfig.Bind<float>(
-                "GargoyleStoneplate",
+            ArmorDuration = LoLItems.MyConfig.Bind(
+                "Gargoyle Stoneplate",
                 "Armor Duration",
                 2f,
                 "Duration of the armor buff."
             );
 
-            armorValue = LoLItems.MyConfig.Bind<float>(
-                "GargoyleStoneplate",
+            ArmorValue = LoLItems.MyConfig.Bind(
+                "Gargoyle Stoneplate",
                 "Armor Value",
                 100f,
                 "Armor value given during the buff."
@@ -96,27 +83,27 @@ namespace LoLItems
         private static void CreateItem()
         {
             myEquipmentDef = ScriptableObject.CreateInstance<EquipmentDef>();
-            myEquipmentDef.name = "GargoyleStoneplate";  // Replace this string throughout the entire file with your new item name
+            myEquipmentDef.name = "GargoyleStoneplate";
             myEquipmentDef.nameToken = "GargoyleStoneplate";
             myEquipmentDef.pickupToken = "GargoyleStoneplateItem";
             myEquipmentDef.descriptionToken = "GargoyleStoneplateDesc";
             myEquipmentDef.loreToken = "GargoyleStoneplateLore";
-            myEquipmentDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("GargoyleStoneplateIcon");
-            myEquipmentDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("GargoyleStoneplatePrefab");
+            myEquipmentDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("GargoyleStoneplateIcon");
+            myEquipmentDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("GargoyleStoneplatePrefab");
             myEquipmentDef.canDrop = true;
             myEquipmentDef.appearsInMultiPlayer = true;
             myEquipmentDef.appearsInSinglePlayer = true;
             myEquipmentDef.canBeRandomlyTriggered = true;
             myEquipmentDef.enigmaCompatible = true;
-            myEquipmentDef.cooldown = barrierCooldown.Value;
+            myEquipmentDef.cooldown = BarrierCooldown.Value;
         }
 
         private static void CreateBuff()
         {
             gargoyleArmorBuff = ScriptableObject.CreateInstance<BuffDef>();
 
-            gargoyleArmorBuff.iconSprite = Assets.icons.LoadAsset<Sprite>("GargoyleStoneplateIcon");
-            gargoyleArmorBuff.name = "gargoyleArmorBuff";
+            gargoyleArmorBuff.iconSprite = MyAssets.icons.LoadAsset<Sprite>("GargoyleStoneplateIcon");
+            gargoyleArmorBuff.name = "Gargoyle Stoneplate Armor Buff";
             gargoyleArmorBuff.canStack = false;
             gargoyleArmorBuff.isDebuff = false;
             gargoyleArmorBuff.isCooldown = true;
@@ -124,14 +111,12 @@ namespace LoLItems
         }
 
 
-        private static void hooks()
+        private static void Hooks()
         {
             On.RoR2.EquipmentSlot.PerformEquipmentAction += (orig, self, equipmentDef) =>
             {
                 if (NetworkServer.active && equipmentDef == myEquipmentDef)
-                {
                     return ActivateEquipment(self);
-                }
                 return orig(self, equipmentDef);
             };
 
@@ -141,18 +126,16 @@ namespace LoLItems
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
         {
             if (NetworkServer.active && characterBody.HasBuff(gargoyleArmorBuff))
-            {
-                args.armorAdd += armorValue.Value;
-            }
+                args.armorAdd += ArmorValue.Value;
         }
 
         private static bool ActivateEquipment(EquipmentSlot slot)
         {
-            float barrierAmount = slot.characterBody.healthComponent.fullHealth * barrierPercent.Value / 100;
+            float barrierAmount = slot.characterBody.healthComponent.fullHealth * BarrierPercent.Value / 100;
             if (barrierAmount > slot.characterBody.healthComponent.fullHealth)
                 barrierAmount = slot.characterBody.healthComponent.fullHealth;
             slot.characterBody.healthComponent.AddBarrier(barrierAmount);
-            Utilities.AddTimedBuff(slot.characterBody, gargoyleArmorBuff, armorDuration.Value);
+            Utilities.AddTimedBuff(slot.characterBody, gargoyleArmorBuff, ArmorDuration.Value);
             Utilities.AddValueInDictionary(ref totalBarrierGiven, slot.characterBody.master, barrierAmount, totalBarrierGivenToken, false);
             AkSoundEngine.PostEvent(activateSoundEffectID, slot.characterBody.gameObject);
             return true;
@@ -166,7 +149,7 @@ namespace LoLItems
             string customDescription = "";
 
             if (totalBarrierGiven.TryGetValue(masterRef.netId, out float barrierGiven))
-                customDescription += "<br><br>Barrier given: " + String.Format("{0:#}", barrierGiven);
+                customDescription += "<br><br>Barrier given: " + string.Format("{0:#}", barrierGiven);
             else
                 customDescription += "<br><br>Barrier given: 0";
 
@@ -183,7 +166,7 @@ namespace LoLItems
             LanguageAPI.Add("GargoyleStoneplateItem", "Temporarily gain armor and a barrier based on your maximum health.");
 
             // Long description
-            LanguageAPI.Add("GargoyleStoneplateDesc", $"Temporarily gain <style=cIsHealing>{armorValue.Value}</style> armor for <style=cIsUtility>{armorDuration.Value}s</style> and a barrier for <style=cIsHealing>{barrierPercent.Value}%</style> of your maximum health.");
+            LanguageAPI.Add("GargoyleStoneplateDesc", $"Temporarily gain <style=cIsHealing>{ArmorValue.Value}</style> armor for <style=cIsUtility>{ArmorDuration.Value}s</style> and a barrier for <style=cIsHealing>{BarrierPercent.Value}%</style> of your maximum health.");
 
             // Lore
             LanguageAPI.Add("GargoyleStoneplateLore", "Whoever thought of breaking this off of a gargoyle's body and strapping it onto their own body was a genius.");
