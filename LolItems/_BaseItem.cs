@@ -102,8 +102,8 @@ namespace LoLItems
             myItemDef.pickupIconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
             myItemDef.pickupModelPrefab = Resources.Load<GameObject>("Prefabs/PickupModels/PickupMystery");
             // ENABLE for custom assets
-            // myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("MyExampleItemIcon");
-            // myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("MyExampleItemPrefab");
+            // myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("MyExampleItemIcon");
+            // myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("MyExampleItemPrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
             myItemDef.tags = [ ItemTag.Damage, ItemTag.Healing, ItemTag.Utility, ItemTag.OnKillEffect ];
@@ -116,7 +116,7 @@ namespace LoLItems
 
         //     myBuffDef.iconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
         //     //  ENABLE for custom assets
-        //     // myBuffDef.iconSprite = Assets.icons.LoadAsset<Sprite>("MyExampleItemIcon");
+        //     // myBuffDef.iconSprite = MyAssets.icons.LoadAsset<Sprite>("MyExampleItemIcon");
         //     myBuffDef.name = "MyExampleItemBuff";
         //     myBuffDef.buffColor = Color.red;
         //     myBuffDef.canStack = true;
@@ -255,7 +255,7 @@ namespace LoLItems
 
         // public static ItemDisplayRuleDict SetupItemDisplays()
         // {
-        //     GameObject ItemBodyModelPrefab = Assets.prefabs.LoadAsset<GameObject>("RabadonsPrefab");
+        //     GameObject ItemBodyModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("RabadonsPrefab");
         //     RoR2.ItemDisplay itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
         //     itemDisplay.rendererInfos = Utilities.ItemDisplaySetup(ItemBodyModelPrefab);
 

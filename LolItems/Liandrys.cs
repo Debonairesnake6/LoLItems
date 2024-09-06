@@ -115,8 +115,8 @@ namespace LoLItems
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
             myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
-            myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("LiandrysIcon");
-            myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("LiandrysPrefab");
+            myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("LiandrysIcon");
+            myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("LiandrysPrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
             myItemDef.tags = [ ItemTag.Damage ];
@@ -126,7 +126,7 @@ namespace LoLItems
         {
             myBuffDef = ScriptableObject.CreateInstance<BuffDef>();
 
-            myBuffDef.iconSprite = Assets.icons.LoadAsset<Sprite>("LiandrysIcon");
+            myBuffDef.iconSprite = MyAssets.icons.LoadAsset<Sprite>("LiandrysIcon");
             myBuffDef.name = "Liandry\'s Anguish Buff";
             myBuffDef.canStack = false;
             myBuffDef.isDebuff = true;

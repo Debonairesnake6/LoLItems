@@ -25,9 +25,11 @@ Icon | Name | Tier | Description
 ## Changelog
 
 **1.3.0**
+* Updated to the Seekers of the Storm patch
 * Added ExperimentalHexplate
   * Credit to [ggreer91](https://github.com/ggreer91) for implementing
 * Updated most item names and descriptions (delete your LoLItems config for this update!)
+* Added configuration option to allow for Kraken Slayer to scale off of base or total damage
 
 **1.2.0**
 * Added cull

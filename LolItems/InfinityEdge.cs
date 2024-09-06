@@ -87,8 +87,8 @@ namespace LoLItems
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
             myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
-            myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("InfinityEdgeIcon");
-            myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("InfinityEdgePrefab");
+            myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("InfinityEdgeIcon");
+            myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("InfinityEdgePrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
         }

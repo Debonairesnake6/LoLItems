@@ -88,8 +88,8 @@ namespace LoLItems
             myEquipmentDef.pickupToken = "GargoyleStoneplateItem";
             myEquipmentDef.descriptionToken = "GargoyleStoneplateDesc";
             myEquipmentDef.loreToken = "GargoyleStoneplateLore";
-            myEquipmentDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("GargoyleStoneplateIcon");
-            myEquipmentDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("GargoyleStoneplatePrefab");
+            myEquipmentDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("GargoyleStoneplateIcon");
+            myEquipmentDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("GargoyleStoneplatePrefab");
             myEquipmentDef.canDrop = true;
             myEquipmentDef.appearsInMultiPlayer = true;
             myEquipmentDef.appearsInSinglePlayer = true;
@@ -102,7 +102,7 @@ namespace LoLItems
         {
             gargoyleArmorBuff = ScriptableObject.CreateInstance<BuffDef>();
 
-            gargoyleArmorBuff.iconSprite = Assets.icons.LoadAsset<Sprite>("GargoyleStoneplateIcon");
+            gargoyleArmorBuff.iconSprite = MyAssets.icons.LoadAsset<Sprite>("GargoyleStoneplateIcon");
             gargoyleArmorBuff.name = "Gargoyle Stoneplate Armor Buff";
             gargoyleArmorBuff.canStack = false;
             gargoyleArmorBuff.isDebuff = false;

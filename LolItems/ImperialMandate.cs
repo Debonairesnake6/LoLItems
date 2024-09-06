@@ -80,8 +80,8 @@ namespace LoLItems
 #pragma warning disable Publicizer001
             myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
-            myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("ImperialMandateIcon");
-            myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("ImperialMandatePrefab");
+            myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("ImperialMandateIcon");
+            myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("ImperialMandatePrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
             myItemDef.tags = [ ItemTag.Damage ];

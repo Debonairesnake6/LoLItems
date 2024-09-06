@@ -92,7 +92,7 @@ namespace LoLItems
                 "Blade of the Ruined King",
                 "On Hit Damage Percent",
                 5f,
-                "Amount of on hit max health damage percent each item will grant."
+                "Amount of on hit current health damage percent each item will grant."
             );
 
             ProcForBigHit = LoLItems.MyConfig.Bind(
@@ -152,8 +152,8 @@ namespace LoLItems
 #pragma warning disable Publicizer001
             myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
-            myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("BorkIcon");
-            myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("BorkPrefab");
+            myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("BorkIcon");
+            myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("BorkPrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
             myItemDef.tags = [ ItemTag.Damage, ItemTag.Healing ];

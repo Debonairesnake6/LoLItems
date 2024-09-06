@@ -107,8 +107,8 @@ namespace LoLItems
 #pragma warning disable Publicizer001
             myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
-            myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("HeartsteelIcon");
-            myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("HeartsteelPrefab");
+            myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("HeartsteelIcon");
+            myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("HeartsteelPrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
             myItemDef.tags = [ ItemTag.Healing, ItemTag.OnKillEffect ];
@@ -119,7 +119,7 @@ namespace LoLItems
             // Create a timer to prevent stacks for a short period of time
             myTimerBuffDef = ScriptableObject.CreateInstance<BuffDef>();
 
-            myTimerBuffDef.iconSprite = Assets.icons.LoadAsset<Sprite>("HeartsteelIcon");
+            myTimerBuffDef.iconSprite = MyAssets.icons.LoadAsset<Sprite>("HeartsteelIcon");
             myTimerBuffDef.name = "Heartsteel Timer Debuff";
             myTimerBuffDef.canStack = false;
             myTimerBuffDef.isDebuff = true;

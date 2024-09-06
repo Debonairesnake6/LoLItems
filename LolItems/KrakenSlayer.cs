@@ -21,6 +21,7 @@ namespace LoLItems
         public static ConfigEntry<bool> Enabled { get; set; }
         public static ConfigEntry<string> Rarity { get; set; }
         public static ConfigEntry<string> VoidItems { get; set; }
+        public static ConfigEntry<string> DamageScalingType { get; set; }
         public static Dictionary<NetworkInstanceId, float> bonusDamage = [];
         public static string bonusDamageToken = "KrakenSlayer.bonusDamage";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = [];
@@ -81,6 +82,13 @@ namespace LoLItems
                 20f,
                 "Amount of additional percent base damage each item will grant."
             );
+
+            DamageScalingType = LoLItems.MyConfig.Bind(
+                "Kraken Slayer",
+                "Damage Scaling Type",
+                "base",
+                "If the item will scale with base or total damage."
+            );
         }
 
         private static void CreateItem()
@@ -97,8 +105,8 @@ namespace LoLItems
 #pragma warning disable Publicizer001
             myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
-            myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("KrakenSlayerIcon");
-            myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("KrakenSlayerPrefab");
+            myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("KrakenSlayerIcon");
+            myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("KrakenSlayerPrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
             myItemDef.tags = [ ItemTag.Damage ];
@@ -109,7 +117,7 @@ namespace LoLItems
             // Create a buff to count the number of stacks before a big proc
             myCounterBuffDef = ScriptableObject.CreateInstance<BuffDef>();
 
-            myCounterBuffDef.iconSprite = Assets.icons.LoadAsset<Sprite>("KrakenSlayerIcon");
+            myCounterBuffDef.iconSprite = MyAssets.icons.LoadAsset<Sprite>("KrakenSlayerIcon");
             myCounterBuffDef.name = "Kraken Slayer Counter";
             myCounterBuffDef.canStack = true;
             myCounterBuffDef.isDebuff = false;
@@ -150,7 +158,13 @@ namespace LoLItems
                                     }
                                 }
 
-                                float damage = attackerCharacterBody.damage * ProcDamage.Value / 100f * inventoryCount;
+                                float damage = ProcDamage.Value / 100f * inventoryCount;
+                                if (DamageScalingType.Value == "total") {
+                                    damage = damage * damageInfo.damage;
+                                }
+                                else {
+                                    damage = damage * attackerCharacterBody.damage;
+                                }
                                 DamageInfo onHitProc = damageInfo;
                                 onHitProc.crit = false;
                                 onHitProc.procCoefficient = 0f;
