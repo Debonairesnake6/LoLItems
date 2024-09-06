@@ -1,14 +1,9 @@
-using System.Threading;
-using System.Globalization;
 using System.Collections.Generic;
-using BepInEx;
 using R2API;
-using R2API.Utils;
-using RoR2.Orbs;
 using RoR2;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.AddressableAssets;
-using System;
 using BepInEx.Configuration;
 
 namespace LoLItems
@@ -18,19 +13,19 @@ namespace LoLItems
         public static ItemDef myItemDef;
         public static GameObject ItemBodyModelPrefab;
 
-        public static ConfigEntry<float> damageAmp { get; set; }
-        public static ConfigEntry<bool> enabled { get; set; }
-        public static ConfigEntry<string> rarity { get; set; }
-        public static ConfigEntry<string> voidItems { get; set; }
-        public static Dictionary<UnityEngine.Networking.NetworkInstanceId, float> rabadonsBonusDamage = new Dictionary<UnityEngine.Networking.NetworkInstanceId, float>();
+        public static ConfigEntry<float> DamageAmp { get; set; }
+        public static ConfigEntry<bool> Enabled { get; set; }
+        public static ConfigEntry<string> Rarity { get; set; }
+        public static ConfigEntry<string> VoidItems { get; set; }
+        public static Dictionary<NetworkInstanceId, float> rabadonsBonusDamage = [];
         public static string rabadonsBonusDamageToken = "Rabadons.rabadonsBonusDamage";
-        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>();
-        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = new Dictionary<RoR2.UI.ItemIcon, CharacterMaster>();
+        public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = [];
+        public static Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef = [];
 
         internal static void Init()
         {
             LoadConfig();
-            if (!enabled.Value)
+            if (!Enabled.Value)
             {
                 return;
             }
@@ -39,36 +34,36 @@ namespace LoLItems
             ItemDisplayRuleDict itemDisplayRuleDict = CreateDisplayRules();
             AddTokens();
             ItemAPI.Add(new CustomItem(myItemDef, itemDisplayRuleDict));
-            hooks();
-            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, rarity, voidItems, "Rabadons");
+            Hooks();
+            Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, Rarity, VoidItems, "Rabadons");
             SetupNetworkMappings();
         }
 
         private static void LoadConfig()
         {
-            enabled = LoLItems.MyConfig.Bind<bool>(
-                "Rabadons",
+            Enabled = LoLItems.MyConfig.Bind(
+                "Rabadons Deathcap",
                 "Enabled",
                 true,
                 "Determines if the item should be loaded by the game."
             );
 
-            rarity = LoLItems.MyConfig.Bind<string>(
-                "Rabadons",
+            Rarity = LoLItems.MyConfig.Bind(
+                "Rabadons Deathcap",
                 "Rarity",
                 "Tier3Def",
                 "Set the rarity of the item. Valid values: Tier1Def, Tier2Def, Tier3Def, VoidTier1Def, VoidTier2Def, and VoidTier3Def."
             );
 
-            voidItems = LoLItems.MyConfig.Bind<string>(
-                "Rabadons",
+            VoidItems = LoLItems.MyConfig.Bind(
+                "Rabadons Deathcap",
                 "Void Items",
                 "",
                 "Set regular items to convert into this void item (Only if the rarity is set as a void tier). Items should be separated by a comma, no spaces. The item should be the in game item ID, which may differ from the item name."
             );
 
-            damageAmp = LoLItems.MyConfig.Bind<float>(
-                "Rabadons",
+            DamageAmp = LoLItems.MyConfig.Bind(
+                "Rabadons Deathcap",
                 "Damage Amp",
                 30f,
                 "Amount of bonus percentage damage each item will grant."
@@ -80,29 +75,29 @@ namespace LoLItems
         {
             myItemDef = ScriptableObject.CreateInstance<ItemDef>();
             myItemDef.name = "Rabadons";
-            myItemDef.nameToken = "RabadonsItem";
-            myItemDef.pickupToken = "RabadonsItemItem";
-            myItemDef.descriptionToken = "RabadonsItemDesc";
-            myItemDef.loreToken = "RabadonsItemLore";
+            myItemDef.nameToken = "RabadonsDeathcap";
+            myItemDef.pickupToken = "RabadonsDeathcapItem";
+            myItemDef.descriptionToken = "RabadonsDeathcapDesc";
+            myItemDef.loreToken = "RabadonsDeathcapLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
 #pragma warning restore Publicizer001
-            myItemDef.pickupIconSprite = Assets.icons.LoadAsset<Sprite>("RabadonsIcon");
-            myItemDef.pickupModelPrefab = Assets.prefabs.LoadAsset<GameObject>("RabadonsPrefab");
+            myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("RabadonsIcon");
+            myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("RabadonsPrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
         }
 
         private static ItemDisplayRuleDict CreateDisplayRules()
         {
-            ItemBodyModelPrefab = Assets.prefabs.LoadAsset<GameObject>("RabadonsPrefab");
+            ItemBodyModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("RabadonsPrefab");
             var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
             itemDisplay.rendererInfos = Utilities.ItemDisplaySetup(ItemBodyModelPrefab);
             
-            ItemDisplayRuleDict rules = new ItemDisplayRuleDict();
-            rules.Add("mdlCommandoDualies", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
+            ItemDisplayRuleDict rules = new();
+            rules.Add("mdlCommandoDualies",
+            [
+                new ItemDisplayRule
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
@@ -111,10 +106,10 @@ namespace LoLItems
                     localAngles = new Vector3(0F, 0F, 0F),
                     localScale = new Vector3(1F, 1F, 1F)
                 }
-            });
-            rules.Add("mdlHuntress", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
+            ]);
+            rules.Add("mdlHuntress",
+            [
+                new ItemDisplayRule
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
@@ -123,10 +118,10 @@ namespace LoLItems
                     localAngles = new Vector3(0F, 0F, 0F),
                     localScale = new Vector3(0.8F, 0.8F, 0.8F)
                 }
-            });
-            rules.Add("mdlBandit2", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
+            ]);
+            rules.Add("mdlBandit2",
+            [
+                new ItemDisplayRule
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
@@ -135,10 +130,10 @@ namespace LoLItems
                     localAngles = new Vector3(0F, 0F, 0F),
                     localScale = new Vector3(0.8F, 0.8F, 0.8F)
                 }
-            });
-            rules.Add("mdlToolbot", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
+            ]);
+            rules.Add("mdlToolbot",
+            [
+                new ItemDisplayRule
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
@@ -147,10 +142,10 @@ namespace LoLItems
                     localAngles = new Vector3(45F, 0F, 0F),
                     localScale = new Vector3(8F, 8F, 8F)
                 }
-            });
-            rules.Add("mdlEngi", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
+            ]);
+            rules.Add("mdlEngi",
+            [
+                new ItemDisplayRule
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
@@ -159,10 +154,10 @@ namespace LoLItems
                     localAngles = new Vector3(0F, 0F, 0F),
                     localScale = new Vector3(1F, 1F, 1F)
                 }
-            });
-            rules.Add("mdlEngiTurret", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule //alt turret
+            ]);
+            rules.Add("mdlEngiTurret",
+            [
+                new ItemDisplayRule //alt turret
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
@@ -171,10 +166,10 @@ namespace LoLItems
                     localAngles = new Vector3(0F, 0F, 0F),
                     localScale = new Vector3(3F, 3F, 3F)
                 }
-            });
-            rules.Add("mdlMage", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
+            ]);
+            rules.Add("mdlMage",
+            [
+                new ItemDisplayRule
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
@@ -184,10 +179,10 @@ namespace LoLItems
                     localScale = new Vector3(0.7F, 0.7F, 0.7F)
                 }
                 
-            });
-            rules.Add("mdlMerc", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
+            ]);
+            rules.Add("mdlMerc",
+            [
+                new ItemDisplayRule
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
@@ -196,10 +191,10 @@ namespace LoLItems
                     localAngles = new Vector3(10F, 0F, 0F),
                     localScale = new Vector3(0.7F, 0.7F, 0.7F)
                 }
-            });
-            rules.Add("mdlTreebot", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
+            ]);
+            rules.Add("mdlTreebot",
+            [
+                new ItemDisplayRule
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
@@ -208,10 +203,10 @@ namespace LoLItems
                     localAngles = new Vector3(0F, 0F, 0F),
                     localScale = new Vector3(3F, 3F, 3F)
                 }
-            });
-            rules.Add("mdlLoader", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
+            ]);
+            rules.Add("mdlLoader",
+            [
+                new ItemDisplayRule
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
@@ -220,10 +215,10 @@ namespace LoLItems
                     localAngles = new Vector3(10F, 0F, 0F),
                     localScale = new Vector3(0.7F, 0.7F, 0.7F)
                 }
-            });
-            rules.Add("mdlCroco", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
+            ]);
+            rules.Add("mdlCroco",
+            [
+                new ItemDisplayRule
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
@@ -232,10 +227,10 @@ namespace LoLItems
                     localAngles = new Vector3(90F, 0F, 0F),
                     localScale = new Vector3(6F, 6F, 6F)
                 }
-            });
-            rules.Add("mdlCaptain", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
+            ]);
+            rules.Add("mdlCaptain",
+            [
+                new ItemDisplayRule
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
@@ -244,10 +239,10 @@ namespace LoLItems
                     localAngles = new Vector3(327F, 0F, 0F),
                     localScale = new Vector3(0.6F, 0.6F, 0.6F)
                 }
-            });
-            rules.Add("mdlRailGunner", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
+            ]);
+            rules.Add("mdlRailGunner",
+            [
+                new ItemDisplayRule
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
@@ -256,10 +251,10 @@ namespace LoLItems
                     localAngles = new Vector3(0F, 0F, 0F),
                     localScale = new Vector3(0.5F, 0.5F, 0.5F)
                 }
-            });
-            rules.Add("mdlVoidSurvivor", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
+            ]);
+            rules.Add("mdlVoidSurvivor",
+            [
+                new ItemDisplayRule
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
@@ -268,11 +263,11 @@ namespace LoLItems
                     localAngles = new Vector3(330F, 0F, 0F),
                     localScale = new Vector3(0.6F, 0.6F, 0.6F)
                 }
-            });
+            ]);
             return rules;
         }
 
-        private static void hooks()
+        private static void Hooks()
         {
             On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
             {
@@ -285,7 +280,7 @@ namespace LoLItems
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
                         if (inventoryCount > 0)
                         {
-                            float damageMultiplier = 1 + inventoryCount * (damageAmp.Value / 100);
+                            float damageMultiplier = 1 + inventoryCount * (DamageAmp.Value / 100);
                             Utilities.AddValueInDictionary(ref rabadonsBonusDamage, attackerCharacterBody.master, damageInfo.damage * (damageMultiplier - 1), rabadonsBonusDamageToken);
                             damageInfo.damage = damageMultiplier * damageInfo.damage;
                         }
@@ -303,7 +298,7 @@ namespace LoLItems
             string customDescription = "";
 
             if (rabadonsBonusDamage.TryGetValue(masterRef.netId, out float damageDealt))
-                customDescription += "<br><br>Damage dealt: " + String.Format("{0:#}", damageDealt);
+                customDescription += "<br><br>Damage dealt: " + string.Format("{0:#}", damageDealt);
             else
                 customDescription += "<br><br>Damage dealt: 0";
 
@@ -313,17 +308,17 @@ namespace LoLItems
         //This function adds the tokens from the item using LanguageAPI, the comments in here are a style guide, but is very opiniated. Make your own judgements!
         private static void AddTokens()
         {
-            //The Name should be self explanatory
-            LanguageAPI.Add("RabadonsItem", "RabadonsItem");
+            // Name of the item
+            LanguageAPI.Add("RabadonsDeathcap", "Rabadon\'s Deathcap");
 
-            //The Pickup is the short text that appears when you first pick this up. This text should be short and to the point, numbers are generally ommited.
-            LanguageAPI.Add("RabadonsItemItem", "Hat makes them go splat");
+            // Short description
+            LanguageAPI.Add("RabadonsDeathcapItem", "Hat makes them go splat.");
 
-            //The Description is where you put the actual numbers and give an advanced description.
-            LanguageAPI.Add("RabadonsItemDesc", "Do <style=cIsUtility>" + damageAmp.Value + "%</style> <style=cStack>(+" + damageAmp.Value + "%)</style> more damage");
+            // Long description
+            LanguageAPI.Add("RabadonsDeathcapDesc", "Do <style=cIsUtility>" + DamageAmp.Value + "%</style> <style=cStack>(+" + DamageAmp.Value + "%)</style> more damage.");
 
-            //The Lore is, well, flavor. You can write pretty much whatever you want here.
-            LanguageAPI.Add("RabadonsItemLore", "Makes you feel like a wizard.");
+            // Lore
+            LanguageAPI.Add("RabadonsDeathcapLore", "Makes you feel like a wizard.");
         }
 
         public static void SetupNetworkMappings()

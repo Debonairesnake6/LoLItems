@@ -6,7 +6,7 @@ using R2API.Utils;
 using RoR2;
 
 //Static class for ease of access
-public static class Assets
+public static class MyAssets
 {
     public static AssetBundle icons;
     public static AssetBundle prefabs;

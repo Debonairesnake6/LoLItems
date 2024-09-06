@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>preview</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -13,17 +13,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BepInEx.Analyzers" Version="1.0.*">
+    <PackageReference Include="BepInEx.Analyzers" Version="1.0.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="BepInEx.Core" Version="5.4.19" />
-    <PackageReference Include="RiskOfRain2.GameLibs" Version="1.2.4-r.0" />
-    <PackageReference Include="UnityEngine.Modules" Version="2019.4.26" />
-    <PackageReference Include="MMHOOK.RoR2" Version="2022.9.20">
+    <PackageReference Include="BepInEx.Core" Version="5.4.21" />
+    <PackageReference Include="RiskOfRain2.GameLibs" Version="1.3.1.275-r.0" />
+    <PackageReference Include="UnityEngine.Modules" Version="2021.3.33" IncludeAssets="compile" />
+    <PackageReference Include="MMHOOK.RoR2" Version="2024.8.28">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
-    <PackageReference Include="R2API" Version="4.3.5" />
+    <PackageReference Include="R2API" Version="5.0.5" />
   </ItemGroup>
 
   <ItemGroup>
@@ -71,7 +71,7 @@
 
   <Target Name="PostBuildNetworkPatch" AfterTargets="PostBuildEvent">
     <Exec Command="robocopy %22$(TargetDir) %22 %22$(ProjectDir)NetworkWeaver%22 $(TargetFileName) > %22$(TargetDir)Robocopy%22" IgnoreExitCode="true"/>
-    <Exec Command="%22$(ProjectDir)\NetworkWeaver\Unity.UNetWeaver.exe%22 %22$(ProjectDir)\libs\UnityEngine.CoreModule.dll%22 %22$(ProjectDir)\libs\com.unity.multiplayer-hlapi.Runtime.dll%22 %22Patched/%22  %22$(ProjectDir)NetworkWeaver\$(TargetFileName)%22 %22$(ProjectDir)\libs%22"/>
+    <Exec Command="%22$(ProjectDir)\NetworkWeaver\Unity.UNetWeaver.exe%22 %22$(ProjectDir)libs\UnityEngine.CoreModule.dll%22 %22$(ProjectDir)libs\com.unity.multiplayer-hlapi.Runtime.dll%22 %22Patched/%22  %22$(ProjectDir)NetworkWeaver\$(TargetFileName)%22 %22$(ProjectDir)libs%22 %22$(AppData)..\.nuget\packages\netstandard.library\2.0.3\build\netstandard2.0\ref%22 %22$(AppData)..\.nuget\packages\netstandard.library\2.0.3\build\netstandard2.0\ref%22 %22$(ProjectDir)..\..\..\..\..\..\Program Files\dotnet\packs\NETStandard.Library.Ref\2.1.0\ref\netstandard2.1%22"/>
     <Exec Command="IF EXIST %22$(ProjectDir)NetworkWeaver\$(TargetFileName).prepatch%22 (DEL /F %22$(ProjectDir)\NetworkWeaver\$(TargetFileName).prepatch%22)"/>
     <Exec Command="ren %22$(ProjectDir)NetworkWeaver\$(TargetFileName)%22 $(TargetFileName).prepatch"/>
     <Exec Command="robocopy %22$(ProjectDir)Patched%22 %22$(TargetDir) %22  $(TargetFileName) > %22$(TargetDir)Robocopy%22" IgnoreExitCode="true"/>
@@ -79,8 +79,8 @@
   </Target>
 
   <Target Name="PostBuild" AfterTargets="PostBuildNetworkPatch">
-    <Copy SourceFiles="$(ProjectDir)bin\Debug\netstandard2.0\LoLItems.dll" DestinationFolder="$(LoLItemsLocal)" />
-    <Copy SourceFiles="$(ProjectDir)bin\Debug\netstandard2.0\LoLItems.pdb" DestinationFolder="$(LoLItemsLocal)" />
+    <Copy SourceFiles="$(ProjectDir)bin\Debug\netstandard2.1\LoLItems.dll" DestinationFolder="$(LoLItemsLocal)" />
+    <Copy SourceFiles="$(ProjectDir)bin\Debug\netstandard2.1\LoLItems.pdb" DestinationFolder="$(LoLItemsLocal)" />
     <Copy SourceFiles="$(ProjectDir)Assets\icons" DestinationFolder="$(LoLItemsLocal)" />
     <Copy SourceFiles="$(ProjectDir)Assets\prefabs" DestinationFolder="$(LoLItemsLocal)" />
     <Copy SourceFiles="$(ProjectDir)Assets\Soundbank.bnk" DestinationFolder="$(LoLItemsLocal)" />
