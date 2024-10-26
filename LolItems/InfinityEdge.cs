@@ -137,18 +137,18 @@ namespace LoLItems
             string customDescription = "";
             int itemCount = masterRef.inventory.GetItemCount(myItemDef.itemIndex);
             if (masterRef.inventory.GetItemCount(DLC1Content.Items.ConvertCritChanceToCritDamage) == 0){
-                customDescription += "<br><br>Bonus crit chance: " + string.Format("{0:#}", itemCount * BonusCritChance.Value) + "%"
-                + "<br>Bonus crit damage: " + string.Format("{0:#}", itemCount * BonusCritDamage.Value) + "%";
+                customDescription += "<br><br>Bonus crit chance: " + string.Format("{0:#, ##0.##}", itemCount * BonusCritChance.Value) + "%"
+                + "<br>Bonus crit damage: " + string.Format("{0:#, ##0.##}", itemCount * BonusCritDamage.Value) + "%";
             }
             else
             {
                 customDescription += "<br><br>Bonus crit chance: 0%"
-                + "<br>Bonus crit damage: " + string.Format("{0:#}", itemCount * BonusCritDamage.Value + itemCount * BonusCritChance.Value) + "%";
+                + "<br>Bonus crit damage: " + string.Format("{0:#, ##0.##}", itemCount * BonusCritDamage.Value + itemCount * BonusCritChance.Value) + "%";
             }
             
 
             if (bonusDamageDealt.TryGetValue(masterRef.netId, out float damageDealt))
-                customDescription += "<br>Bonus damage dealt: " + string.Format("{0:#}", damageDealt);
+                customDescription += "<br>Bonus damage dealt: " + string.Format("{0:#, ##0.##}", damageDealt);
             else
                 customDescription += "<br>Bonus damage dealt: 0";
 

@@ -298,7 +298,7 @@ namespace LoLItems
             string customDescription = "";
 
             if (rabadonsBonusDamage.TryGetValue(masterRef.netId, out float damageDealt))
-                customDescription += "<br><br>Damage dealt: " + string.Format("{0:#}", damageDealt);
+                customDescription += "<br><br>Damage dealt: " + string.Format("{0:#, ##0.##}", damageDealt);
             else
                 customDescription += "<br><br>Damage dealt: 0";
 

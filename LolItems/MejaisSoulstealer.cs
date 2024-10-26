@@ -13,6 +13,7 @@ namespace LoLItems
         public static ItemDef myItemDef;
         public static BuffDef currentStacks;
         public static BuffDef currentDuration;
+        public static BuffDef maxedStacks;
 
         public static ConfigEntry<float> BonusDamagePercent { get; set; }
         public static ConfigEntry<int> MaxStacks { get; set; }
@@ -20,6 +21,7 @@ namespace LoLItems
         public static ConfigEntry<bool> Enabled { get; set; }
         public static ConfigEntry<string> Rarity { get; set; }
         public static ConfigEntry<string> VoidItems { get; set; }
+        public static ConfigEntry<float> MovementSpeed { get; set; }
         public static Dictionary<NetworkInstanceId, float> bonusDamageDealt = [];
         public static string bonusDamageDealtToken = "MejaisSoulstealer.bonusDamageDealt";
         public static Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef = [];
@@ -41,6 +43,7 @@ namespace LoLItems
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             ContentAddition.AddBuffDef(currentStacks);
             ContentAddition.AddBuffDef(currentDuration);
+            ContentAddition.AddBuffDef(maxedStacks);
             Hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, Rarity, VoidItems, "MejaisSoulstealer");
             SetupNetworkMappings();
@@ -89,6 +92,13 @@ namespace LoLItems
                 10f,
                 "Duration of the buff."
             );
+
+            MovementSpeed = LoLItems.MyConfig.Bind(
+                "Mejais Soulstealer",
+                "Movement Speed",
+                10f,
+                "% movement speed bonus when at max stacks."
+            );
         }
 
         private static void CreateItem()
@@ -125,6 +135,15 @@ namespace LoLItems
             currentDuration.isDebuff = false;
             currentDuration.isCooldown = true;
             currentDuration.isHidden = true;
+
+            maxedStacks = ScriptableObject.CreateInstance<BuffDef>();
+            maxedStacks.iconSprite = MyAssets.icons.LoadAsset<Sprite>("MejaisSoulstealerIcon");
+            maxedStacks.name = "Mejai\'s Soulstealer Max Buff";
+            maxedStacks.canStack = false;
+            maxedStacks.isDebuff = false;
+            maxedStacks.isCooldown = false;
+            maxedStacks.isHidden = false;
+            maxedStacks.buffColor = Color.grey;
         }
 
 
@@ -146,6 +165,8 @@ namespace LoLItems
                         damageReport.attackerBody.AddTimedBuff(currentDuration, Duration.Value * inventoryCount);
                         if (damageReport.attackerBody.GetBuffCount(currentStacks) < MaxStacks.Value)
                             damageReport.attackerBody.AddBuff(currentStacks);
+                            if (damageReport.attackerBody.GetBuffCount(currentStacks) == MaxStacks.Value)
+                                damageReport.attackerBody.AddBuff(maxedStacks);
 					}
                 }
             };
@@ -175,8 +196,15 @@ namespace LoLItems
 
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
         {
+            
             if (characterBody.GetBuffCount(currentStacks) > 0 && characterBody.GetBuffCount(currentDuration) == 0)
                 Utilities.RemoveBuffStacks(characterBody, currentStacks.buffIndex);
+
+            if (characterBody.HasBuff(maxedStacks) && characterBody.GetBuffCount(currentStacks) != MaxStacks.Value)
+                characterBody.RemoveBuff(maxedStacks);
+                            
+            if (characterBody.HasBuff(maxedStacks))
+                args.sprintSpeedAdd += MovementSpeed.Value / 100f;
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
@@ -187,7 +215,7 @@ namespace LoLItems
             string customDescription = "";
 
             if (bonusDamageDealt.TryGetValue(masterRef.netId, out float damageDealt))
-                customDescription += "<br><br>Bonus damage dealt: " + string.Format("{0:#}", damageDealt);
+                customDescription += "<br><br>Bonus damage dealt: " + string.Format("{0:#, ##0.##}", damageDealt);
             else
                 customDescription += "<br><br>Bonus damage dealt: 0";
 
@@ -206,7 +234,8 @@ namespace LoLItems
             // Long description
             LanguageAPI.Add("MejaisSoulstealerDesc", "Killing an enemy grants a stack which gives <style=cIsDamage>" + BonusDamagePercent.Value + 
             "%</style> bonus damage. Max <style=cIsUtility>" + MaxStacks.Value + 
-            "</style> stacks, buff lasts for <style=cIsUtility>" + Duration.Value + "</style> <style=cStack>(+" + Duration.Value + ")</style> seconds.");
+            "</style> stacks, buff lasts for <style=cIsUtility>" + Duration.Value + "</style> <style=cStack>(+" + Duration.Value + ")</style> seconds. " +
+            "Get <style=cIsUtility>" + MovementSpeed.Value + "%</style> movement speed when at max stacks.");
 
             // Lore
             LanguageAPI.Add("MejaisSoulstealerLore", "Your death note.");

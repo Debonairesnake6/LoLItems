@@ -160,7 +160,7 @@ namespace LoLItems
             string customDescription = "";
 
             if (totalTimesActivated.TryGetValue(masterRef.netId, out float timesActivated))
-                customDescription += "<br><br>Times activated: " + string.Format("{0:#}", timesActivated);
+                customDescription += "<br><br>Times activated: " + string.Format("{0:#, ##0.##}", timesActivated);
             else
                 customDescription += "<br><br>Times activated: 0";
 

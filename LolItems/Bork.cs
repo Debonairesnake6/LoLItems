@@ -254,12 +254,12 @@ namespace LoLItems
             string customDescription = "";
 
             if (borkBonusDamage.TryGetValue(masterRef.netId, out float damageDealt))
-                customDescription += "<br><br>Damage dealt: " + string.Format("{0:#}", damageDealt);
+                customDescription += "<br><br>Damage dealt: " + string.Format("{0:#, ##0.##}", damageDealt);
             else
                 customDescription += "<br><br>Damage dealt: 0";
 
             if (borkBonusHeal.TryGetValue(masterRef.netId, out float healingDone))
-                customDescription += "<br>Healing: " + string.Format("{0:#}", healingDone);
+                customDescription += "<br>Healing: " + string.Format("{0:#, ##0.##}", healingDone);
             else
                 customDescription += "<br>Healing: 0";
 
