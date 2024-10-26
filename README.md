@@ -7,7 +7,7 @@ These are just the items implemented so far. I am planning to continue to add mo
 Icon | Name | Tier | Description
 --- | --- | --- | ---
 ![Banner of Command](https://static.wikia.nocookie.net/leagueoflegends/images/a/a4/Banner_of_Command_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201104170517) | Banner of Command | White | Your minions do bonus damage.
-![Mejai's Soulstealer](https://static.wikia.nocookie.net/leagueoflegends/images/8/88/Mejai%27s_Soulstealer_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221103165010) | Mejai's Soulstealer | White | Killing enemies grants more damage for a short time.
+![Mejai's Soulstealer](https://static.wikia.nocookie.net/leagueoflegends/images/8/88/Mejai%27s_Soulstealer_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221103165010) | Mejai's Soulstealer | White | Killing enemies grants more damage for a short time. Gain movement speed on max stacks.
 ![Guardian's Blade](https://static.wikia.nocookie.net/leagueoflegends/images/f/f2/Guardian%27s_Blade_item.png/revision/latest?cb=20221019163250) | Guardian's Blade | White | Reduce cooldown on secondary and utility skills.
 ![Cull](https://static.wikia.nocookie.net/leagueoflegends/images/1/11/Cull_item_HD.png/revision/latest/scale-to-width-down/64?cb=20201116174218) | Cull | White | Gives gold on kills, then turns into **White Scrap**.
 ![Experimental Hexplate](https://static.wikia.nocookie.net/leagueoflegends/images/f/fc/Experimental_Hexplate_item_HD.png/revision/latest/scale-to-width-down/64?cb=20231204214844) | Experimental Hexplate | Green | Using your Special skill temporarily increases your attack speed and movespeed.
@@ -23,6 +23,12 @@ Icon | Name | Tier | Description
 ![Gargoyle Stoneplate](https://static.wikia.nocookie.net/leagueoflegends/images/6/62/Gargoyle_Stoneplate_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221230182936) | Gargoyle Stoneplate | Equipment | Temporarily gain armor and a barrier based on your maximum health.
 
 ## Changelog
+
+**1.3.1**
+* Updated the statistic number formatting
+* Mejais now gives movement speed when full stacked
+* Small bug fix
+
 
 **1.3.0**
 * Updated to the Seekers of the Storm patch

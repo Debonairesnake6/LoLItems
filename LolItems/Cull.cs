@@ -211,7 +211,7 @@ namespace LoLItems
             string customDescription = "";
 
             if (goldGained.TryGetValue(masterRef.netId, out float goldGainedAmount))
-                customDescription += "<br><br>Total gold gained: " + string.Format("{0:#}", goldGainedAmount);
+                customDescription += "<br><br>Total gold gained: " + string.Format("{0:#, ##0.##}", goldGainedAmount);
             else
                 customDescription += "<br><br>Total gold gained: 0";
 

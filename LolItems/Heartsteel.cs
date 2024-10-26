@@ -211,12 +211,12 @@ namespace LoLItems
             string customDescription = "";
 
             if (heartsteelHealth.TryGetValue(masterRef.netId, out float healthGained))
-                customDescription += "<br><br>Health gained: " + string.Format("{0:#}", healthGained);
+                customDescription += "<br><br>Health gained: " + string.Format("{0:#, ##0.##}", healthGained);
             else
                 customDescription += "<br><br>Health gained: 0";
 
             if (heartsteelBonusDamage.TryGetValue(masterRef.netId, out float damageDealt))
-                customDescription += "<br>Damage dealt: " + string.Format("{0:#}", damageDealt);
+                customDescription += "<br>Damage dealt: " + string.Format("{0:#, ##0.##}", damageDealt);
             else
                 customDescription += "<br>Damage dealt: 0";
 

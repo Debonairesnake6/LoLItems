@@ -248,9 +248,12 @@ namespace LoLItems
                     }
                 }
                 // Clear the override text if it's not overwritten by other mods
-                (string baseDescription, string customDescription) = GetDisplayInformation(RoR2.PlayerCharacterMasterController.instances?[0].master);
-                if (self.tooltipProvider.overrideBodyText.Contains(customDescription.Substring(0, 14)))
-                    self.tooltipProvider.overrideBodyText = "";
+                if (RoR2.PlayerCharacterMasterController.instances?.Count > 0)
+                {
+                    (string baseDescription, string customDescription) = GetDisplayInformation(RoR2.PlayerCharacterMasterController.instances?[0].master);
+                    if (self.tooltipProvider.overrideBodyText.Contains(customDescription.Substring(0, 14)))
+                        self.tooltipProvider.overrideBodyText = "";
+                }
             };
         }
 
