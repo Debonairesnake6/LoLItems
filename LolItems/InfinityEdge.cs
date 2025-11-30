@@ -32,7 +32,7 @@ namespace LoLItems
 
             CreateItem();
             AddTokens();
-            var displayRules = new ItemDisplayRuleDict(null);
+            var displayRules = new ItemDisplayRuleDict();
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             Hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, Rarity, VoidItems, "InfinityEdge");
@@ -85,10 +85,12 @@ namespace LoLItems
             myItemDef.descriptionToken = "InfinityEdgeDesc";
             myItemDef.loreToken = "InfinityEdgeLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("InfinityEdgeIcon");
+#pragma warning disable CS0618
             myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("InfinityEdgePrefab");
+#pragma warning restore CS0618
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
         }
@@ -106,7 +108,7 @@ namespace LoLItems
                     
                     if (attackerCharacterBody?.inventory)
                     {
-                        int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
+                        int inventoryCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
                         if (inventoryCount > 0)
                         {
                             float damageDealt = damageInfo.damage * attackerCharacterBody.critMultiplier * (inventoryCount * BonusCritDamage.Value * 0.01f / attackerCharacterBody.critMultiplier);
@@ -121,7 +123,7 @@ namespace LoLItems
 
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
         {
-            int count = characterBody?.inventory?.GetItemCount(myItemDef.itemIndex) ?? 0;
+            int count = characterBody?.inventory?.GetItemCountEffective(myItemDef.itemIndex) ?? 0;
             if (count > 0)
             {
                 args.critAdd += count * BonusCritChance.Value;
@@ -135,8 +137,8 @@ namespace LoLItems
                 return (Language.GetString(myItemDef.descriptionToken), "");
             
             string customDescription = "";
-            int itemCount = masterRef.inventory.GetItemCount(myItemDef.itemIndex);
-            if (masterRef.inventory.GetItemCount(DLC1Content.Items.ConvertCritChanceToCritDamage) == 0){
+            int itemCount = masterRef.inventory.GetItemCountEffective(myItemDef.itemIndex);
+            if (masterRef.inventory.GetItemCountEffective(DLC1Content.Items.ConvertCritChanceToCritDamage) == 0){
                 customDescription += "<br><br>Bonus crit chance: " + string.Format("{0:#, ##0.##}", itemCount * BonusCritChance.Value) + "%"
                 + "<br>Bonus crit damage: " + string.Format("{0:#, ##0.##}", itemCount * BonusCritDamage.Value) + "%";
             }

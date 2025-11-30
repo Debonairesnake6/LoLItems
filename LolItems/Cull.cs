@@ -93,10 +93,12 @@ namespace LoLItems
             myItemDef.descriptionToken = "CullDesc";
             myItemDef.loreToken = "CullLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("CullIcon");
+#pragma warning disable CS0618
             myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("CullPrefab");
+#pragma warning restore CS0618
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
             myItemDef.tags = [ ItemTag.Utility ];
@@ -139,7 +141,7 @@ namespace LoLItems
                 if (damageReport.attackerMaster?.inventory)
                 {
 
-                    int inventoryCount = damageReport.attackerMaster.inventory.GetItemCount(myItemDef.itemIndex);
+                    int inventoryCount = damageReport.attackerMaster.inventory.GetItemCountEffective(myItemDef.itemIndex);
 					if (inventoryCount > 0)
 					{
                         float bonusGold = GoldOnKill.Value * inventoryCount;
@@ -163,8 +165,8 @@ namespace LoLItems
                         {   
                             if (NetworkServer.active)
                             {
-                                damageReport.attackerBody.inventory.RemoveItem(myItemDef);
-                                damageReport.attackerBody.inventory.GiveItem(RoR2Content.Items.ScrapWhite);
+                                damageReport.attackerBody.inventory.RemoveItemPermanent(myItemDef);
+                                damageReport.attackerBody.inventory.GiveItemPermanent(RoR2Content.Items.ScrapWhite);
                             }
                             CharacterMasterNotificationQueue.SendTransformNotification(damageReport.attackerMaster, myItemDef.itemIndex, RoR2Content.Items.ScrapWhite.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                             if (inventoryCount == 1)
@@ -187,7 +189,7 @@ namespace LoLItems
             On.RoR2.CharacterBody.OnInventoryChanged += (orig, self) => {
                 orig(self);
 
-                if (NetworkServer.active && self.inventory.GetItemCount(myItemDef.itemIndex) == 0 && self.GetBuffCount(myBuffDef.buffIndex) > 0)
+                if (NetworkServer.active && self.inventory.GetItemCountEffective(myItemDef.itemIndex) == 0 && self.GetBuffCount(myBuffDef.buffIndex) > 0)
                     Utilities.RemoveBuffStacks(self, myBuffDef.buffIndex);
             };
 

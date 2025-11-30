@@ -33,7 +33,7 @@ namespace LoLItems
 
             CreateItem();
             AddTokens();
-            ItemDisplayRuleDict displayRules = new(null);
+            ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict();
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             Hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, Rarity, VoidItems, "BannerOfCommand");
@@ -80,10 +80,13 @@ namespace LoLItems
             myItemDef.descriptionToken = "BannerOfCommandDesc";
             myItemDef.loreToken = "BannerOfCommandLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
+            // myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
+            myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("BannerOfCommandIcon");
+#pragma warning disable CS0618
             myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("BannerOfCommandPrefab");
+#pragma warning restore CS0618
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
             myItemDef.tags = [ ItemTag.Damage ];
@@ -102,7 +105,7 @@ namespace LoLItems
                     
                     if (ownerMaster?.inventory)
                     {
-                        int inventoryCount = ownerMaster.inventory.GetItemCount(myItemDef.itemIndex);
+                        int inventoryCount = ownerMaster.inventory.GetItemCountEffective(myItemDef.itemIndex);
                         if (inventoryCount > 0)
                         {
                             float extraDamage = 1 + (inventoryCount * DamagePercentAmp.Value / 100);

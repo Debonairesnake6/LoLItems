@@ -150,10 +150,12 @@ namespace LoLItems
             myItemDef.descriptionToken = "BorkDesc";
             myItemDef.loreToken = "BorkLore";
 #pragma warning disable Publicizer001
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("BorkIcon");
+#pragma warning disable CS0618
             myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("BorkPrefab");
+#pragma warning restore CS0618
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
             myItemDef.tags = [ ItemTag.Damage, ItemTag.Healing ];
@@ -199,7 +201,7 @@ namespace LoLItems
                     
                     if (attackerCharacterBody?.inventory)
                     {
-                        int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
+                        int inventoryCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
                         if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
                         {
 
@@ -243,7 +245,7 @@ namespace LoLItems
 
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
         {
-            args.baseAttackSpeedAdd += characterBody?.inventory?.GetItemCount(myItemDef) / 100f * AttackSpeed.Value ?? 0;
+            args.baseAttackSpeedAdd += characterBody?.inventory?.GetItemCountEffective(myItemDef) / 100f * AttackSpeed.Value ?? 0;
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)

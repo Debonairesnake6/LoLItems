@@ -37,7 +37,7 @@ namespace LoLItems
             CreateItem();
             CreateBuff();
             AddTokens();
-            ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
+            ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict();
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             ContentAddition.AddBuffDef(myBuffDef);
             Hooks();
@@ -99,10 +99,12 @@ namespace LoLItems
             myItemDef.descriptionToken = "ExperimentalHexplateDesc";
             myItemDef.loreToken = "ExperimentalHexplateLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("ExperimentalHexplateIcon");
+#pragma warning disable CS0618
             myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("ExperimentalHexplatePrefab");
+#pragma warning restore CS0618
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
             myItemDef.tags = [ ItemTag.Damage, ItemTag.Utility ];
@@ -130,7 +132,7 @@ namespace LoLItems
 
                 GenericSkill specialSkill = self.skillLocator?.special;
 
-                if (self.inventory?.GetItemCount(myItemDef) > 0 && specialSkill == genericSkill)
+                if (self.inventory?.GetItemCountEffective(myItemDef) > 0 && specialSkill == genericSkill)
                 {
                     Utilities.AddTimedBuff(self, myBuffDef, Duration.Value);
                     Utilities.AddValueInDictionary(ref totalTimesActivated, self.master, 1, totalTimesActivatedToken, false);
@@ -144,7 +146,7 @@ namespace LoLItems
 
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
         {
-            int count = characterBody?.inventory?.GetItemCount(myItemDef.itemIndex) ?? 0;
+            int count = characterBody?.inventory?.GetItemCountEffective(myItemDef.itemIndex) ?? 0;
             if (count > 0 && characterBody.HasBuff(myBuffDef))
             {
                 args.baseAttackSpeedAdd += count == 1 ? count * AttackSpeed.Value / 100f : (count - 1) * AttackSpeed.Value / 100f / 2f + AttackSpeed.Value / 100f;

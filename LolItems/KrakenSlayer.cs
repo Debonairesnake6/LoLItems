@@ -38,7 +38,7 @@ namespace LoLItems
             CreateItem();
             CreateBuff();
             AddTokens();
-            var displayRules = new ItemDisplayRuleDict(null);
+            var displayRules = new ItemDisplayRuleDict();
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             ContentAddition.AddBuffDef(myCounterBuffDef);
             Hooks();
@@ -79,7 +79,7 @@ namespace LoLItems
             ProcDamage = LoLItems.MyConfig.Bind(
                 "Kraken Slayer",
                 "Base Damage Percent",
-                20f,
+                15f,
                 "Amount of additional percent base damage each item will grant."
             );
 
@@ -103,10 +103,12 @@ namespace LoLItems
             myItemDef.descriptionToken = "KrakenSlayerDesc";
             myItemDef.loreToken = "KrakenSlayerLore";
 #pragma warning disable Publicizer001
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("KrakenSlayerIcon");
+#pragma warning disable CS0618
             myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("KrakenSlayerPrefab");
+#pragma warning restore CS0618
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
             myItemDef.tags = [ ItemTag.Damage ];
@@ -142,7 +144,7 @@ namespace LoLItems
                     
                     if (attackerCharacterBody?.inventory)
                     {
-                        int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
+                        int inventoryCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
                         if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
                         {
                             if (NetworkServer.active)
@@ -188,7 +190,7 @@ namespace LoLItems
             if (!NetworkServer.active)
                 return;
 
-            int count = characterBody?.inventory?.GetItemCount(myItemDef.itemIndex) ?? 0;
+            int count = characterBody?.inventory?.GetItemCountEffective(myItemDef.itemIndex) ?? 0;
             if (count > 0 && !characterBody.HasBuff(myCounterBuffDef))
                 characterBody.AddBuff(myCounterBuffDef);
             else if (count == 0 && characterBody.HasBuff(myCounterBuffDef))

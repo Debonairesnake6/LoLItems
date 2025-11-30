@@ -30,7 +30,7 @@ namespace LoLItems
 
             //You can add your own display rules here, where the first argument passed are the default display rules: the ones used when no specific display rules for a character are found.
             //For this example, we are omitting them, as they are quite a pain to set up without tools like ItemDisplayPlacementHelper
-            var displayRules = new ItemDisplayRuleDict(null);
+            var displayRules = new ItemDisplayRuleDict();
 
             //Then finally add it to R2API
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
@@ -83,7 +83,9 @@ namespace LoLItems
 
             //You can create your own icons and prefabs through assetbundles, but to keep this boilerplate brief, we'll be using question marks.
             myItemDef.pickupIconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
+#pragma warning disable CS0618
             myItemDef.pickupModelPrefab = Resources.Load<GameObject>("Prefabs/PickupModels/PickupMystery");
+#pragma warning restore CS0618
 
             //Can remove determines if a shrine of order, or a printer can take this item, generally true, except for NoTier items.
             myItemDef.canRemove = false;
@@ -103,14 +105,14 @@ namespace LoLItems
                 orig(self);
 
                 // Set luck
-                var inventoryCount = self.inventory.GetItemCount(myItemDef.itemIndex);
+                var inventoryCount = self.inventory.GetItemCountEffective(myItemDef.itemIndex);
                 self.master.luck += luckAmount * inventoryCount;
             };
 
             On.RoR2.Inventory.CalculateEquipmentCooldownScale += (orig, self) =>
             {
                 float cooldown = orig(self);
-                var inventoryCount = self.GetItemCount(myItemDef.itemIndex);
+                var inventoryCount = self.GetItemCountEffective(myItemDef.itemIndex);
                 if (inventoryCount > 0)
                 {
                     cooldown *= Mathf.Pow(cooldownAmount, (float)inventoryCount);
@@ -133,7 +135,7 @@ namespace LoLItems
         //     if (attackerCharacterBody.inventory)
         //     {
         //         //store the amount of our item we have
-        //         var garbCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
+        //         var garbCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
         //         if (garbCount > 0 &&
         //             //Roll for our 50% chance.
         //             Util.CheckRoll(50, attackerCharacterBody.master))

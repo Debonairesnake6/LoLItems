@@ -40,7 +40,7 @@ namespace LoLItems
             CreateItem();
             CreateBuff();
             AddTokens();
-            ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
+            ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict();
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             ContentAddition.AddBuffDef(myTimerBuffDef);
             Hooks();
@@ -105,10 +105,12 @@ namespace LoLItems
             myItemDef.descriptionToken = "HeartsteelDesc";
             myItemDef.loreToken = "HeartsteelLore";
 #pragma warning disable Publicizer001
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("HeartsteelIcon");
+#pragma warning disable CS0618
             myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("HeartsteelPrefab");
+#pragma warning restore CS0618
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
             myItemDef.tags = [ ItemTag.Healing, ItemTag.OnKillEffect ];
@@ -148,7 +150,7 @@ namespace LoLItems
 
                 if (damageReport.attackerMaster?.inventory != null)
                 {
-                    int inventoryCount = damageReport.attackerMaster.inventory.GetItemCount(myItemDef.itemIndex);
+                    int inventoryCount = damageReport.attackerMaster.inventory.GetItemCountEffective(myItemDef.itemIndex);
 					if (inventoryCount > 0)
 					{
                         InfusionOrb HeartsteelOrb = new()
@@ -160,6 +162,9 @@ namespace LoLItems
                         OrbManager.instance.AddOrb(HeartsteelOrb);
 
                         Utilities.AddValueInDictionary(ref heartsteelHealth, damageReport.attackerMaster, BonusHealthAmount.Value * inventoryCount, heartsteelHealthToken, false);
+
+                        if (damageReport.attackerBody)
+                            damageReport.attackerBody.MarkAllStatsDirty();
 					}
                 }
             };
@@ -174,7 +179,7 @@ namespace LoLItems
                     
                     if (attackerCharacterBody?.inventory)
                     {
-                        int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
+                        int inventoryCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
                         if (inventoryCount > 0 && !attackerCharacterBody.HasBuff(myTimerBuffDef))
                         {
                             attackerCharacterBody.healthComponent.body.AddTimedBuff(myTimerBuffDef, DamageCooldown.Value);

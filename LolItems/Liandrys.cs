@@ -42,7 +42,7 @@ namespace LoLItems
             CreateBuff();
             CreateDot();
             AddTokens();
-            var displayRules = new ItemDisplayRuleDict(null);
+            var displayRules = new ItemDisplayRuleDict();
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             ContentAddition.AddBuffDef(myBuffDef);
             DotAPI.CustomDotBehaviour myDotCustomBehaviour = AddCustomDotBehaviour;
@@ -113,10 +113,12 @@ namespace LoLItems
             myItemDef.descriptionToken = "LiandrysDesc";
             myItemDef.loreToken = "LiandrysLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("LiandrysIcon");
+#pragma warning disable CS0618
             myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("LiandrysPrefab");
+#pragma warning restore CS0618
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
             myItemDef.tags = [ ItemTag.Damage ];
@@ -157,7 +159,7 @@ namespace LoLItems
                 CharacterBody attackerCharacterBody = dotStack.attackerObject.GetComponent<CharacterBody>();
                 int inventoryCount = 1;
                 if (attackerCharacterBody?.inventory)
-                    inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
+                    inventoryCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
 #pragma warning disable Publicizer001
                 float baseDotDamage = self.victimBody.maxHealth * BurnDamagePercent.Value / 100f / BurnDamageDuration.Value * myDotDef.interval;
 #pragma warning restore Publicizer001
@@ -181,7 +183,7 @@ namespace LoLItems
                     
                     if (attackerCharacterBody?.inventory)
                     {
-                        int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
+                        int inventoryCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
                         if (inventoryCount > 0)
                         {
                             victimCharacterBody.AddTimedBuff(myBuffDef, BurnDamageDuration.Value);
@@ -212,7 +214,7 @@ namespace LoLItems
                     
                     if (attackerCharacterBody?.inventory)
                     {
-                        int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
+                        int inventoryCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
                         if (inventoryCount > 0 && damageInfo.dotIndex == myDotDefIndex) 
                         {
                             Utilities.AddValueInDictionary(ref liandrysDamageDealt, attackerCharacterBody.master, damageInfo.damage, liandrysDamageDealtToken);

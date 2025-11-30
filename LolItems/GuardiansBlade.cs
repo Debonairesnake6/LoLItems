@@ -32,7 +32,7 @@ namespace LoLItems
             
             CreateItem();
             AddTokens();
-            ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
+            ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict();
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             Hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation, Rarity, VoidItems, "GuardiansBlade");
@@ -80,10 +80,12 @@ namespace LoLItems
             myItemDef.descriptionToken = "GuardiansBladeDesc";
             myItemDef.loreToken = "GuardiansBladeLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("GuardiansBladeIcon");
+#pragma warning disable CS0618
             myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("GuardiansBladePrefab");
+#pragma warning restore CS0618
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
             myItemDef.tags = [ ItemTag.Utility ];
@@ -96,7 +98,7 @@ namespace LoLItems
             On.RoR2.Inventory.HandleInventoryChanged += (orig, self) =>
             {
                 orig(self);
-                int count = self.GetItemCount(myItemDef.itemIndex);
+                int count = self.GetItemCountEffective(myItemDef.itemIndex);
                 if (count > 0)
                 {
                     float cdr = Math.Abs(Utilities.HyperbolicScale(count, CooldownReduction.Value / 100) - 1);
@@ -107,7 +109,7 @@ namespace LoLItems
 
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
         {
-            int count = characterBody?.inventory?.GetItemCount(myItemDef.itemIndex) ?? 0;
+            int count = characterBody?.inventory?.GetItemCountEffective(myItemDef.itemIndex) ?? 0;
             if (count > 0)
             {
                 float cdr = Utilities.HyperbolicScale(count, CooldownReduction.Value / 100);
