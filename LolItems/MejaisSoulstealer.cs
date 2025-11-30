@@ -39,7 +39,7 @@ namespace LoLItems
             CreateItem();
             CreateBuff();
             AddTokens();
-            var displayRules = new ItemDisplayRuleDict(null);
+            var displayRules = new ItemDisplayRuleDict();
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             ContentAddition.AddBuffDef(currentStacks);
             ContentAddition.AddBuffDef(currentDuration);
@@ -110,10 +110,12 @@ namespace LoLItems
             myItemDef.descriptionToken = "MejaisSoulstealerDesc";
             myItemDef.loreToken = "MejaisSoulstealerLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("MejaisSoulstealerIcon");
+#pragma warning disable CS0618
             myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("MejaisSoulstealerPrefab");
+#pragma warning restore CS0618
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
             myItemDef.tags = [ ItemTag.Damage, ItemTag.OnKillEffect ];
@@ -159,7 +161,7 @@ namespace LoLItems
 
                 if (damageReport.attackerMaster?.inventory != null)
                 {
-                    int inventoryCount = damageReport.attackerMaster.inventory.GetItemCount(myItemDef.itemIndex);
+                    int inventoryCount = damageReport.attackerMaster.inventory.GetItemCountEffective(myItemDef.itemIndex);
 					if (inventoryCount > 0)
 					{
                         damageReport.attackerBody.AddTimedBuff(currentDuration, Duration.Value * inventoryCount);

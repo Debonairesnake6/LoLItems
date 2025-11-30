@@ -125,12 +125,12 @@ namespace LoLItems
         public static string GetRarityFromString(string rarity)
         {
             Dictionary<string, string> rarities = new Dictionary<string, string>{
-                {"Tier1Def", "RoR2/Base/Common/Tier1Def.asset"},
-                {"Tier2Def", "RoR2/Base/Common/Tier2Def.asset"},
-                {"Tier3Def", "RoR2/Base/Common/Tier3Def.asset"},
-                {"VoidTier1Def", "RoR2/DLC1/Common/VoidTier1Def.asset"},
-                {"VoidTier2Def", "RoR2/DLC1/Common/VoidTier2Def.asset"},
-                {"VoidTier3Def", "RoR2/DLC1/Common/VoidTier3Def.asset"},
+                {"Tier1Def", "ItemTierDefs/Tier1Def"},
+                {"Tier2Def", "ItemTierDefs/Tier2Def"},
+                {"Tier3Def", "ItemTierDefs/Tier3Def"},
+                {"VoidTier1Def", "ItemTierDefs/VoidTier1Def"},
+                {"VoidTier2Def", "ItemTierDefs/VoidTier2Def"},
+                {"VoidTier3Def", "ItemTierDefs/VoidTier3Def"},
             };
             rarities.TryGetValue(rarity, out string result);
             return result;
@@ -170,7 +170,7 @@ namespace LoLItems
             };
 
             // Open Scoreboard
-            On.RoR2.UI.ItemIcon.SetItemIndex += (orig, self, newIndex, newCount) =>
+            On.RoR2.UI.ItemIcon.SetItemIndex_ItemIndex_int += (orig, self, newIndex, newCount) =>
             {
                 orig(self, newIndex, newCount);
                 if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)

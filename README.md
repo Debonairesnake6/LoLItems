@@ -24,6 +24,12 @@ Icon | Name | Tier | Description
 
 ## Changelog
 
+**1.3.2**
+* Updated to work with the new Alloyed Collective DLC
+  * Credit to hashiresoreyoast, .score, and DarkXv_Z on the Discord channel for letting me know it was broken
+* Nerfed Kraken Slayer
+  * Credit to braydenchildress777-blip on GitHub for this suggestion
+
 **1.3.1**
 * Updated the statistic number formatting
 * Mejais now gives movement speed when full stacked

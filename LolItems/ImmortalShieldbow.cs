@@ -36,7 +36,7 @@ namespace LoLItems
             CreateItem();
             CreateBuff();
             AddTokens();
-            ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
+            ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict();
             ItemAPI.Add(new CustomItem(myItemDef, displayRules));
             ContentAddition.AddBuffDef(myBuffDefCooldown);
             Hooks();
@@ -98,10 +98,12 @@ namespace LoLItems
             myItemDef.descriptionToken = "ImmortalShieldbowDesc";
             myItemDef.loreToken = "ImmortalShieldbowLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
 #pragma warning restore Publicizer001
             myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("ImmortalShieldbowIcon");
+#pragma warning disable CS0618
             myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("ImmortalShieldbowPrefab");
+#pragma warning restore CS0618
             myItemDef.canRemove = true;
             myItemDef.hidden = false;
             myItemDef.tags = [ ItemTag.Healing ];
@@ -127,7 +129,7 @@ namespace LoLItems
 
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
         {
-            int count = characterBody?.inventory?.GetItemCount(myItemDef.itemIndex) ?? 0;
+            int count = characterBody?.inventory?.GetItemCountEffective(myItemDef.itemIndex) ?? 0;
             if (count > 0 && characterBody.healthComponent?.health < characterBody.healthComponent?.fullHealth * BarrierThreshold.Value / 100 && !characterBody.HasBuff(myBuffDefCooldown))
             {
                 AkSoundEngine.PostEvent(procSoundEffect, characterBody.gameObject);

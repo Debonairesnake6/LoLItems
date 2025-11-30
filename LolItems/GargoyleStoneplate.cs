@@ -35,7 +35,7 @@ namespace LoLItems
             CreateBuff();
             ContentAddition.AddBuffDef(gargoyleArmorBuff);
             AddTokens();
-            ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict(null);
+            ItemDisplayRuleDict displayRules = new ItemDisplayRuleDict();
             ItemAPI.Add(new CustomEquipment(myEquipmentDef, displayRules));
             Hooks();
             Utilities.SetupReadOnlyHooks(DisplayToMasterRef, myEquipmentDef, GetDisplayInformation);
@@ -89,7 +89,9 @@ namespace LoLItems
             myEquipmentDef.descriptionToken = "GargoyleStoneplateDesc";
             myEquipmentDef.loreToken = "GargoyleStoneplateLore";
             myEquipmentDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("GargoyleStoneplateIcon");
+#pragma warning disable CS0618
             myEquipmentDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("GargoyleStoneplatePrefab");
+#pragma warning restore CS0618
             myEquipmentDef.canDrop = true;
             myEquipmentDef.appearsInMultiPlayer = true;
             myEquipmentDef.appearsInSinglePlayer = true;

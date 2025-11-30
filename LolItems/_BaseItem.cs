@@ -12,6 +12,7 @@ using System;
 using System.Linq;
 using BepInEx.Configuration;
 using UnityEngine.Networking;
+using RoR2BepInExPack;
 
 namespace LoLItems
 {
@@ -96,11 +97,11 @@ namespace LoLItems
             myItemDef.descriptionToken = "MyExampleItemDesc";
             myItemDef.loreToken = "MyExampleItemLore";
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
-            myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value)).WaitForCompletion();
+            myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
 #pragma warning restore Publicizer001
             // DEFAULT icons
             myItemDef.pickupIconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
-            myItemDef.pickupModelPrefab = Resources.Load<GameObject>("Prefabs/PickupModels/PickupMystery");
+            myItemDef.pickupModelReference = new AssetReferenceT<GameObject>(RoR2BepInExPack.GameAssetPathsBetter.RoR2_Base_Mystery.PickupMystery_prefab);
             // ENABLE for custom assets
             // myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("MyExampleItemIcon");
             // myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("MyExampleItemPrefab");
@@ -148,7 +149,7 @@ namespace LoLItems
                 if (damageReport.attackerMaster?.inventory != null)
                 {
 
-                    int inventoryCount = damageReport.attackerMaster.inventory.GetItemCount(myItemDef.itemIndex);
+                    int inventoryCount = damageReport.attackerMaster.inventory.GetItemCountEffective(myItemDef.itemIndex);
 					if (inventoryCount > 0)
 					{
                         // ENABLE for infusion orb
@@ -174,7 +175,7 @@ namespace LoLItems
                     
                     if (attackerCharacterBody?.inventory)
                     {
-                        int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
+                        int inventoryCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
                         if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
                         {
                             // ENABLE for damage
@@ -202,7 +203,7 @@ namespace LoLItems
                     
                     if (attackerCharacterBody?.inventory)
                     {
-                        int inventoryCount = attackerCharacterBody.inventory.GetItemCount(myItemDef.itemIndex);
+                        int inventoryCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
                         if (inventoryCount > 0)
                         {
                             // Do something   
@@ -218,7 +219,7 @@ namespace LoLItems
 
                 // GenericSkill exampleSkill = self.characterBody?.skillLocator?.example;
 
-                // if (self.characterBody?.inventory?.GetItemCount(myItemDef) > 0 && exampleSkill == self)
+                // if (self.characterBody?.inventory?.GetItemCountEffective(myItemDef) > 0 && exampleSkill == self)
                 // {
                 //     // Do something
                 // }
@@ -231,7 +232,7 @@ namespace LoLItems
 
         private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
         {
-            int count = characterBody?.inventory?.GetItemCount(myItemDef.itemIndex) ?? 0;
+            int count = characterBody?.inventory?.GetItemCountEffective(myItemDef.itemIndex) ?? 0;
             if (count > 0)
             {
                 // args.secondaryCooldownMultAdd += count;
