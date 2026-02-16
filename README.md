@@ -1,3 +1,5 @@
+WARNING: This project is in a maintenance phase. I will fix breaking bugs when they are reported, but will likely not be adding new items or making balance changes unless I start playing the game again (which may or may not happen). If you want to suggest balance changes, please instead leverage the config files to tweak the items to your hearts content.
+
 # LoL Items
 
 Adding items from League of Legends to Risk of Rain 2.
@@ -23,6 +25,10 @@ Icon | Name | Tier | Description
 ![Gargoyle Stoneplate](https://static.wikia.nocookie.net/leagueoflegends/images/6/62/Gargoyle_Stoneplate_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221230182936) | Gargoyle Stoneplate | Equipment | Temporarily gain armor and a barrier based on your maximum health.
 
 ## Changelog
+
+**1.3.3**
+* Updated the dependencies to include a missing dependency, and updated them to work with the newer R2API
+  * Credit to Max on discord for raising the issue, and Chinchi for helping me solve it quickly
 
 **1.3.2**
 * Updated to work with the new Alloyed Collective DLC
