@@ -166,9 +166,13 @@ namespace LoLItems
 					{
                         damageReport.attackerBody.AddTimedBuff(currentDuration, Duration.Value * inventoryCount);
                         if (damageReport.attackerBody.GetBuffCount(currentStacks) < MaxStacks.Value)
+                        {
                             damageReport.attackerBody.AddBuff(currentStacks);
                             if (damageReport.attackerBody.GetBuffCount(currentStacks) == MaxStacks.Value)
+                            {
                                 damageReport.attackerBody.AddBuff(maxedStacks);
+                            }
+                        }
 					}
                 }
             };
