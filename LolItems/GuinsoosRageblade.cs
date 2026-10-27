@@ -94,6 +94,8 @@ namespace LoLItems
         {
             On.RoR2.GlobalEventManager.OnHitEnemy += (orig, self, damageInfo, victim) =>
             {
+                orig(self, damageInfo, victim);  // Call original FIRST to prevent proc feedback loop
+                
                 if (damageInfo.attacker)
                 {
                     CharacterBody attackerCharacterBody = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -110,7 +112,6 @@ namespace LoLItems
                         }
                     }
                 }
-                orig(self, damageInfo, victim);
             };
         }
 
