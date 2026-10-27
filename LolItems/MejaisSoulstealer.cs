@@ -152,7 +152,7 @@ namespace LoLItems
         private static void Hooks()
         {
             // Do something on character death
-            On.RoR2.GlobalEventManager.OnCharacterDeath += (orig, globalEventManager, damageReport) =>
+            On.RoR2.GlobalEventManager.HandleCharacterDeath += (orig, globalEventManager, damageReport) =>
             {
                 orig(globalEventManager, damageReport);
 
