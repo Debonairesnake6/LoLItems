@@ -113,6 +113,11 @@ namespace LoLItems
             if (count > 0)
             {
                 float cdr = Utilities.HyperbolicScale(count, CooldownReduction.Value / 100);
+                // Cap cooldown reduction to prevent abilities from being frozen
+                // Maximum CDR is 90% (multiplier of 0.1 minimum)
+                float maxCdr = 0.9f;
+                cdr = Math.Min(cdr, maxCdr);
+
                 args.utilityCooldownMultAdd -= cdr;
                 args.secondaryCooldownMultAdd -= cdr;
             }
