@@ -118,8 +118,17 @@ namespace LoLItems
                 float maxCdr = 0.9f;
                 cdr = Math.Min(cdr, maxCdr);
 
-                args.utilitySkill.cooldownReductionMultAdd -= cdr;
-                args.secondarySkill.cooldownReductionMultAdd -= cdr;
+                // Use cooldownMultiplier (value < 1 = shorter cooldowns)
+                // The IL hook uses Math.Max(0f, ...) on cooldownMultAdd/cooldownReductionMultAdd,
+                // so negative values would be clamped to 0 (no effect). cooldownMultiplier is correct.
+                args.utilitySkill.cooldownMultiplier = cdr;
+                args.secondarySkill.cooldownMultiplier = cdr;
+            }
+            else
+            {
+                // Reset cooldowns when item is removed
+                args.utilitySkill.cooldownMultiplier = 1f;
+                args.secondarySkill.cooldownMultiplier = 1f;
             }
         }
 
