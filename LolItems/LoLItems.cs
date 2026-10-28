@@ -16,7 +16,7 @@ namespace LoLItems
     [BepInDependency(R2API.R2API.PluginGUID)]
 
     // R2API.Sound submodule — auto-loads .sound files as Wwise banks
-    [BepInDependency(SoundAPI.PluginGUID)]
+    [BepInDependency("com.bepis.r2api.sound")]
     [R2APISubmoduleDependency(nameof(SoundAPI))]
 
     // This attribute is required, and lists metadata for your plugin.
