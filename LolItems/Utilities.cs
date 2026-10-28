@@ -297,7 +297,7 @@ namespace LoLItems
         }
 
         private static readonly Dictionary<int, string> _previousCustomDescriptions = [];
-        private static readonly Dictionary<int, string> _previousEquipCustomDescriptions = [];
+        private static readonly Dictionary<EquipmentDef, string> _previousEquipCustomDescriptions = [];
 
         // Add our custom description while keeping the custom description added by other mods (e.g. equipment cooldown)
         private static string AddCustomDescriptionRegexReplace(string overrideBodyText, ItemDef itemDef, Func<CharacterMaster, (string, string)> GetDisplayInformation, CharacterMaster characterMaster)
