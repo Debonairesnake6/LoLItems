@@ -83,7 +83,7 @@ namespace LoLItems
             // myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
             myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
 #pragma warning restore Publicizer001
-            myItemDef.pickupIconReference = MyAssets.icons.LoadAsset<Sprite>("BannerOfCommandIcon");
+            myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("BannerOfCommandIcon");
 #pragma warning disable CS0618
             myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("BannerOfCommandPrefab");
 #pragma warning restore CS0618

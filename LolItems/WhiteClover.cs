@@ -82,7 +82,7 @@ namespace LoLItems
             // myItemDef.deprecatedTier = ItemTier.Tier2;
 
             //You can create your own icons and prefabs through assetbundles, but to keep this boilerplate brief, we'll be using question marks.
-            myItemDef.pickupIconReference = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
+            myItemDef.pickupIconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
 #pragma warning disable CS0618
             myItemDef.pickupModelPrefab = Resources.Load<GameObject>("Prefabs/PickupModels/PickupMystery");
 #pragma warning restore CS0618
