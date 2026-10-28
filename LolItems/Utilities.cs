@@ -162,7 +162,7 @@ namespace LoLItems
                     {
                         // Update the description for an item in the HUD
                         if (item.itemIndex == myItemDef.itemIndex){
-                            item.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(item.tooltipProvider.overrideBodyText, GetDisplayInformation, self.targetMaster);
+                            item.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(item.tooltipProvider.overrideBodyText, myItemDef, GetDisplayInformation, self.targetMaster);
                         }
                     });
 #pragma warning restore Publicizer001
@@ -176,7 +176,7 @@ namespace LoLItems
                 if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
                 {
                     IconToMasterRef.TryGetValue(self, out CharacterMaster master);
-                    self.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(self.tooltipProvider.overrideBodyText, GetDisplayInformation, master);
+                    self.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(self.tooltipProvider.overrideBodyText, myItemDef, GetDisplayInformation, master);
                 }
             };
 
@@ -242,7 +242,18 @@ namespace LoLItems
                     {
                         if (self.targetInventory == player.master.inventory)
                         {
-                            self.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(self.tooltipProvider.overrideBodyText, GetDisplayInformation, player.master);   
+                            (string baseDescription, string customDescription) = GetDisplayInformation(player.master);
+
+                            if (self.tooltipProvider.overrideBodyText.Length == 0)
+                                self.tooltipProvider.overrideBodyText = baseDescription;
+
+                            if (customDescription.Length > 0)
+                            {
+                                if (_previousEquipCustomDescriptions.TryGetValue(myEquipmentDef.index, out string oldCustom))
+                                    self.tooltipProvider.overrideBodyText = self.tooltipProvider.overrideBodyText.Replace(oldCustom, "");
+                                _previousEquipCustomDescriptions[myEquipmentDef.index] = customDescription;
+                                self.tooltipProvider.overrideBodyText += customDescription;
+                            }
                             return;
                         }
                     }
@@ -250,18 +261,10 @@ namespace LoLItems
                 // Clear the override text if it's not overwritten by other mods
                 if (RoR2.PlayerCharacterMasterController.instances?.Count > 0)
                 {
-                    (string baseDescription, string customDescription) = GetDisplayInformation(RoR2.PlayerCharacterMasterController.instances?[0].master);
-                    // Use marker-based check instead of Contains(customDescription) to handle changing numbers
-                    int markerStart = customDescription.IndexOf("<!--");
-                    if (markerStart >= 0)
+                    (string baseDescription, string customDescription) = GetDisplayInformation(RoR2.PlayerCharacterMasterController.instances[0].master);
+                    if (customDescription.Length == 0)
                     {
-                        int markerEnd = customDescription.IndexOf("-->", markerStart + 4);
-                        if (markerEnd >= 0)
-                        {
-                            string marker = customDescription.Substring(markerStart, markerEnd - markerStart + 3);
-                            if (self.tooltipProvider.overrideBodyText.Contains(marker))
-                                self.tooltipProvider.overrideBodyText = "";
-                        }
+                        self.tooltipProvider.overrideBodyText = "";
                     }
                 }
             };
@@ -293,8 +296,11 @@ namespace LoLItems
             };
         }
 
+        private static readonly Dictionary<int, string> _previousCustomDescriptions = [];
+        private static readonly Dictionary<int, string> _previousEquipCustomDescriptions = [];
+
         // Add our custom description while keeping the custom description added by other mods (e.g. equipment cooldown)
-        private static string AddCustomDescriptionRegexReplace(string overrideBodyText, Func<CharacterMaster, (string, string)> GetDisplayInformation, CharacterMaster characterMaster)
+        private static string AddCustomDescriptionRegexReplace(string overrideBodyText, ItemDef itemDef, Func<CharacterMaster, (string, string)> GetDisplayInformation, CharacterMaster characterMaster)
         {
             (string baseDescription, string customDescription) = GetDisplayInformation(characterMaster);
 
@@ -302,31 +308,18 @@ namespace LoLItems
                 overrideBodyText = baseDescription;
 
             if (customDescription.Length == 0)
-                return overrideBodyText;
-
-            // Find the XML marker (e.g., "<!--RABADONS-->") in customDescription
-            int markerStart = customDescription.IndexOf("<!--");
-            if (markerStart >= 0)
             {
-                int markerEnd = customDescription.IndexOf("-->", markerStart + 4);
-                if (markerEnd >= 0)
-                {
-                    string marker = customDescription.Substring(markerStart, markerEnd - markerStart + 3);
-                    
-                    // Remove any previous section for this marker from overrideBodyText
-                    if (overrideBodyText.Contains(marker))
-                    {
-                        int bodyIdx = overrideBodyText.IndexOf(marker);
-                        // Find end of this section (next marker or end of string)
-                        string after = overrideBodyText.Substring(bodyIdx + marker.Length);
-                        int nextMarker = after.IndexOf("<!--");
-                        if (nextMarker >= 0)
-                            overrideBodyText = overrideBodyText.Substring(0, bodyIdx) + after.Substring(nextMarker);
-                        else
-                            overrideBodyText = overrideBodyText.Substring(0, bodyIdx);
-                    }
-                }
+                _previousCustomDescriptions.Remove(itemDef.itemIndex);
+                return overrideBodyText;
             }
+
+            // Replace any old custom description for this item
+            if (_previousCustomDescriptions.TryGetValue(itemDef.itemIndex, out string oldCustom))
+            {
+                overrideBodyText = overrideBodyText.Replace(oldCustom, "");
+            }
+
+            _previousCustomDescriptions[itemDef.itemIndex] = customDescription;
 
             return overrideBodyText + customDescription;
         }

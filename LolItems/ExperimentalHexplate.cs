@@ -159,7 +159,7 @@ namespace LoLItems
             if (masterRef == null)
                 return (Language.GetString(myItemDef.descriptionToken), "");
             
-            string customDescription = "<!--HEXPLATE-->";
+            string customDescription = "";
 
             if (totalTimesActivated.TryGetValue(masterRef.netId, out float timesActivated))
                 customDescription += "<br><br>Times activated: " + string.Format("{0:#, ##0.##}", timesActivated);

@@ -128,7 +128,7 @@ namespace LoLItems
             if (masterRef == null)
                 return (Language.GetString(myItemDef.descriptionToken), "");
                 
-            string customDescription = "<!--GUARDIANSBLADE-->";
+            string customDescription = "";
 
             if (cooldownReductionTracker.TryGetValue(masterRef.netId, out float cdr))
                 customDescription += "<br><br>Cooldown reduction: " + string.Format("{0:F1}", cdr);

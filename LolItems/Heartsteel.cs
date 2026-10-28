@@ -215,7 +215,7 @@ namespace LoLItems
             if (masterRef == null)
                 return (Language.GetString(myItemDef.descriptionToken), "");
             
-            string customDescription = "<!--HEARTSTEEL-->";
+            string customDescription = "";
 
             if (heartsteelHealth.TryGetValue(masterRef.netId, out float healthGained))
                 customDescription += "<br><br>Health gained: " + string.Format("{0:#, ##0.##}", healthGained);

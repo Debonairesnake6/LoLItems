@@ -140,7 +140,7 @@ namespace LoLItems
             if (masterRef == null)
                 return (Language.GetString(myItemDef.descriptionToken), "");
             
-            string customDescription = "<!--GUINSOOS-->";
+            string customDescription = "";
 
             if (totalProcCoef.TryGetValue(masterRef.netId, out float value))
                 customDescription += "<br><br>Extra procCoef: " + string.Format("{0:F1}", value);
