@@ -148,7 +148,7 @@ namespace LoLItems
         {
 
             // Setup the base hooks
-            ReadOnlyHooks(DisplayToMasterRef);
+            ReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation);
 
             // Called basically every frame to update your HUD info
             On.RoR2.UI.HUD.Update += (orig, self) => 
@@ -271,27 +271,40 @@ namespace LoLItems
         }
 
         private static void ReadOnlyHooks(
-            Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef
-        )
+            Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef,
+            Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef,
+            ItemDef myItemDef,
+            Func<CharacterMaster, (string, string)> GetDisplayInformation)
         {
-            // Open Scoreboard
+            // Open Scoreboard - populate display->master mapping for scoreboard items
             On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
             {
                 orig(self, characterMaster);
                 if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
             };
 
-            // Add to stat dict for end of game screen
-            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo, playerIndex) => 
+            // Death screen (end-of-game report) - apply custom descriptions to panel item icons
+            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo, playerIndex) =>
             {
                 orig(self, playerInfo, playerIndex);
-                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
-                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
+                if (playerInfo.master && self.itemInventoryDisplay)
                 {
-                    if (entry.Value == playerInfo.master)
+                    DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
+
+                    #pragma warning disable Publicizer001
+                    self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon item)
                     {
-                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
-                    }
+                        if (item.itemIndex == myItemDef.itemIndex)
+                        {
+                            self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon icon)
+                            {
+                                IconToMasterRef[icon] = playerInfo.master;
+                            });
+                            item.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(
+                                item.tooltipProvider.overrideBodyText, myItemDef, GetDisplayInformation, playerInfo.master);
+                        }
+                    });
+                    #pragma warning restore Publicizer001
                 }
             };
         }
