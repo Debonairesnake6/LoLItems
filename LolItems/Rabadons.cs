@@ -271,8 +271,10 @@ namespace LoLItems
 
         private static void Hooks()
         {
-            On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
+            On.RoR2.GlobalEventManager.OnHitEnemy += (orig, self, damageInfo, victim) =>
             {
+                orig(self, damageInfo, victim);
+
                 if (damageInfo.attacker)
                 {
                     CharacterBody attackerCharacterBody = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -280,16 +282,27 @@ namespace LoLItems
                     if (attackerCharacterBody?.inventory)
                     {
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
-                        if (inventoryCount > 0)
+                        if (inventoryCount > 0 && damageInfo.damage > 0)
                         {
                             float damageMultiplier = 1 + inventoryCount * (DamageAmp.Value / 100);
-                            Utilities.AddValueInDictionary(ref rabadonsBonusDamage, attackerCharacterBody.master, damageInfo.damage * (damageMultiplier - 1), rabadonsBonusDamageToken);
-                            damageInfo.damage = damageMultiplier * damageInfo.damage;
+                            float originalDamage = damageInfo.damage / damageMultiplier;
+                            float bonusDamage = damageInfo.damage - originalDamage;
+                            Utilities.AddValueInDictionary(ref rabadonsBonusDamage, attackerCharacterBody.master, bonusDamage, rabadonsBonusDamageToken);
                         }
                     }
                 }
-                orig(self, damageInfo);
             };
+
+            RecalculateStatsAPI.GetStatCoefficients += Rabadons_RecalculateStatsAPI_GetStatCoefficients;
+        }
+
+        private static void Rabadons_RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            int count = characterBody?.inventory?.GetItemCountEffective(myItemDef.itemIndex) ?? 0;
+            if (count > 0)
+            {
+                args.damageMultAdd += count * (DamageAmp.Value / 100);
+            }
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)

@@ -189,7 +189,6 @@ namespace LoLItems
                         if (buffCount > 0)
                         {
                             float extraDamage = damageInfo.damage * (buffCount * BonusDamagePercent.Value) / 100f;
-                            damageInfo.damage += extraDamage;
                             Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, extraDamage, bonusDamageDealtToken);
                         }
                     }
@@ -211,6 +210,12 @@ namespace LoLItems
                             
             if (characterBody.HasBuff(maxedStacks))
                 args.sprintSpeedAdd += MovementSpeed.Value / 100f;
+
+            int buffCount = characterBody.GetBuffCount(currentStacks.buffIndex);
+            if (buffCount > 0)
+            {
+                args.damageMultAdd += buffCount * (BonusDamagePercent.Value / 100f);
+            }
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
