@@ -89,7 +89,7 @@
     <Copy SourceFiles="$(ProjectDir)Assets\icons" DestinationFolder="$(LoLItemsLocal)" />
     <Copy SourceFiles="$(ProjectDir)Assets\prefabs" DestinationFolder="$(LoLItemsLocal)" />
     <Copy SourceFiles="$(ProjectDir)Assets\Soundbank.bnk" DestinationFolder="$(LoLItemsLocal)" />
-    <Move SourceFiles="$(LoLItemsLocal)\Soundbank.bnk" DestinationFiles="$(LoLItemsLocal)\Soundbank.sound" />
+    <Copy SourceFiles="$(ProjectDir)Assets\Soundbank.bnk" DestinationFiles="$(LoLItemsLocal)\Soundbank.sound" />
     <Copy SourceFiles="$(ProjectDir)../manifest.json" DestinationFolder="$(LoLItemsLocal)" />
     <Copy SourceFiles="$(ProjectDir)../README.md" DestinationFolder="$(LoLItemsLocal)" />
     <Copy SourceFiles="$(ProjectDir)../icon.png" DestinationFolder="$(LoLItemsLocal)" />
