@@ -285,8 +285,7 @@ namespace LoLItems
                         if (inventoryCount > 0 && damageInfo.damage > 0)
                         {
                             float damageMultiplier = 1 + inventoryCount * (DamageAmp.Value / 100);
-                            float originalDamage = damageInfo.damage / damageMultiplier;
-                            float bonusDamage = damageInfo.damage - originalDamage;
+                            float bonusDamage = damageInfo.damage * (damageMultiplier - 1);
                             Utilities.AddValueInDictionary(ref rabadonsBonusDamage, attackerCharacterBody.master, bonusDamage, rabadonsBonusDamageToken);
                         }
                     }
