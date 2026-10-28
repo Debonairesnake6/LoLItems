@@ -136,7 +136,7 @@ namespace LoLItems
             if (masterRef == null)
                 return (Language.GetString(myItemDef.descriptionToken), "");
             
-            string customDescription = "";
+            string customDescription = "<!--IE-->";
             int itemCount = masterRef.inventory.GetItemCountEffective(myItemDef.itemIndex);
             if (masterRef.inventory.GetItemCountEffective(DLC1Content.Items.ConvertCritChanceToCritDamage) == 0){
                 customDescription += "<br><br>Bonus crit chance: " + string.Format("{0:#, ##0.##}", itemCount * BonusCritChance.Value) + "%"

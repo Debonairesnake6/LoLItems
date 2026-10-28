@@ -205,7 +205,7 @@ namespace LoLItems
                         if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
                         {
 
-                            if (!victimCharacterBody.HasBuff(myTimerBuffDef))
+                            if (victimCharacterBody != null && victimCharacterBody.healthComponent != null && !victimCharacterBody.HasBuff(myTimerBuffDef))
                             {
                                 int currentBuffCount = victimCharacterBody.healthComponent.body.GetBuffCount(myCounterBuffDef);
                                 if (currentBuffCount < ProcForBigHit.Value - 1 && NetworkServer.active)
@@ -217,25 +217,22 @@ namespace LoLItems
                                     Utilities.RemoveBuffStacks(victimCharacterBody, myCounterBuffDef.buffIndex);
                                     Utilities.AddTimedBuff(victimCharacterBody, myTimerBuffDef, BigOnHitTimer.Value);
 
-                                    if (victimCharacterBody?.healthComponent)
-                                    {
-                                        float damage = victimCharacterBody.healthComponent.health * inventoryCount * OnHitDamageAmount.Value / 100 * damageInfo.procCoefficient;
-                                        damage = Math.Max(ProcDamageMin.Value * attackerCharacterBody.damage, Math.Min(ProcDamageMax.Value * attackerCharacterBody.damage, damage));
-                                        DamageInfo onHitProc = damageInfo;
-                                        onHitProc.crit = false;
-                                        onHitProc.procCoefficient = 0f;
-                                        onHitProc.damageType = DamageType.Generic;
-                                        onHitProc.inflictor = damageInfo.attacker;
-                                        onHitProc.damage = damage;
-                                        onHitProc.damageColorIndex = DamageColorIndex.Nearby;
-                                        victimCharacterBody.healthComponent.TakeDamage(onHitProc);
-                                        Utilities.AddValueInDictionary(ref borkBonusDamage, attackerCharacterBody.master, damage, borkBonusDamageToken);
+                                    float damage = victimCharacterBody.healthComponent.health * inventoryCount * OnHitDamageAmount.Value / 100 * damageInfo.procCoefficient;
+                                    damage = Math.Max(ProcDamageMin.Value * attackerCharacterBody.damage, Math.Min(ProcDamageMax.Value * attackerCharacterBody.damage, damage));
+                                    DamageInfo onHitProc = damageInfo;
+                                    onHitProc.crit = false;
+                                    onHitProc.procCoefficient = 0f;
+                                    onHitProc.damageType = DamageType.Generic;
+                                    onHitProc.inflictor = damageInfo.attacker;
+                                    onHitProc.damage = damage;
+                                    onHitProc.damageColorIndex = DamageColorIndex.Nearby;
+                                    victimCharacterBody.healthComponent.TakeDamage(onHitProc);
+                                    Utilities.AddValueInDictionary(ref borkBonusDamage, attackerCharacterBody.master, damage, borkBonusDamageToken);
 
-                                        float healAmount = damage * (OnHitHealPercent.Value / 100);
-                                        attackerCharacterBody.healthComponent.Heal(healAmount, onHitProc.procChainMask);
-                                        Utilities.AddValueInDictionary(ref borkBonusHeal, attackerCharacterBody.master, healAmount, borkBonusHealToken);
-                                        AkSoundEngine.PostEvent(procSoundEffect, attackerCharacterBody.gameObject);
-                                    }
+                                    float healAmount = damage * (OnHitHealPercent.Value / 100);
+                                    attackerCharacterBody.healthComponent.Heal(healAmount, onHitProc.procChainMask);
+                                    Utilities.AddValueInDictionary(ref borkBonusHeal, attackerCharacterBody.master, healAmount, borkBonusHealToken);
+                                    AkSoundEngine.PostEvent(procSoundEffect, attackerCharacterBody.gameObject);
                                 }
                             }
                         }
@@ -256,7 +253,7 @@ namespace LoLItems
             if (masterRef == null)
                 return (Language.GetString(myItemDef.descriptionToken), "");
             
-            string customDescription = "";
+            string customDescription = "<!--BORK-->";
 
             if (borkBonusDamage.TryGetValue(masterRef.netId, out float damageDealt))
                 customDescription += "<br><br>Damage dealt: " + string.Format("{0:#, ##0.##}", damageDealt);

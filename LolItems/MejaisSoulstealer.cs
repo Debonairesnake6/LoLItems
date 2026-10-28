@@ -223,7 +223,7 @@ namespace LoLItems
             if (masterRef == null)
                 return (Language.GetString(myItemDef.descriptionToken), "");
             
-            string customDescription = "";
+            string customDescription = "<!--MEJAI-->";
 
             if (bonusDamageDealt.TryGetValue(masterRef.netId, out float damageDealt))
                 customDescription += "<br><br>Bonus damage dealt: " + string.Format("{0:#, ##0.##}", damageDealt);

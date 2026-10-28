@@ -210,7 +210,7 @@ namespace LoLItems
             if (masterRef == null)
                 return (Language.GetString(myItemDef.descriptionToken), "");
             
-            string customDescription = "";
+            string customDescription = "<!--CULL-->";
 
             if (goldGained.TryGetValue(masterRef.netId, out float goldGainedAmount))
                 customDescription += "<br><br>Total gold gained: " + string.Format("{0:#, ##0.##}", goldGainedAmount);

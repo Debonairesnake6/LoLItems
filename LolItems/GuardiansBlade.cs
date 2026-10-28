@@ -118,8 +118,7 @@ namespace LoLItems
                 float maxCdr = 0.9f;
                 cdr = Math.Min(cdr, maxCdr);
 
-                args.utilitySkill.cooldownMultAdd -= cdr;
-                args.secondarySkill.cooldownMultAdd -= cdr;
+                args.cooldownMultAdd -= cdr;
             }
         }
 
@@ -128,7 +127,7 @@ namespace LoLItems
             if (masterRef == null)
                 return (Language.GetString(myItemDef.descriptionToken), "");
                 
-            string customDescription = "";
+            string customDescription = "<!--GUARDIANSBLADE-->";
 
             if (cooldownReductionTracker.TryGetValue(masterRef.netId, out float cdr))
                 customDescription += "<br><br>Cooldown reduction: " + string.Format("{0:F1}", cdr);

@@ -251,8 +251,18 @@ namespace LoLItems
                 if (RoR2.PlayerCharacterMasterController.instances?.Count > 0)
                 {
                     (string baseDescription, string customDescription) = GetDisplayInformation(RoR2.PlayerCharacterMasterController.instances?[0].master);
-                    if (self.tooltipProvider.overrideBodyText.Contains(customDescription))
-                        self.tooltipProvider.overrideBodyText = "";
+                    // Use marker-based check instead of Contains(customDescription) to handle changing numbers
+                    int markerStart = customDescription.IndexOf("<!--");
+                    if (markerStart >= 0)
+                    {
+                        int markerEnd = customDescription.IndexOf("-->", markerStart + 4);
+                        if (markerEnd >= 0)
+                        {
+                            string marker = customDescription.Substring(markerStart, markerEnd - markerStart + 3);
+                            if (self.tooltipProvider.overrideBodyText.Contains(marker))
+                                self.tooltipProvider.overrideBodyText = "";
+                        }
+                    }
                 }
             };
         }
@@ -288,21 +298,37 @@ namespace LoLItems
         {
             (string baseDescription, string customDescription) = GetDisplayInformation(characterMaster);
 
-            // No custom description or text from other mod
             if (overrideBodyText.Length == 0)
                 overrideBodyText = baseDescription;
 
-            // No custom text
             if (customDescription.Length == 0)
                 return overrideBodyText;
 
-            // Have custom text but not currently in the string
-            else if (!overrideBodyText.Contains(customDescription))
-                return overrideBodyText + customDescription;
-            
-            // Replace our old text with the next text, preserving text from other mods
-            int index = overrideBodyText.IndexOf(customDescription);
-            return overrideBodyText.Substring(0, index) + customDescription;
+            // Find the XML marker (e.g., "<!--RABADONS-->") in customDescription
+            int markerStart = customDescription.IndexOf("<!--");
+            if (markerStart >= 0)
+            {
+                int markerEnd = customDescription.IndexOf("-->", markerStart + 4);
+                if (markerEnd >= 0)
+                {
+                    string marker = customDescription.Substring(markerStart, markerEnd - markerStart + 3);
+                    
+                    // Remove any previous section for this marker from overrideBodyText
+                    if (overrideBodyText.Contains(marker))
+                    {
+                        int bodyIdx = overrideBodyText.IndexOf(marker);
+                        // Find end of this section (next marker or end of string)
+                        string after = overrideBodyText.Substring(bodyIdx + marker.Length);
+                        int nextMarker = after.IndexOf("<!--");
+                        if (nextMarker >= 0)
+                            overrideBodyText = overrideBodyText.Substring(0, bodyIdx) + after.Substring(nextMarker);
+                        else
+                            overrideBodyText = overrideBodyText.Substring(0, bodyIdx);
+                    }
+                }
+            }
+
+            return overrideBodyText + customDescription;
         }
 
         

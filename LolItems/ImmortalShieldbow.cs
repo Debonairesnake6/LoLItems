@@ -149,7 +149,7 @@ namespace LoLItems
             if (masterRef == null)
                 return (Language.GetString(myItemDef.descriptionToken), "");
             
-            string customDescription = "";
+            string customDescription = "<!--SHIELD-->";
 
             if (totalShieldGiven.TryGetValue(masterRef.netId, out float barrierGiven))
                 customDescription += "<br><br>Barrier given: " + string.Format("{0:#, ##0.##}", barrierGiven);
