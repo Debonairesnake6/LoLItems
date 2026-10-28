@@ -95,7 +95,7 @@ namespace LoLItems
 
         private static void Hooks()
         {
-            // When something takes damage
+            // When something takes damage (tracking only — Banner of Command uses RecalculateStatsAPI for actual damage amp)
             On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
             {
                 if (damageInfo.attacker)
@@ -110,12 +110,32 @@ namespace LoLItems
                         {
                             float extraDamage = 1 + (inventoryCount * DamagePercentAmp.Value / 100);
                             Utilities.AddValueInDictionary(ref bonusDamageDealt, ownerMaster, extraDamage * damageInfo.damage, bonusDamageDealtToken);
-                            damageInfo.damage *= extraDamage;
                         }
                     }
                 }
                 orig(self, damageInfo);
             };
+
+            // Actual damage amplification via RecalculateStatsAPI (struct modifications in TakeDamage are lost in 1.5.0)
+            RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients;
+        }
+
+        private static void RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            // Only apply to minions (player-controlled allies)
+            if (characterBody && characterBody.master && characterBody.master.minionOwnership)
+            {
+                CharacterMaster ownerMaster = characterBody.master.minionOwnership.ownerMaster;
+                if (ownerMaster?.inventory)
+                {
+                    int inventoryCount = ownerMaster.inventory.GetItemCountEffective(myItemDef.itemIndex);
+                    if (inventoryCount > 0)
+                    {
+                        // Additive damage multiplier: 10% per stack
+                        args.damageMultAdd += inventoryCount * DamagePercentAmp.Value / 100f;
+                    }
+                }
+            }
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)
