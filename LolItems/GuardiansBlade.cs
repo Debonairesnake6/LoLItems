@@ -119,10 +119,12 @@ namespace LoLItems
                 cdr = Math.Min(cdr, maxCdr);
 
                 // Use cooldownMultiplier (value < 1 = shorter cooldowns)
+                // HyperbolicScale returns CDR percentage (0.09 at 1 item, 0.99 at 1000),
+                // so cooldownMultiplier = 1 - cdr to invert correctly.
                 // The IL hook uses Math.Max(0f, ...) on cooldownMultAdd/cooldownReductionMultAdd,
                 // so negative values would be clamped to 0 (no effect). cooldownMultiplier is correct.
-                args.utilitySkill.cooldownMultiplier = cdr;
-                args.secondarySkill.cooldownMultiplier = cdr;
+                args.utilitySkill.cooldownMultiplier = 1f - cdr;
+                args.secondarySkill.cooldownMultiplier = 1f - cdr;
             }
             else
             {
