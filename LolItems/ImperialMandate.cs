@@ -100,8 +100,7 @@ namespace LoLItems
                 if (damageInfo.attacker)
                 {
                     CharacterBody attackerCharacterBody = damageInfo.attacker.GetComponent<CharacterBody>();
-                    HurtBox victimHurtBox = victim as HurtBox;
-                    CharacterBody victimCharacterBody = victimHurtBox?.body;
+                    CharacterBody victimCharacterBody = victim.GetComponent<CharacterBody>();
                     
                     if (attackerCharacterBody?.inventory)
                     {

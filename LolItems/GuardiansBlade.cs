@@ -104,9 +104,6 @@ namespace LoLItems
                     float cdr = Math.Abs(Utilities.HyperbolicScale(count, CooldownReduction.Value / 100) - 1);
                     Utilities.SetValueInDictionary(ref cooldownReductionTracker, self.GetComponentInParent<RoR2.CharacterMaster>(), Math.Abs(cdr - 1) * 100, cooldownReductionTrackerToken, false);
                 }
-                // Trigger stat recalculation to apply cooldown changes immediately
-                var body = self.GetComponentInParent<CharacterBody>();
-                if (body) body.InvokeRecalcStats();
             };
         }
 
@@ -121,7 +118,8 @@ namespace LoLItems
                 float maxCdr = 0.9f;
                 cdr = Math.Min(cdr, maxCdr);
 
-                args.cooldownReductionMultAdd -= cdr;
+                args.utilitySkill.cooldownMultAdd -= cdr;
+                args.secondarySkill.cooldownMultAdd -= cdr;
             }
         }
 
