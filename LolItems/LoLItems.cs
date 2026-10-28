@@ -15,8 +15,8 @@ namespace LoLItems
     // You don't need this if you're not using R2API in your plugin, it's just to tell BepInEx to initialize R2API before this plugin so it's safe to use R2API.
     [BepInDependency(R2API.R2API.PluginGUID)]
 
-    // R2API.Sound submodule — loads .sound files as Wwise banks
-    [BepInDependency(R2API.Sound.PluginGUID)]
+    // R2API.Sound submodule — auto-loads .sound files as Wwise banks
+    [BepInDependency(SoundAPI.PluginGUID)]
     [R2APISubmoduleDependency(nameof(SoundAPI))]
 
     // This attribute is required, and lists metadata for your plugin.
@@ -48,9 +48,6 @@ namespace LoLItems
             PInfo = Info;
             
             MyAssets.Init();
-
-            // Load Wwise soundbanks from .sound files
-            SoundAPI.SetHooks();
 
             // WhiteClover.Init();
 
