@@ -29,6 +29,7 @@
     <PackageReference Include="R2API.Language" Version="1.1.0" />
     <PackageReference Include="R2API.RecalculateStats" Version="1.7.0" />
     <PackageReference Include="R2API.Prefab" Version="1.1.1" />
+    <PackageReference Include="R2API.Sound" Version="1.0.3" />
   </ItemGroup>
 
   <ItemGroup>

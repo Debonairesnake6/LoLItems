@@ -15,6 +15,10 @@ namespace LoLItems
     // You don't need this if you're not using R2API in your plugin, it's just to tell BepInEx to initialize R2API before this plugin so it's safe to use R2API.
     [BepInDependency(R2API.R2API.PluginGUID)]
 
+    // R2API.Sound submodule — loads .sound files as Wwise banks
+    [BepInDependency(R2API.Sound.PluginGUID)]
+    [R2APISubmoduleDependency(nameof(SoundAPI))]
+
     // This attribute is required, and lists metadata for your plugin.
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
 
@@ -45,6 +49,9 @@ namespace LoLItems
             
             MyAssets.Init();
 
+            // Load Wwise soundbanks from .sound files
+            SoundAPI.SetHooks();
+
             // WhiteClover.Init();
 
             Heartsteel.Init();
@@ -74,46 +81,46 @@ namespace LoLItems
         // Uncomment the following code to enable Update(), which allows you to press F2 to spawn all of our items in-game
         // The Update() method is run on every frame of the game.
 
-        // private void Update()
-        // {
-        //     if (Input.GetKeyDown(KeyCode.F2))
-        //     {
-        //         //Get the player body to use a position:
-        //         var transform = PlayerCharacterMasterController.instances[0].master.GetBodyObject().transform;
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.F2))
+            {
+                //Get the player body to use a position:
+                var transform = PlayerCharacterMasterController.instances[0].master.GetBodyObject().transform;
 
-        //         //And then drop our defined item in front of the player.
-        //         Log.LogInfo($"Player pressed F2. Spawning our custom item at coordinates {transform.position}");
+                //And then drop our defined item in front of the player.
+                Log.LogInfo($"Player pressed F2. Spawning our custom item at coordinates {transform.position}");
 
-        //         List<ItemDef> myItems = [ 
-        //             BannerOfCommand.myItemDef, 
-        //             Bork.myItemDef, 
-        //             GuardiansBlade.myItemDef,
-        //             GuinsoosRageblade.myItemDef, 
-        //             Heartsteel.myItemDef, 
-        //             ImmortalShieldbow.myItemDef,
-        //             ImperialMandate.myItemDef, 
-        //             InfinityEdge.myItemDef, 
-        //             KrakenSlayer.myItemDef,
-        //             Liandrys.myItemDef, 
-        //             MejaisSoulstealer.myItemDef,
-        //             Rabadons.myItemDef, 
-        //             Cull.myItemDef,
-        //             ExperimentalHexplate.myItemDef
-        //             ];
+                List<ItemDef> myItems = [ 
+                    BannerOfCommand.myItemDef, 
+                    Bork.myItemDef, 
+                    GuardiansBlade.myItemDef,
+                    GuinsoosRageblade.myItemDef, 
+                    Heartsteel.myItemDef, 
+                    ImmortalShieldbow.myItemDef,
+                    ImperialMandate.myItemDef, 
+                    InfinityEdge.myItemDef, 
+                    KrakenSlayer.myItemDef,
+                    Liandrys.myItemDef, 
+                    MejaisSoulstealer.myItemDef,
+                    Rabadons.myItemDef, 
+                    Cull.myItemDef,
+                    ExperimentalHexplate.myItemDef
+                    ];
 
-        //         foreach (ItemDef myItem in myItems)
-        //         {
-        //             PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(myItem.itemIndex), transform.position, transform.forward * 30f);
-        //         }
+                foreach (ItemDef myItem in myItems)
+                {
+                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(myItem.itemIndex), transform.position, transform.forward * 30f);
+                }
 
-        //         List<EquipmentDef> myEquipments = [
-        //             GargoyleStoneplate.myEquipmentDef,
-        //             ];
-        //         foreach (EquipmentDef myEquipment in myEquipments)
-        //         {
-        //             PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(myEquipment.equipmentIndex), transform.position, transform.forward * 30f);
-        //         }
-        //     }
-        // }
+                List<EquipmentDef> myEquipments = [
+                    GargoyleStoneplate.myEquipmentDef,
+                    ];
+                foreach (EquipmentDef myEquipment in myEquipments)
+                {
+                    PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(myEquipment.equipmentIndex), transform.position, transform.forward * 30f);
+                }
+            }
+        }
     }
 }
