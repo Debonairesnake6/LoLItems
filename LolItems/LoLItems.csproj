@@ -27,6 +27,7 @@
     <PackageReference Include="R2API.Dot" Version="1.1.3" />
     <PackageReference Include="R2API.Networking" Version="1.0.4" />
     <PackageReference Include="R2API.Language" Version="1.1.0" />
+    <PackageReference Include="R2API.RecalculateStats" Version="1.7.0" />
   </ItemGroup>
 
   <ItemGroup>
