@@ -249,9 +249,9 @@ namespace LoLItems
 
                             if (customDescription.Length > 0)
                             {
-                                if (_previousEquipCustomDescriptions.TryGetValue(myEquipmentDef.index, out string oldCustom))
+                                if (_previousEquipCustomDescriptions.TryGetValue(EquipmentCatalog.GetIndex(myEquipmentDef), out string oldCustom))
                                     self.tooltipProvider.overrideBodyText = self.tooltipProvider.overrideBodyText.Replace(oldCustom, "");
-                                _previousEquipCustomDescriptions[myEquipmentDef.index] = customDescription;
+                                _previousEquipCustomDescriptions[EquipmentCatalog.GetIndex(myEquipmentDef)] = customDescription;
                                 self.tooltipProvider.overrideBodyText += customDescription;
                             }
                             return;
@@ -309,17 +309,17 @@ namespace LoLItems
 
             if (customDescription.Length == 0)
             {
-                _previousCustomDescriptions.Remove(itemDef.itemIndex);
+                _previousCustomDescriptions.Remove(itemDef.itemIndex.value);
                 return overrideBodyText;
             }
 
             // Replace any old custom description for this item
-            if (_previousCustomDescriptions.TryGetValue(itemDef.itemIndex, out string oldCustom))
+            if (_previousCustomDescriptions.TryGetValue(itemDef.itemIndex.value, out string oldCustom))
             {
                 overrideBodyText = overrideBodyText.Replace(oldCustom, "");
             }
 
-            _previousCustomDescriptions[itemDef.itemIndex] = customDescription;
+            _previousCustomDescriptions[itemDef.itemIndex.value] = customDescription;
 
             return overrideBodyText + customDescription;
         }
