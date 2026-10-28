@@ -230,12 +230,12 @@ namespace LoLItems
             // Setup the base hooks
             ReadOnlyHooks(DisplayToMasterRef);
 
-            On.RoR2.UI.EquipmentIcon.Update += (orig, self) => 
+            On.RoR2.UI.EquipmentIcon.SetDisplayData += (orig, self, newDisplayData) => 
             {
-                orig(self);
+                orig(self, newDisplayData);
 
 #pragma warning disable Publicizer001
-                if (self.currentDisplayData.equipmentDef == myEquipmentDef && self.targetInventory)
+                if (newDisplayData.equipmentDef == myEquipmentDef && self.targetInventory)
 #pragma warning restore Publicizer001
                 {
                     foreach (RoR2.PlayerCharacterMasterController player in RoR2.PlayerCharacterMasterController.instances)

@@ -88,7 +88,7 @@ namespace LoLItems
             myEquipmentDef.pickupToken = "GargoyleStoneplateItem";
             myEquipmentDef.descriptionToken = "GargoyleStoneplateDesc";
             myEquipmentDef.loreToken = "GargoyleStoneplateLore";
-            myEquipmentDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("GargoyleStoneplateIcon");
+            myEquipmentDef.pickupIconReference = MyAssets.icons.LoadAsset<Sprite>("GargoyleStoneplateIcon");
 #pragma warning disable CS0618
             myEquipmentDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("GargoyleStoneplatePrefab");
 #pragma warning restore CS0618

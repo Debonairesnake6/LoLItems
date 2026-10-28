@@ -100,10 +100,10 @@ namespace LoLItems
             myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
 #pragma warning restore Publicizer001
             // DEFAULT icons
-            myItemDef.pickupIconSprite = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
+            myItemDef.pickupIconReference = Resources.Load<Sprite>("Textures/MiscIcons/texMysteryIcon");
             myItemDef.pickupModelReference = new AssetReferenceT<GameObject>(RoR2BepInExPack.GameAssetPathsBetter.RoR2_Base_Mystery.PickupMystery_prefab);
             // ENABLE for custom assets
-            // myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("MyExampleItemIcon");
+            // myItemDef.pickupIconReference = MyAssets.icons.LoadAsset<Sprite>("MyExampleItemIcon");
             // myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("MyExampleItemPrefab");
             myItemDef.canRemove = true;
             myItemDef.hidden = false;

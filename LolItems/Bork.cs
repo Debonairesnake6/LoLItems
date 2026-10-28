@@ -152,7 +152,7 @@ namespace LoLItems
 #pragma warning disable Publicizer001
             myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
 #pragma warning restore Publicizer001
-            myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("BorkIcon");
+            myItemDef.pickupIconReference = MyAssets.icons.LoadAsset<Sprite>("BorkIcon");
 #pragma warning disable CS0618
             myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("BorkPrefab");
 #pragma warning restore CS0618

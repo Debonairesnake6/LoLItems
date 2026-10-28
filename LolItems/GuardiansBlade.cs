@@ -82,7 +82,7 @@ namespace LoLItems
 #pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
             myItemDef._itemTierDef = LegacyResourcesAPI.Load<ItemTierDef>(Utilities.GetRarityFromString(Rarity.Value));
 #pragma warning restore Publicizer001
-            myItemDef.pickupIconSprite = MyAssets.icons.LoadAsset<Sprite>("GuardiansBladeIcon");
+            myItemDef.pickupIconReference = MyAssets.icons.LoadAsset<Sprite>("GuardiansBladeIcon");
 #pragma warning disable CS0618
             myItemDef.pickupModelPrefab = MyAssets.prefabs.LoadAsset<GameObject>("GuardiansBladePrefab");
 #pragma warning restore CS0618
@@ -118,8 +118,8 @@ namespace LoLItems
                 float maxCdr = 0.9f;
                 cdr = Math.Min(cdr, maxCdr);
 
-                args.utilityCooldownMultAdd -= cdr;
-                args.secondaryCooldownMultAdd -= cdr;
+                args.utilitySkill.cooldownMultAdd -= cdr;
+                args.secondarySkill.cooldownMultAdd -= cdr;
             }
         }
 
