@@ -192,7 +192,9 @@ namespace LoLItems
                             onHitProc.damageColorIndex = DamageColorIndex.Item;
                             victimCharacterBody.healthComponent.TakeDamage(onHitProc);
                             Utilities.AddValueInDictionary(ref heartsteelBonusDamage, attackerCharacterBody.master, damage, heartsteelBonusDamageToken, false);
-                            AkSoundEngine.PostEvent(triggerSoundEffectID, damageInfo.attacker.gameObject);
+                            // TODO: Fix Heartsteel sound event for RoR2 1.5.0
+                            // AkSoundEngine.PostEvent(triggerSoundEffectID, damageInfo.attacker.gameObject);
+                            LoLItems.Log.LogWarning("Heartsteel proc sound not playing - event ID " + triggerSoundEffectID + " may be invalid in 1.5.0");
                         }
                     }
                 }

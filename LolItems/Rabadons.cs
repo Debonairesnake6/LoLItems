@@ -292,6 +292,25 @@ namespace LoLItems
                 }
             };
 
+            On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
+            {
+                orig(self, damageInfo);
+                if (damageInfo.attacker && damageInfo.dotIndex != DotController.DotIndex.None)
+                {
+                    CharacterBody attackerCharacterBody = damageInfo.attacker.GetComponent<CharacterBody>();
+                    if (attackerCharacterBody?.inventory)
+                    {
+                        int itemCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
+                        if (itemCount > 0)
+                        {
+                            float damageMultAdd = itemCount * (DamageAmp.Value / 100);
+                            float bonusDamage = damageInfo.damage * damageMultAdd / (1 + damageMultAdd);
+                            Utilities.AddValueInDictionary(ref rabadonsBonusDamage, attackerCharacterBody.master, bonusDamage, rabadonsBonusDamageToken);
+                        }
+                    }
+                }
+            };
+
             RecalculateStatsAPI.GetStatCoefficients += Rabadons_RecalculateStatsAPI_GetStatCoefficients;
         }
 

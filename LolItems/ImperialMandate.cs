@@ -100,7 +100,8 @@ namespace LoLItems
                 if (damageInfo.attacker)
                 {
                     CharacterBody attackerCharacterBody = damageInfo.attacker.GetComponent<CharacterBody>();
-                    CharacterBody victimCharacterBody = victim.GetComponent<CharacterBody>();
+                    HurtBox victimHurtBox = victim as HurtBox;
+                    CharacterBody victimCharacterBody = victimHurtBox?.body;
                     
                     if (attackerCharacterBody?.inventory)
                     {
@@ -122,6 +123,38 @@ namespace LoLItems
                             }
                             float extraDamage = damageInfo.damage * DamageAmpPerStack.Value / 100f * inventoryCount * debuffsActive;
                             Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, extraDamage, bonusDamageDealtToken);
+                        }
+                    }
+                }
+            };
+
+            On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
+            {
+                orig(self, damageInfo);
+                if (damageInfo.attacker && damageInfo.dotIndex != DotController.DotIndex.None)
+                {
+                    CharacterBody attackerCharacterBody = damageInfo.attacker.GetComponent<CharacterBody>();
+                    CharacterBody victimCharacterBody = self.GetComponent<CharacterBody>();
+                    if (attackerCharacterBody?.inventory && victimCharacterBody)
+                    {
+                        int inventoryCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
+                        if (inventoryCount > 0)
+                        {
+                            int debuffsActive = 0;
+                            foreach (BuffIndex buffIndex in BuffCatalog.debuffBuffIndices)
+                            {
+                                if (victimCharacterBody.HasBuff(buffIndex)) debuffsActive++;
+                            }
+                            DotController dotController = DotController.FindDotController(victimCharacterBody.gameObject);
+                            if (dotController)
+                            {
+                                for (DotController.DotIndex dotIndex = DotController.DotIndex.Bleed; dotIndex < DotController.DotIndex.Count; dotIndex++)
+                                {
+                                    if (dotController.HasDotActive(dotIndex)) debuffsActive++;
+                                }
+                            }
+                            float bonusDamage = damageInfo.damage * DamageAmpPerStack.Value / 100f * inventoryCount * debuffsActive;
+                            Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, bonusDamage, bonusDamageDealtToken);
                         }
                     }
                 }

@@ -251,7 +251,7 @@ namespace LoLItems
                 if (RoR2.PlayerCharacterMasterController.instances?.Count > 0)
                 {
                     (string baseDescription, string customDescription) = GetDisplayInformation(RoR2.PlayerCharacterMasterController.instances?[0].master);
-                    if (self.tooltipProvider.overrideBodyText.Contains(customDescription.Substring(0, 14)))
+                    if (self.tooltipProvider.overrideBodyText.Contains(customDescription))
                         self.tooltipProvider.overrideBodyText = "";
                 }
             };
@@ -297,11 +297,12 @@ namespace LoLItems
                 return overrideBodyText;
 
             // Have custom text but not currently in the string
-            else if (!overrideBodyText.Contains(customDescription.Substring(0, 14)))
+            else if (!overrideBodyText.Contains(customDescription))
                 return overrideBodyText + customDescription;
             
-            // Replace our old text with the next text, preserving text form other mods
-            return overrideBodyText.Substring(0, overrideBodyText.IndexOf(customDescription.Substring(0, 14))) + customDescription;
+            // Replace our old text with the next text, preserving text from other mods
+            int index = overrideBodyText.IndexOf(customDescription);
+            return overrideBodyText.Substring(0, index) + customDescription;
         }
 
         
