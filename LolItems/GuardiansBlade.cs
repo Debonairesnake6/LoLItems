@@ -118,7 +118,8 @@ namespace LoLItems
                 float maxCdr = 0.9f;
                 cdr = Math.Min(cdr, maxCdr);
 
-                args.cooldownMultAdd -= cdr;
+                args.utilitySkill.cooldownReductionMultAdd -= cdr;
+                args.secondarySkill.cooldownReductionMultAdd -= cdr;
             }
         }
 
