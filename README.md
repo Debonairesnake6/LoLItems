@@ -49,6 +49,10 @@ Icon | Name | Tier | Description
 * Rabadon's Deathcap and Imperial Mandate now count their burn damage in the damage dealt stat
 * Updated the mod's dependencies for RoR2 1.5.0. R2API.Core and R2API.Sound are now required dependencies
 
+**1.3.3**
+* Updated the dependencies to include a missing dependency, and updated them to work with the newer R2API
+  * Credit to Max on discord for raising the issue, and Chinchi for helping me solve it quickly
+
 **1.3.2**
 * Updated to work with the new Alloyed Collective DLC
   * Credit to hashiresoreyoast, .score, and DarkXv_Z on the Discord channel for letting me know it was broken
