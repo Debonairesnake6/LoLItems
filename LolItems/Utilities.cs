@@ -148,7 +148,7 @@ namespace LoLItems
         {
 
             // Setup the base hooks
-            ReadOnlyHooks(DisplayToMasterRef);
+            ReadOnlyHooks(DisplayToMasterRef, IconToMasterRef, myItemDef, GetDisplayInformation);
 
             // Called basically every frame to update your HUD info
             On.RoR2.UI.HUD.Update += (orig, self) => 
@@ -162,23 +162,53 @@ namespace LoLItems
                     {
                         // Update the description for an item in the HUD
                         if (item.itemIndex == myItemDef.itemIndex){
-                            item.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(item.tooltipProvider.overrideBodyText, GetDisplayInformation, self.targetMaster);
+                            item.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(item.tooltipProvider.overrideBodyText, myItemDef, GetDisplayInformation, self.targetMaster);
                         }
                     });
 #pragma warning restore Publicizer001
                 }
             };
 
-            // Open Scoreboard
+            // RoR2 1.5 sets an icon's tooltip through the SetItemIndex(SetItemIndexArgs) overload.
+            // The (ItemIndex, int) and (ItemIndex, int, float) overloads are marked "For Mod Compat
+            // Only", so hook all three and catch whichever one the game actually calls.
             On.RoR2.UI.ItemIcon.SetItemIndex_ItemIndex_int += (orig, self, newIndex, newCount) =>
             {
                 orig(self, newIndex, newCount);
-                if (self.tooltipProvider != null && newIndex == myItemDef.itemIndex)
+                ApplyIconDescription(self, newIndex, myItemDef, IconToMasterRef, GetDisplayInformation);
+            };
+
+            On.RoR2.UI.ItemIcon.SetItemIndex_ItemIndex_int_float += (orig, self, newIndex, newCount, newDurationPercent) =>
+            {
+                orig(self, newIndex, newCount, newDurationPercent);
+                ApplyIconDescription(self, newIndex, myItemDef, IconToMasterRef, GetDisplayInformation);
+            };
+
+            On.RoR2.UI.ItemIcon.SetItemIndex_SetItemIndexArgs += (orig, self, args) =>
+            {
+                orig(self, args);
+                ApplyIconDescription(self, args.newItemIndex, myItemDef, IconToMasterRef, GetDisplayInformation);
+            };
+
+            #pragma warning disable Publicizer001
+            // ItemInventoryDisplay.UpdateDisplay is what allocates and refreshes the icons of every
+            // item display: the HUD, the scoreboard, the enemy info panel and the end-of-run report
+            // panel (death recap). The report panel rebuilds its icons after gameplay ends, so this
+            // is the only place that still sees those icons.
+            On.RoR2.UI.ItemInventoryDisplay.UpdateDisplay += (orig, self) =>
+            {
+                orig(self);
+                DisplayToMasterRef.TryGetValue(self, out CharacterMaster masterRef);
+                if (!masterRef)
+                    return;
+
+                foreach (RoR2.UI.ItemIcon icon in self.itemIcons)
                 {
-                    IconToMasterRef.TryGetValue(self, out CharacterMaster master);
-                    self.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(self.tooltipProvider.overrideBodyText, GetDisplayInformation, master);
+                    IconToMasterRef[icon] = masterRef;
+                    ApplyIconDescription(icon, icon.itemIndex, myItemDef, IconToMasterRef, GetDisplayInformation);
                 }
             };
+            #pragma warning restore Publicizer001
 
             // Open Scoreboard
             On.RoR2.UI.ItemInventoryDisplay.AllocateIcons += (orig, self, count) =>
@@ -230,19 +260,30 @@ namespace LoLItems
             // Setup the base hooks
             ReadOnlyHooks(DisplayToMasterRef);
 
-            On.RoR2.UI.EquipmentIcon.Update += (orig, self) => 
+            On.RoR2.UI.EquipmentIcon.SetDisplayData += (orig, self, newDisplayData) => 
             {
-                orig(self);
+                orig(self, newDisplayData);
 
 #pragma warning disable Publicizer001
-                if (self.currentDisplayData.equipmentDef == myEquipmentDef && self.targetInventory)
+                if (newDisplayData.equipmentDef == myEquipmentDef && self.targetInventory)
 #pragma warning restore Publicizer001
                 {
                     foreach (RoR2.PlayerCharacterMasterController player in RoR2.PlayerCharacterMasterController.instances)
                     {
                         if (self.targetInventory == player.master.inventory)
                         {
-                            self.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(self.tooltipProvider.overrideBodyText, GetDisplayInformation, player.master);   
+                            (string baseDescription, string customDescription) = GetDisplayInformation(player.master);
+
+                            if (self.tooltipProvider.overrideBodyText.Length == 0)
+                                self.tooltipProvider.overrideBodyText = baseDescription;
+
+                            if (customDescription.Length > 0)
+                            {
+                                if (_previousEquipCustomDescriptions.TryGetValue(myEquipmentDef, out string oldCustom))
+                                    self.tooltipProvider.overrideBodyText = self.tooltipProvider.overrideBodyText.Replace(oldCustom, "");
+                                _previousEquipCustomDescriptions[myEquipmentDef] = customDescription;
+                                self.tooltipProvider.overrideBodyText += customDescription;
+                            }
                             return;
                         }
                     }
@@ -250,16 +291,62 @@ namespace LoLItems
                 // Clear the override text if it's not overwritten by other mods
                 if (RoR2.PlayerCharacterMasterController.instances?.Count > 0)
                 {
-                    (string baseDescription, string customDescription) = GetDisplayInformation(RoR2.PlayerCharacterMasterController.instances?[0].master);
-                    if (self.tooltipProvider.overrideBodyText.Contains(customDescription.Substring(0, 14)))
+                    (string baseDescription, string customDescription) = GetDisplayInformation(RoR2.PlayerCharacterMasterController.instances[0].master);
+                    if (customDescription.Length == 0)
+                    {
                         self.tooltipProvider.overrideBodyText = "";
+                    }
                 }
             };
         }
 
+        // Equipment icons do not need the icon->master mapping, only the display->master mapping.
         private static void ReadOnlyHooks(
-            Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef
-        )
+            Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef)
+        {
+            RegisterDisplayMappings(DisplayToMasterRef);
+
+            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo, playerIndex) =>
+            {
+                orig(self, playerInfo, playerIndex);
+                CharacterMaster master = ResolveReportMaster(playerInfo);
+                if (master && self.itemInventoryDisplay)
+                    DisplayToMasterRef[self.itemInventoryDisplay] = master;
+            };
+        }
+
+        private static void ReadOnlyHooks(
+            Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef,
+            Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef,
+            ItemDef myItemDef,
+            Func<CharacterMaster, (string, string)> GetDisplayInformation)
+        {
+            RegisterDisplayMappings(DisplayToMasterRef);
+
+            // Death screen (end-of-game report) - remember the reported player. The panel rebuilds its
+            // icons after gameplay ends, so ItemInventoryDisplay.UpdateDisplay applies the tracked
+            // values when those icons are refreshed.
+            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo, playerIndex) =>
+            {
+                orig(self, playerInfo, playerIndex);
+                CharacterMaster master = ResolveReportMaster(playerInfo);
+                if (!master || !self.itemInventoryDisplay)
+                    return;
+
+                DisplayToMasterRef[self.itemInventoryDisplay] = master;
+
+                #pragma warning disable Publicizer001
+                self.itemInventoryDisplay.itemIcons.ForEach(delegate(RoR2.UI.ItemIcon icon)
+                {
+                    IconToMasterRef[icon] = master;
+                });
+                #pragma warning restore Publicizer001
+            };
+        }
+
+        // Every item display shows one player's items, and the tracked values are looked up per
+        // player, so each display needs to know which master it belongs to.
+        private static void RegisterDisplayMappings(Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRef)
         {
             // Open Scoreboard
             On.RoR2.UI.ScoreboardStrip.SetMaster += (orig, self, characterMaster) =>
@@ -268,40 +355,94 @@ namespace LoLItems
                 if (characterMaster) DisplayToMasterRef[self.itemInventoryDisplay] = characterMaster;
             };
 
-            // Add to stat dict for end of game screen
-            On.RoR2.UI.GameEndReportPanelController.SetPlayerInfo += (orig, self, playerInfo, playerIndex) => 
+            // A display that subscribes an inventory belongs to the owner of that inventory
+            On.RoR2.UI.ItemInventoryDisplay.SetSubscribedInventory += (orig, self, newInventory) =>
             {
-                orig(self, playerInfo, playerIndex);
-                Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster> DisplayToMasterRefCopy = new Dictionary<RoR2.UI.ItemInventoryDisplay, CharacterMaster>(DisplayToMasterRef);
-                foreach(KeyValuePair<RoR2.UI.ItemInventoryDisplay, CharacterMaster> entry in DisplayToMasterRefCopy)
+                orig(self, newInventory);
+                if (!newInventory)
+                    return;
+
+                foreach (RoR2.PlayerCharacterMasterController playerCharacterMasterController in RoR2.PlayerCharacterMasterController.instances)
                 {
-                    if (entry.Value == playerInfo.master)
+                    if (playerCharacterMasterController.master && playerCharacterMasterController.master.inventory == newInventory)
                     {
-                        DisplayToMasterRef[self.itemInventoryDisplay] = playerInfo.master;
+                        DisplayToMasterRef[self] = playerCharacterMasterController.master;
+                        return;
                     }
                 }
             };
         }
 
+        // RunReport.PlayerInfo.master is nullable: the run report does not carry masters, so it is
+        // only filled in for the players this client resolves locally. Fall back to the live objects
+        // so the tracked values are still available at the end of the run.
+        private static CharacterMaster ResolveReportMaster(RoR2.RunReport.PlayerInfo playerInfo)
+        {
+            if (playerInfo.master)
+                return playerInfo.master;
+
+            if (playerInfo.networkUser && playerInfo.networkUser.master)
+                return playerInfo.networkUser.master;
+
+            if (playerInfo.localUser != null && playerInfo.localUser.cachedMaster != null)
+                return playerInfo.localUser.cachedMaster;
+
+            if (playerInfo.networkUser)
+            {
+                foreach (RoR2.PlayerCharacterMasterController playerCharacterMasterController in RoR2.PlayerCharacterMasterController.instances)
+                {
+                    if (playerCharacterMasterController.master && playerCharacterMasterController.networkUser == playerInfo.networkUser)
+                        return playerCharacterMasterController.master;
+                }
+            }
+
+            return null;
+        }
+
+        private static void ApplyIconDescription(
+            RoR2.UI.ItemIcon item,
+            RoR2.ItemIndex itemIndex,
+            ItemDef myItemDef,
+            Dictionary<RoR2.UI.ItemIcon, CharacterMaster> IconToMasterRef,
+            Func<CharacterMaster, (string, string)> GetDisplayInformation)
+        {
+            if (!item.tooltipProvider || itemIndex != myItemDef.itemIndex)
+                return;
+
+            IconToMasterRef.TryGetValue(item, out CharacterMaster master);
+            item.tooltipProvider.overrideBodyText = AddCustomDescriptionRegexReplace(item.tooltipProvider.overrideBodyText, myItemDef, GetDisplayInformation, master);
+        }
+
+        // Keyed per player: the same item can be displayed for several players at once
+        // (scoreboard, end-of-run report) and each of them has different tracked values.
+        private static readonly Dictionary<(RoR2.ItemIndex, NetworkInstanceId), string> _previousCustomDescriptions = [];
+        private static readonly Dictionary<EquipmentDef, string> _previousEquipCustomDescriptions = [];
+
         // Add our custom description while keeping the custom description added by other mods (e.g. equipment cooldown)
-        private static string AddCustomDescriptionRegexReplace(string overrideBodyText, Func<CharacterMaster, (string, string)> GetDisplayInformation, CharacterMaster characterMaster)
+        private static string AddCustomDescriptionRegexReplace(string overrideBodyText, ItemDef itemDef, Func<CharacterMaster, (string, string)> GetDisplayInformation, CharacterMaster characterMaster)
         {
             (string baseDescription, string customDescription) = GetDisplayInformation(characterMaster);
 
-            // No custom description or text from other mod
             if (overrideBodyText.Length == 0)
                 overrideBodyText = baseDescription;
 
-            // No custom text
-            if (customDescription.Length == 0)
-                return overrideBodyText;
+            (RoR2.ItemIndex, NetworkInstanceId) key = (itemDef.itemIndex, characterMaster ? characterMaster.netId : new NetworkInstanceId());
 
-            // Have custom text but not currently in the string
-            else if (!overrideBodyText.Contains(customDescription.Substring(0, 14)))
-                return overrideBodyText + customDescription;
-            
-            // Replace our old text with the next text, preserving text form other mods
-            return overrideBodyText.Substring(0, overrideBodyText.IndexOf(customDescription.Substring(0, 14))) + customDescription;
+            if (customDescription.Length == 0)
+            {
+                _previousCustomDescriptions.Remove(key);
+                return overrideBodyText;
+            }
+
+            // Replace any old custom description for this item and player
+            if (_previousCustomDescriptions.TryGetValue(key, out string oldCustom))
+            {
+                overrideBodyText = overrideBodyText.Replace(oldCustom, "");
+            }
+
+            _previousCustomDescriptions[key] = customDescription;
+
+            return overrideBodyText + customDescription;
         }
 
         

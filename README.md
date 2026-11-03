@@ -2,7 +2,7 @@ WARNING: This project is in a maintenance phase. I will fix breaking bugs when t
 
 # LoL Items
 
-Adding items from League of Legends to Risk of Rain 2.
+Adding items from League of Legends to Risk of Rain 2. The intended way to use this mod is by using the Thunderstore Mod Manager: https://thunderstore.io/c/riskofrain2/p/Debo/LoLItems/.
 
 # Items Added
 These are just the items implemented so far. I am planning to continue to add more items as I develop this mod.
@@ -25,6 +25,29 @@ Icon | Name | Tier | Description
 ![Gargoyle Stoneplate](https://static.wikia.nocookie.net/leagueoflegends/images/6/62/Gargoyle_Stoneplate_item_HD.png/revision/latest/scale-to-width-down/64?cb=20221230182936) | Gargoyle Stoneplate | Equipment | Temporarily gain armor and a barrier based on your maximum health.
 
 ## Changelog
+
+**1.4.0**
+* Updated to work with the Hallowed Concepts DLC
+* Fixed Rabadon's Deathcap, Imperial Mandate, and Mejai's Soulstealer doing zero damage
+  * The damage bonuses are now applied through RecalculateStats rather than editing the damage of each hit
+  * Credit to [BeBerus](https://github.com/BeBerus) on GitHub for reporting this
+  * https://github.com/Debonairesnake6/LoLItems/issues/54
+  * Credit to [4545nbnby](https://github.com/4545nbnby) on GitHub for letting me know damage was broken
+  * https://github.com/Debonairesnake6/LoLItems/issues/52
+* Fixed Banner of Command not amplifying your minion's damage
+  * Credit to [BeBerus](https://github.com/BeBerus) on GitHub for reporting this
+  * https://github.com/Debonairesnake6/LoLItems/issues/54
+* Fixed Bork's big hit damage not scaling with additional stacks
+  * Credit to [BeBerus](https://github.com/BeBerus) on GitHub for reporting this
+  * https://github.com/Debonairesnake6/LoLItems/issues/54
+* Fixed GuardiansBlade duplicating itself on pickup and zeroing the damage of some abilities
+  * Credit to [BeBerus](https://github.com/BeBerus) on GitHub for reporting this
+  * https://github.com/Debonairesnake6/LoLItems/issues/54
+* Fixed GuinsoosRageblade proccing on hits an absurd amount of times, which could lock characters out of their abilities
+  * Credit to [samwong9280](https://github.com/samwong9280) on GitHub for reporting this
+  * https://github.com/Debonairesnake6/LoLItems/issues/53
+* Rabadon's Deathcap and Imperial Mandate now count their burn damage in the damage dealt stat
+* Updated the mod's dependencies for RoR2 1.5.0. R2API.Core and R2API.Sound are now required dependencies
 
 **1.3.3**
 * Updated the dependencies to include a missing dependency, and updated them to work with the newer R2API

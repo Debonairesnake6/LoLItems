@@ -91,15 +91,50 @@ namespace LoLItems
 
         private static void Hooks()
         {
-            // When something takes damage
-            On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
+            RecalculateStatsAPI.GetStatCoefficients += ImperialMandate_RecalculateStatsAPI_GetStatCoefficients;
+
+            On.RoR2.GlobalEventManager.OnHitEnemy += (orig, self, damageInfo, victim) =>
             {
+                orig(self, damageInfo, victim);
+
                 if (damageInfo.attacker)
                 {
                     CharacterBody attackerCharacterBody = damageInfo.attacker.GetComponent<CharacterBody>();
-                    CharacterBody victimCharacterBody = self.GetComponent<CharacterBody>();
+                    CharacterBody victimCharacterBody = victim.GetComponent<CharacterBody>();
                     
                     if (attackerCharacterBody?.inventory)
+                    {
+                        int inventoryCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
+                        if (inventoryCount > 0 && damageInfo.damage > 0)
+                        {
+                            int debuffsActive = 0;
+                            foreach (BuffIndex buffIndex in BuffCatalog.debuffBuffIndices)
+                            {
+                                if (victimCharacterBody.HasBuff(buffIndex)) debuffsActive++;
+                            }
+                            DotController dotController = DotController.FindDotController(victimCharacterBody.gameObject);
+                            if (dotController)
+                            {
+                                for (DotController.DotIndex dotIndex = DotController.DotIndex.Bleed; dotIndex < DotController.DotIndex.Count; dotIndex++)
+                                {
+                                    if (dotController.HasDotActive(dotIndex)) debuffsActive++;
+                                }
+                            }
+                            float extraDamage = damageInfo.damage * DamageAmpPerStack.Value / 100f * inventoryCount * debuffsActive;
+                            Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, extraDamage, bonusDamageDealtToken);
+                        }
+                    }
+                }
+            };
+
+            On.RoR2.HealthComponent.TakeDamage += (orig, self, damageInfo) =>
+            {
+                orig(self, damageInfo);
+                if (damageInfo.attacker && damageInfo.dotIndex != DotController.DotIndex.None)
+                {
+                    CharacterBody attackerCharacterBody = damageInfo.attacker.GetComponent<CharacterBody>();
+                    CharacterBody victimCharacterBody = self.GetComponent<CharacterBody>();
+                    if (attackerCharacterBody?.inventory && victimCharacterBody)
                     {
                         int inventoryCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
                         if (inventoryCount > 0)
@@ -107,24 +142,44 @@ namespace LoLItems
                             int debuffsActive = 0;
                             foreach (BuffIndex buffIndex in BuffCatalog.debuffBuffIndices)
                             {
-                                if (victimCharacterBody.HasBuff(buffIndex)) debuffsActive += 1;
+                                if (victimCharacterBody.HasBuff(buffIndex)) debuffsActive++;
                             }
                             DotController dotController = DotController.FindDotController(victimCharacterBody.gameObject);
                             if (dotController)
                             {
                                 for (DotController.DotIndex dotIndex = DotController.DotIndex.Bleed; dotIndex < DotController.DotIndex.Count; dotIndex++)
                                 {
-                                    if (dotController.HasDotActive(dotIndex)) debuffsActive += 1;
+                                    if (dotController.HasDotActive(dotIndex)) debuffsActive++;
                                 }
                             }
-                            float extraDamage = damageInfo.damage * DamageAmpPerStack.Value / 100 * inventoryCount * debuffsActive;
-                            damageInfo.damage += extraDamage;
-                            Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, extraDamage, bonusDamageDealtToken);
+                            float bonusDamage = damageInfo.damage * DamageAmpPerStack.Value / 100f * inventoryCount * debuffsActive;
+                            Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, bonusDamage, bonusDamageDealtToken);
                         }
                     }
                 }
-                orig(self, damageInfo);
             };
+        }
+
+        private static void ImperialMandate_RecalculateStatsAPI_GetStatCoefficients(CharacterBody characterBody, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            int inventoryCount = characterBody?.inventory?.GetItemCountEffective(myItemDef.itemIndex) ?? 0;
+            if (inventoryCount > 0)
+            {
+                int debuffsActive = 0;
+                foreach (BuffIndex buffIndex in BuffCatalog.debuffBuffIndices)
+                {
+                    if (characterBody.HasBuff(buffIndex)) debuffsActive++;
+                }
+                DotController dotController = DotController.FindDotController(characterBody.gameObject);
+                if (dotController)
+                {
+                    for (DotController.DotIndex dotIndex = DotController.DotIndex.Bleed; dotIndex < DotController.DotIndex.Count; dotIndex++)
+                    {
+                        if (dotController.HasDotActive(dotIndex)) debuffsActive++;
+                    }
+                }
+                args.damageMultAdd += inventoryCount * debuffsActive * (DamageAmpPerStack.Value / 100);
+            }
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)

@@ -90,27 +90,48 @@ namespace LoLItems
         }
 
 
+        // Guards against proc feedback loop: only apply bonus on the top-level OnHitEnemy call (actual attack),
+        // not on nested calls from procs resolving during orig(). This prevents runaway escalation.
+        private static System.Threading.ThreadLocal<bool> isApplyingBonus = new System.Threading.ThreadLocal<bool>(() => false);
+
         private static void Hooks()
         {
             On.RoR2.GlobalEventManager.OnHitEnemy += (orig, self, damageInfo, victim) =>
             {
-                if (damageInfo.attacker)
+                // Prevent feedback loop: only apply proc coefficient bonus on the initial attack,
+                // not during proc resolution (which triggers nested OnHitEnemy calls).
+                if (!isApplyingBonus.Value)
                 {
-                    CharacterBody attackerCharacterBody = damageInfo.attacker.GetComponent<CharacterBody>();
-                    CharacterBody victimCharacterBody = victim.GetComponent<CharacterBody>();
-                    
-                    if (attackerCharacterBody?.inventory)
+                    isApplyingBonus.Value = true;
+                    try
                     {
-                        int inventoryCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
-                        if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
+                        if (damageInfo.attacker)
                         {
-                            float extraTotal = ProcCoef.Value * inventoryCount;
-                            Utilities.SetValueInDictionary(ref totalProcCoef, attackerCharacterBody.master, extraTotal, totalProcCoefToken);
-                            damageInfo.procCoefficient += extraTotal;
+                            CharacterBody attackerCharacterBody = damageInfo.attacker.GetComponent<CharacterBody>();
+                            
+                            if (attackerCharacterBody?.inventory)
+                            {
+                                int inventoryCount = attackerCharacterBody.inventory.GetItemCountEffective(myItemDef.itemIndex);
+                                if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
+                                {
+                                    float extraTotal = ProcCoef.Value * inventoryCount;
+                                    Utilities.SetValueInDictionary(ref totalProcCoef, attackerCharacterBody.master, extraTotal, totalProcCoefToken);
+                                    damageInfo.procCoefficient += extraTotal;
+                                }
+                            }
                         }
+                        orig(self, damageInfo, victim);
+                    }
+                    finally
+                    {
+                        isApplyingBonus.Value = false;
                     }
                 }
-                orig(self, damageInfo, victim);
+                else
+                {
+                    // Nested call from proc resolution — skip bonus to prevent feedback loop
+                    orig(self, damageInfo, victim);
+                }
             };
         }
 

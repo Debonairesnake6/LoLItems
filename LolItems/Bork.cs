@@ -205,7 +205,7 @@ namespace LoLItems
                         if (inventoryCount > 0 && damageInfo.procCoefficient > 0)
                         {
 
-                            if (!victimCharacterBody.HasBuff(myTimerBuffDef))
+                            if (victimCharacterBody != null && victimCharacterBody.healthComponent != null && !victimCharacterBody.HasBuff(myTimerBuffDef))
                             {
                                 int currentBuffCount = victimCharacterBody.healthComponent.body.GetBuffCount(myCounterBuffDef);
                                 if (currentBuffCount < ProcForBigHit.Value - 1 && NetworkServer.active)

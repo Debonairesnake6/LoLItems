@@ -133,7 +133,7 @@ namespace LoLItems
 
         private static void Hooks()
         {
-            On.RoR2.GlobalEventManager.OnCharacterDeath += (orig, globalEventManager, damageReport) =>
+            On.RoR2.GlobalEventManager.HandleCharacterDeath += (orig, globalEventManager, damageReport) =>
             {
                 orig(globalEventManager, damageReport);
 
@@ -192,6 +192,7 @@ namespace LoLItems
                             onHitProc.damageColorIndex = DamageColorIndex.Item;
                             victimCharacterBody.healthComponent.TakeDamage(onHitProc);
                             Utilities.AddValueInDictionary(ref heartsteelBonusDamage, attackerCharacterBody.master, damage, heartsteelBonusDamageToken, false);
+                            // Log.LogInfo("Playing Heartsteel sound event " + triggerSoundEffectID + " on " + damageInfo.attacker.gameObject.name);
                             AkSoundEngine.PostEvent(triggerSoundEffectID, damageInfo.attacker.gameObject);
                         }
                     }

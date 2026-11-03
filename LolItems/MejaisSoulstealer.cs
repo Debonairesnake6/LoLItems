@@ -152,7 +152,7 @@ namespace LoLItems
         private static void Hooks()
         {
             // Do something on character death
-            On.RoR2.GlobalEventManager.OnCharacterDeath += (orig, globalEventManager, damageReport) =>
+            On.RoR2.GlobalEventManager.HandleCharacterDeath += (orig, globalEventManager, damageReport) =>
             {
                 orig(globalEventManager, damageReport);
 
@@ -166,9 +166,13 @@ namespace LoLItems
 					{
                         damageReport.attackerBody.AddTimedBuff(currentDuration, Duration.Value * inventoryCount);
                         if (damageReport.attackerBody.GetBuffCount(currentStacks) < MaxStacks.Value)
+                        {
                             damageReport.attackerBody.AddBuff(currentStacks);
                             if (damageReport.attackerBody.GetBuffCount(currentStacks) == MaxStacks.Value)
+                            {
                                 damageReport.attackerBody.AddBuff(maxedStacks);
+                            }
+                        }
 					}
                 }
             };
@@ -185,7 +189,6 @@ namespace LoLItems
                         if (buffCount > 0)
                         {
                             float extraDamage = damageInfo.damage * (buffCount * BonusDamagePercent.Value) / 100f;
-                            damageInfo.damage += extraDamage;
                             Utilities.AddValueInDictionary(ref bonusDamageDealt, attackerCharacterBody.master, extraDamage, bonusDamageDealtToken);
                         }
                     }
@@ -207,6 +210,12 @@ namespace LoLItems
                             
             if (characterBody.HasBuff(maxedStacks))
                 args.sprintSpeedAdd += MovementSpeed.Value / 100f;
+
+            int buffCount = characterBody.GetBuffCount(currentStacks.buffIndex);
+            if (buffCount > 0)
+            {
+                args.damageMultAdd += buffCount * (BonusDamagePercent.Value / 100f);
+            }
         }
 
         private static (string, string) GetDisplayInformation(CharacterMaster masterRef)

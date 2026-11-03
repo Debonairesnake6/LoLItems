@@ -113,8 +113,24 @@ namespace LoLItems
             if (count > 0)
             {
                 float cdr = Utilities.HyperbolicScale(count, CooldownReduction.Value / 100);
-                args.utilityCooldownMultAdd -= cdr;
-                args.secondaryCooldownMultAdd -= cdr;
+                // Cap cooldown reduction to prevent abilities from being frozen
+                // Maximum CDR is 90% (multiplier of 0.1 minimum)
+                float maxCdr = 0.9f;
+                cdr = Math.Min(cdr, maxCdr);
+
+                // Use cooldownMultiplier (value < 1 = shorter cooldowns)
+                // HyperbolicScale returns CDR percentage (0.09 at 1 item, 0.99 at 1000),
+                // so cooldownMultiplier = 1 - cdr to invert correctly.
+                // The IL hook uses Math.Max(0f, ...) on cooldownMultAdd/cooldownReductionMultAdd,
+                // so negative values would be clamped to 0 (no effect). cooldownMultiplier is correct.
+                args.utilitySkill.cooldownMultiplier = 1f - cdr;
+                args.secondarySkill.cooldownMultiplier = 1f - cdr;
+            }
+            else
+            {
+                // Reset cooldowns when item is removed
+                args.utilitySkill.cooldownMultiplier = 1f;
+                args.secondarySkill.cooldownMultiplier = 1f;
             }
         }
 

@@ -1,6 +1,7 @@
 using UnityEngine.Networking;
 using UnityEngine;
 using R2API;
+using R2API.Utils;
 using RoR2;
 using System.Collections.Generic;
 
@@ -16,7 +17,7 @@ namespace LoLItems
         {
             GameObject tmp = new GameObject("tmpLoLItemsNetworkObject");
             tmp.AddComponent<NetworkIdentity>();
-            CentralNetworkObject = tmp.InstantiateClone("LoLItemsUniqueClone");
+            CentralNetworkObject = PrefabAPI.InstantiateClone(tmp, "LoLItemsUniqueClone", true);
             GameObject.Destroy(tmp);
             CentralNetworkObject.AddComponent<MyNetworkComponent>();
         }
