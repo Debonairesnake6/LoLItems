@@ -26,6 +26,11 @@ Icon | Name | Tier | Description
 
 ## Changelog
 
+**1.4.1**
+* Disabled the debugging button to spawn in all of the items
+  * Credit to [TimeKP-sus](https://github.com/TimeKP-sus) on GitHub for reporting this
+  * https://github.com/Debonairesnake6/LoLItems/issues/57
+
 **1.4.0**
 * Updated to work with the Hallowed Concepts DLC
 * Fixed Rabadon's Deathcap, Imperial Mandate, and Mejai's Soulstealer doing zero damage
